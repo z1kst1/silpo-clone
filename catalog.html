@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Каталог</title>
+
+    <link rel="stylesheet" href="css/style.css" />
+
+    <style>
+      .catalog-container {
+        display: flex;
+        padding: 20px;
+      }
+
+      .filters {
+        width: 200px;
+      }
+
+      .products {
+        flex: 1;
+      }
+
+      .product-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- HEADER -->
+    <header class="header">
+      <div class="logo">Silpo</div>
+
+      <nav class="nav">
+        <a href="index.html">Головна</a>
+        <a href="catalog.html">Каталог</a>
+      </nav>
+
+      <div class="user-actions">
+        <a href="login.html"><button>Увійти</button></a>
+        <a href="register.html"><button>Реєстрація</button></a>
+      </div>
+    </header>
+
+    <!-- CATALOG -->
+
+    <div class="catalog-container">
+      <!-- FILTERS -->
+      <div class="filters">
+        <h3>Категорії</h3>
+
+        <p onclick="filterCategory('all')">Всі</p>
+        <p onclick="filterCategory('fruits')">Фрукти</p>
+        <p onclick="filterCategory('milk')">Молочні</p>
+      </div>
+
+      <!-- PRODUCTS -->
+      <div class="products">
+        <h2>Каталог товарів</h2>
+
+        <div class="product-grid" id="productList">
+          <div class="product-card" data-category="fruits">
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/1/15/Red_Apple.jpg"
+            />
+            <h3>Яблука</h3>
+            <p>25 грн</p>
+            <button onclick="addToCart('Яблука')">Додати</button>
+          </div>
+
+          <div class="product-card" data-category="milk">
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/7/7a/Bottle_of_milk.jpg"
+            />
+            <h3>Молоко</h3>
+            <p>32 грн</p>
+            <button onclick="addToCart('Молоко')">Додати</button>
+          </div>
+
+          <div class="product-card" data-category="fruits">
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/6/6f/Banana.jpg"
+            />
+            <h3>Банани</h3>
+            <p>40 грн</p>
+            <button onclick="addToCart('Банани')">Додати</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/cart.js"></script>
+
+    <script>
+      function filterCategory(category) {
+        const products = document.querySelectorAll(".product-card");
+
+        products.forEach((p) => {
+          if (category === "all") {
+            p.style.display = "block";
+          } else {
+            p.style.display =
+              p.dataset.category === category ? "block" : "none";
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

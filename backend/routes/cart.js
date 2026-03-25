@@ -5,9 +5,9 @@ const auth = require("../middleware/authMiddleware");
 let carts = {}; // userId -> cart
 
 // GET CART
-router.get("/", auth, (req, res) => {
-  const userId = req.user.id;
-  res.json(carts[userId] || []);
+router.get("/", (req, res) => {
+  const userId = req.query.userId;
+  res.json({ cart: carts[userId] || [] });
 });
 
 // ADD ITEM
