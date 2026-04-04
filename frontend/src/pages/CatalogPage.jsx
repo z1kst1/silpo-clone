@@ -1,25 +1,47 @@
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
-import products from "../data/products";
 import ProductCard from "../components/ProductCard";
+import useProducts from "../hooks/useProducts";
 
 export default function CatalogPage() {
+  const { products } = useProducts();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const initialSearch = searchParams.get("search") || "";
+  const initialCategory = searchParams.get("category") || "";
+
   const [searchValue, setSearchValue] = useState(initialSearch);
-  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [selectedCategories, setSelectedCategories] = useState(
+    initialCategory ? [initialCategory] : []
+  );
   const [selectedPriceRange, setSelectedPriceRange] = useState("all");
   const [sortType, setSortType] = useState("default");
 
   const categories = [...new Set(products.map((product) => product.category))];
 
+  function updateParams(nextSearch, nextCategories) {
+    const params = new URLSearchParams();
+
+    if (nextSearch.trim()) {
+      params.set("search", nextSearch.trim());
+    }
+
+    if (nextCategories.length === 1) {
+      params.set("category", nextCategories[0]);
+    }
+
+    setSearchParams(params);
+  }
+
   function handleCategoryChange(category) {
-    setSelectedCategories((prev) =>
-      prev.includes(category)
+    setSelectedCategories((prev) => {
+      const nextCategories = prev.includes(category)
         ? prev.filter((item) => item !== category)
-        : [...prev, category]
-    );
+        : [...prev, category];
+
+      updateParams(searchValue, nextCategories);
+      return nextCategories;
+    });
   }
 
   function handlePriceRangeChange(event) {
@@ -32,14 +54,7 @@ export default function CatalogPage() {
 
   function handleSearchSubmit(event) {
     event.preventDefault();
-
-    const trimmedValue = searchValue.trim();
-
-    if (trimmedValue) {
-      setSearchParams({ search: trimmedValue });
-    } else {
-      setSearchParams({});
-    }
+    updateParams(searchValue, selectedCategories);
   }
 
   function clearFilters() {
@@ -53,7 +68,7 @@ export default function CatalogPage() {
   const filteredProducts = useMemo(() => {
     let result = [...products];
 
-    const currentSearch = (searchParams.get("search") || "").toLowerCase().trim();
+    const currentSearch = searchValue.toLowerCase().trim();
 
     if (currentSearch) {
       result = result.filter(
@@ -97,7 +112,7 @@ export default function CatalogPage() {
     }
 
     return result;
-  }, [searchParams, selectedCategories, selectedPriceRange, sortType]);
+  }, [products, searchValue, selectedCategories, selectedPriceRange, sortType]);
 
   return (
     <section className="catalog-page">
@@ -209,6 +224,21 @@ export default function CatalogPage() {
               </select>
             </div>
           </div>
+
+          {selectedCategories.length > 0 && (
+            <div className="catalog-active-filters">
+              {selectedCategories.map((category) => (
+                <button
+                  key={category}
+                  type="button"
+                  className="catalog-chip"
+                  onClick={() => handleCategoryChange(category)}
+                >
+                  {category} ×
+                </button>
+              ))}
+            </div>
+          )}
 
           <p className="catalog-results-count">
             Знайдено товарів: <strong>{filteredProducts.length}</strong>

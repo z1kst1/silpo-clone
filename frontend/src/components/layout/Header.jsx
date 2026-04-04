@@ -1,9 +1,11 @@
 import { Link, useNavigate } from "react-router";
 import { useState } from "react";
+import { useCart } from "../../context/CartContext";
 
 export default function Header() {
   const [searchValue, setSearchValue] = useState("");
   const navigate = useNavigate();
+  const { cartCount } = useCart();
 
   function handleSubmit(event) {
     event.preventDefault();
@@ -19,52 +21,35 @@ export default function Header() {
 
   return (
     <header className="header">
-      <div className="header-top">
-        <div className="header-top__left">
-          <span>Київ</span>
-          <span>Доставка з 10:00 до 22:00</span>
-        </div>
+      <Link to="/" className="logo">
+        Silpo
+      </Link>
 
-        <div className="header-top__right">
-          <Link to="/login">Увійти</Link>
-          <Link to="/register">Реєстрація</Link>
-        </div>
-      </div>
-
-      <div className="header-main">
-        <Link to="/" className="logo">
-          Сільпо
-        </Link>
-
-        <form className="search-box" onSubmit={handleSubmit}>
-          <input
-            type="text"
-            placeholder="Пошук товарів, категорій, брендів..."
-            value={searchValue}
-            onChange={(event) => setSearchValue(event.target.value)}
-          />
-          <button type="submit">Знайти</button>
-        </form>
-
-        <div className="header-buttons">
-          <Link to="/catalog" className="header-btn header-btn--light">
-            Каталог
-          </Link>
-
-          <Link to="/cart" className="header-btn header-btn--green">
-            Кошик
-          </Link>
-        </div>
-      </div>
-
-      <nav className="header-nav">
+      <nav className="nav">
         <Link to="/">Головна</Link>
-        <Link to="/catalog">Продукти</Link>
+        <Link to="/catalog">Каталог</Link>
         <a href="#">Акції</a>
         <a href="#">Доставка</a>
-        <a href="#">Рецепти</a>
-        <a href="#">Новинки</a>
       </nav>
+
+      <form className="search" onSubmit={handleSubmit}>
+        <input
+          type="text"
+          placeholder="Пошук товарів..."
+          value={searchValue}
+          onChange={(event) => setSearchValue(event.target.value)}
+        />
+      </form>
+
+      <div className="user-actions">
+        <Link to="/login" className="header-button header-button--light">
+          Увійти
+        </Link>
+
+        <Link to="/cart" className="header-button header-button--green">
+          Кошик ({cartCount})
+        </Link>
+      </div>
     </header>
   );
 }
