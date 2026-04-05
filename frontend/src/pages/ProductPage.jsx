@@ -1,21 +1,28 @@
 import { Link, useParams } from "react-router";
 import { useMemo, useState } from "react";
-import products from "../data/products";
 import ProductCard from "../components/ProductCard";
+import { useCart } from "../context/CartContext";
+import useProducts from "../hooks/useProducts";
 
 export default function ProductPage() {
   const { id } = useParams();
   const [quantity, setQuantity] = useState(1);
+  const { addToCart } = useCart();
+  const { products, loading } = useProducts();
 
-  const product = products.find((item) => item.id === Number(id));
+  const product = products.find((item) => Number(item.id) === Number(id));
 
   const relatedProducts = useMemo(() => {
     if (!product) return [];
 
     return products
-      .filter((item) => item.category === product.category && item.id !== product.id)
+      .filter(
+        (item) =>
+          item.category === product.category &&
+          Number(item.id) !== Number(product.id)
+      )
       .slice(0, 4);
-  }, [product]);
+  }, [product, products]);
 
   function increaseQuantity() {
     setQuantity((prev) => prev + 1);
@@ -23,6 +30,22 @@ export default function ProductPage() {
 
   function decreaseQuantity() {
     setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
+  }
+
+  function handleAddToCart() {
+    if (!product) return;
+    addToCart(product, quantity);
+  }
+
+  if (loading) {
+    return (
+      <section className="product-page">
+        <div className="product-not-found">
+          <h1>Завантаження товару...</h1>
+          <p>Зачекай кілька секунд, дані підтягуються.</p>
+        </div>
+      </section>
+    );
   }
 
   if (!product) {
@@ -73,7 +96,11 @@ export default function ProductPage() {
                 </button>
               </div>
 
-              <button type="button" className="green-button">
+              <button
+                type="button"
+                className="green-button product-details__button"
+                onClick={handleAddToCart}
+              >
                 Додати в кошик
               </button>
             </div>

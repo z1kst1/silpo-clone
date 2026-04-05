@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import defaultProducts from "../data/products";
+import { getProducts } from "../api/products";
 
 const STORAGE_KEY = "silpo-products";
 
@@ -29,10 +30,30 @@ function getInitialProducts() {
 
 export default function useProducts() {
   const [products, setProducts] = useState(getInitialProducts);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
-  }, [products]);
+    async function loadProducts() {
+      try {
+        const apiProducts = await getProducts();
+
+        if (Array.isArray(apiProducts) && apiProducts.length > 0) {
+          setProducts(apiProducts);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(apiProducts));
+        } else {
+          const localProducts = getInitialProducts();
+          setProducts(localProducts);
+        }
+      } catch {
+        const localProducts = getInitialProducts();
+        setProducts(localProducts);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadProducts();
+  }, []);
 
   function addProduct(productData) {
     const newProduct = {
@@ -41,24 +62,35 @@ export default function useProducts() {
       price: Number(productData.price),
     };
 
-    setProducts((prev) => [newProduct, ...prev]);
+    setProducts((prev) => {
+      const updatedProducts = [newProduct, ...prev];
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedProducts));
+      return updatedProducts;
+    });
   }
 
   function updateProduct(updatedProduct) {
-    setProducts((prev) =>
-      prev.map((product) =>
+    setProducts((prev) => {
+      const updatedProducts = prev.map((product) =>
         product.id === updatedProduct.id
           ? {
               ...updatedProduct,
               price: Number(updatedProduct.price),
             }
           : product
-      )
-    );
+      );
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedProducts));
+      return updatedProducts;
+    });
   }
 
   function deleteProduct(productId) {
-    setProducts((prev) => prev.filter((product) => product.id !== productId));
+    setProducts((prev) => {
+      const updatedProducts = prev.filter((product) => product.id !== productId);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedProducts));
+      return updatedProducts;
+    });
   }
 
   function resetProducts() {
@@ -68,6 +100,7 @@ export default function useProducts() {
 
   return {
     products,
+    loading,
     addProduct,
     updateProduct,
     deleteProduct,

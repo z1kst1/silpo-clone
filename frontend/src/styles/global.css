@@ -1158,4 +1158,15 @@ textarea {
   .checkout-label--full {
     grid-column: auto;
   }
+  .auth-success-message {
+  margin-top: 16px;
+  color: #0d6c31;
+  font-weight: 700;
+}
+
+.auth-error-message {
+  margin-top: 16px;
+  color: #c63f3f;
+  font-weight: 700;
+}
 }

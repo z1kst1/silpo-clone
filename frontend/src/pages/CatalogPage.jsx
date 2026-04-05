@@ -4,7 +4,7 @@ import ProductCard from "../components/ProductCard";
 import useProducts from "../hooks/useProducts";
 
 export default function CatalogPage() {
-  const { products } = useProducts();
+  const { products, loading } = useProducts();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const initialSearch = searchParams.get("search") || "";
@@ -240,21 +240,30 @@ export default function CatalogPage() {
             </div>
           )}
 
-          <p className="catalog-results-count">
-            Знайдено товарів: <strong>{filteredProducts.length}</strong>
-          </p>
-
-          {filteredProducts.length === 0 ? (
+          {loading ? (
             <div className="catalog-empty">
-              <h2>Нічого не знайдено</h2>
-              <p>Спробуй змінити пошук або очистити фільтри.</p>
+              <h2>Завантаження товарів...</h2>
+              <p>Зачекай кілька секунд, дані підтягуються.</p>
             </div>
           ) : (
-            <div className="catalog-grid">
-              {filteredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
+            <>
+              <p className="catalog-results-count">
+                Знайдено товарів: <strong>{filteredProducts.length}</strong>
+              </p>
+
+              {filteredProducts.length === 0 ? (
+                <div className="catalog-empty">
+                  <h2>Нічого не знайдено</h2>
+                  <p>Спробуй змінити пошук або очистити фільтри.</p>
+                </div>
+              ) : (
+                <div className="catalog-grid">
+                  {filteredProducts.map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
