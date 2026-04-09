@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Реєстрація</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+
+  <body>
+    <h2 style="text-align: center; margin-top: 50px">Реєстрація</h2>
+
+    <div style="width: 300px; margin: 30px auto">
+      <input
+        id="email"
+        type="email"
+        placeholder="Email"
+        style="width: 100%; padding: 10px; margin-bottom: 10px"
+      />
+      <input
+        id="password"
+        type="password"
+        placeholder="Пароль"
+        style="width: 100%; padding: 10px; margin-bottom: 10px"
+      />
+
+      <button onclick="register()" style="width: 100%; padding: 10px">
+        Зареєструватися
+      </button>
+
+      <p id="message" style="text-align: center; margin-top: 10px"></p>
+    </div>
+
+    <script src="js/register.js"></script>
+  </body>
+</html>
