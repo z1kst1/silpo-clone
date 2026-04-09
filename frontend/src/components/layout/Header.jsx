@@ -1,54 +1,49 @@
-import { Link, useNavigate } from "react-router";
-import { useState } from "react";
-import { useCart } from "../../context/CartContext";
+import { Link } from "react-router";
 
 export default function Header() {
-  const [searchValue, setSearchValue] = useState("");
-  const navigate = useNavigate();
-  const { cartCount } = useCart();
-
-  function handleSubmit(event) {
-    event.preventDefault();
-
-    const trimmedValue = searchValue.trim();
-
-    if (trimmedValue) {
-      navigate(`/catalog?search=${encodeURIComponent(trimmedValue)}`);
-    } else {
-      navigate("/catalog");
-    }
-  }
-
   return (
-    <header className="header">
-      <Link to="/" className="logo">
-        Silpo
-      </Link>
+    <header className="kalpo-header">
+      <div className="kalpo-header__inner">
+        <div className="kalpo-header__left">
+          <button className="kalpo-header__burger" type="button">
+            ☰
+          </button>
 
-      <nav className="nav">
-        <Link to="/">Головна</Link>
-        <Link to="/catalog">Каталог</Link>
-        <a href="#">Акції</a>
-        <a href="#">Доставка</a>
-      </nav>
+          <Link to="/" className="kalpo-header__logo">
+            Kalpo
+          </Link>
 
-      <form className="search" onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Пошук товарів..."
-          value={searchValue}
-          onChange={(event) => setSearchValue(event.target.value)}
-        />
-      </form>
+          <button className="kalpo-header__catalog" type="button">
+            Всі товари
+          </button>
+        </div>
 
-      <div className="user-actions">
-        <Link to="/login" className="header-button header-button--light">
-          Увійти
-        </Link>
+        <div className="kalpo-header__search">
+          <input type="text" placeholder="Я шукаю..." />
+        </div>
 
-        <Link to="/cart" className="header-button header-button--green">
-          Кошик ({cartCount})
-        </Link>
+        <div className="kalpo-header__right">
+          <div className="kalpo-header__delivery">
+            <span className="kalpo-header__delivery-icon">📍</span>
+            <div>
+              <div className="kalpo-header__delivery-title">Доставка</div>
+              <div className="kalpo-header__delivery-text">
+                Біла Церква, Таращанська 161
+              </div>
+            </div>
+          </div>
+
+          <Link to="/login" className="kalpo-header__action">
+            Увійти
+          </Link>
+
+          <Link
+            to="/cart"
+            className="kalpo-header__action kalpo-header__action--cart"
+          >
+            Кошик
+          </Link>
+        </div>
       </div>
     </header>
   );
