@@ -1,21 +1,34 @@
 import { Link } from "react-router";
 
+const timeSlots = [
+  "до 69 хв",
+  "18:00 - 19:30",
+  "19:30 - 21:00",
+  "21:00 - 22:30",
+  "Завтра, 09:00 - 10:30",
+  "Інший час",
+];
+
 export default function Header() {
   return (
     <header className="kalpo-header">
       <div className="kalpo-header__inner">
         <div className="kalpo-header__left">
-          <button className="kalpo-header__burger" type="button">
+          <button type="button" className="kalpo-header__burger">
             ☰
           </button>
 
-          <Link to="/" className="kalpo-header__logo">
-            Kalpo
+          <Link to="/" className="kalpo-header__logo-link">
+            <img
+              src="/images/figma/logo/logo.svg"
+              alt="Kalpo"
+              className="kalpo-header__logo-image"
+            />
           </Link>
 
-          <button className="kalpo-header__catalog" type="button">
+          <Link to="/catalog" className="kalpo-header__catalog">
             Всі товари
-          </button>
+          </Link>
         </div>
 
         <div className="kalpo-header__search">
@@ -24,7 +37,7 @@ export default function Header() {
 
         <div className="kalpo-header__right">
           <div className="kalpo-header__delivery">
-            <span className="kalpo-header__delivery-icon">📍</span>
+            <span className="kalpo-header__delivery-icon">⌖</span>
             <div>
               <div className="kalpo-header__delivery-title">Доставка</div>
               <div className="kalpo-header__delivery-text">
@@ -44,6 +57,20 @@ export default function Header() {
             Кошик
           </Link>
         </div>
+      </div>
+
+      <div className="kalpo-header__slots">
+        {timeSlots.map((slot, index) => (
+          <button
+            key={slot}
+            type="button"
+            className={`kalpo-header__slot-button ${
+              index === 0 ? "kalpo-header__slot-button--accent" : ""
+            }`}
+          >
+            {slot}
+          </button>
+        ))}
       </div>
     </header>
   );

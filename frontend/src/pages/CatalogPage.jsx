@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
 import ProductCard from "../components/ProductCard";
 import useProducts from "../hooks/useProducts";
+import "../styles/kalpo-home.css";
 
 export default function CatalogPage() {
   const { products, loading } = useProducts();
@@ -108,7 +109,7 @@ export default function CatalogPage() {
     }
 
     if (sortType === "nameAsc") {
-      result.sort((a, b) => a.name.localeCompare(b.name));
+      result.sort((a, b) => a.name.localeCompare(b.name, "uk"));
     }
 
     return result;
