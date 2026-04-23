@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router";
 
 const timeSlots = [
@@ -10,13 +11,65 @@ const timeSlots = [
 ];
 
 export default function Header() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  function toggleMenu() {
+    setIsMenuOpen((prev) => !prev);
+  }
+
+  function closeMenu() {
+    setIsMenuOpen(false);
+  }
+
   return (
     <header className="kalpo-header">
       <div className="kalpo-header__inner">
         <div className="kalpo-header__left">
-          <button type="button" className="kalpo-header__burger">
-            ☰
-          </button>
+          <div className="kalpo-header__burger-wrap">
+            <button
+              type="button"
+              className="kalpo-header__burger"
+              onClick={toggleMenu}
+            >
+              ☰
+            </button>
+
+            {isMenuOpen && (
+              <div className="kalpo-header__menu">
+                <Link
+                  to="/"
+                  className="kalpo-header__menu-link"
+                  onClick={closeMenu}
+                >
+                  Головна
+                </Link>
+
+                <Link
+                  to="/catalog"
+                  className="kalpo-header__menu-link"
+                  onClick={closeMenu}
+                >
+                  Каталог
+                </Link>
+
+                <Link
+                  to="/login"
+                  className="kalpo-header__menu-link"
+                  onClick={closeMenu}
+                >
+                  Увійти
+                </Link>
+
+                <Link
+                  to="/cart"
+                  className="kalpo-header__menu-link"
+                  onClick={closeMenu}
+                >
+                  Кошик
+                </Link>
+              </div>
+            )}
+          </div>
 
           <Link to="/" className="kalpo-header__logo-link">
             <img

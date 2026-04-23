@@ -2,20 +2,27 @@ import { Link } from "react-router";
 import ProductCard from "../components/ProductCard";
 import useProducts from "../hooks/useProducts";
 
-const quickButtons = [
-  "до 60 хв",
-  "18:00 - 19:30",
-  "19:30 - 21:00",
-  "21:00 - 22:30",
-  "Завтра, 09:00 - 10:30",
-  "Інший час",
-];
-
-const sideCards = [
-  "Мої пропозиції",
-  "Всі акції",
-  "Цінотижики",
-  "Рецепти",
+const promoCards = [
+  {
+    id: 1,
+    image: "/images/figma/cards/offers-card.png",
+    alt: "Мої пропозиції",
+  },
+  {
+    id: 2,
+    image: "/images/figma/cards/sales-card.png",
+    alt: "Всі акції",
+  },
+  {
+    id: 3,
+    image: "/images/figma/cards/weekly-card.png",
+    alt: "Цінотижики",
+  },
+  {
+    id: 4,
+    image: "/images/figma/cards/recipes-card.png",
+    alt: "Рецепти",
+  },
 ];
 
 const recipes = [
@@ -65,14 +72,6 @@ export default function HomePage() {
 
   return (
     <div className="kalpo-home">
-      <section className="kalpo-slots">
-        {quickButtons.map((button) => (
-          <button key={button} type="button" className="kalpo-slots__button">
-            {button}
-          </button>
-        ))}
-      </section>
-
       <section className="kalpo-hero">
         <div className="kalpo-hero__banner">
           <button type="button" className="kalpo-hero__arrow">
@@ -93,11 +92,18 @@ export default function HomePage() {
         </div>
 
         <div className="kalpo-hero__cards">
-          {sideCards.map((card) => (
-            <div key={card} className="kalpo-hero__mini-card">
-              <span>{card}</span>
-              <div className="kalpo-hero__dots" />
-            </div>
+          {promoCards.map((card) => (
+            <button
+              key={card.id}
+              type="button"
+              className="kalpo-hero__promo-card"
+            >
+              <img
+                src={card.image}
+                alt={card.alt}
+                className="kalpo-hero__promo-card-image"
+              />
+            </button>
           ))}
         </div>
       </section>

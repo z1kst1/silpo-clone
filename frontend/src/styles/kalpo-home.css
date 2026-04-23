@@ -293,8 +293,8 @@
 /* header */
 
 .kalpo-header {
-  background: #e7d9b3;
-  border-bottom: 1px solid #d8c79b;
+  background: #e9ddb8;
+  border-bottom: 1px solid #d8ca9f;
   position: sticky;
   top: 0;
   z-index: 50;
@@ -303,10 +303,10 @@
 .kalpo-header__inner {
   max-width: 1320px;
   margin: 0 auto;
-  padding: 18px 24px 14px;
+  padding: 12px 24px 10px;
   display: grid;
   grid-template-columns: auto 1fr auto;
-  gap: 22px;
+  gap: 18px;
   align-items: center;
 }
 
@@ -314,22 +314,58 @@
 .kalpo-header__right {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
+}
+
+.kalpo-header__burger-wrap {
+  position: relative;
 }
 
 .kalpo-header__burger {
-  width: 54px;
-  height: 54px;
-  border: 1px solid #ccb98c;
-  background: #f8f0dc;
+  width: 52px;
+  height: 52px;
+  border: 1px solid #ccb98d;
+  background: #f7efd9;
   border-radius: 50%;
   padding: 0;
-  font-size: 24px;
-  color: #6e2e1d;
+  font-size: 22px;
+  color: #8c2f23;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  flex-shrink: 0;
+}
+
+.kalpo-header__menu {
+  position: absolute;
+  top: 60px;
+  left: 0;
+  min-width: 220px;
+  background: #fbf7ee;
+  border: 1px solid #d8ca9f;
+  border-radius: 18px;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.12);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 100;
+}
+
+.kalpo-header__menu-link {
+  display: block;
+  text-decoration: none;
+  color: #5b3324;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 12px 14px;
+  border-radius: 12px;
+  transition: 0.2s ease;
+}
+
+.kalpo-header__menu-link:hover {
+  background: #f1e6cd;
 }
 
 .kalpo-header__logo-link {
@@ -339,40 +375,43 @@
 }
 
 .kalpo-header__logo-image {
-  height: 54px;
+  height: 58px;
   width: auto;
   display: block;
 }
 
 .kalpo-header__catalog,
 .kalpo-header__action {
-  min-height: 48px;
-  padding: 0 22px;
-  border: 1px solid #ccb98c;
+  min-height: 40px;
+  padding: 0 18px;
+  border: 1px solid #c94939;
   border-radius: 999px;
-  background: #f8f0dc;
-  color: #5a3424;
+  background: #f8f1dc;
+  color: #5d2f24;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   text-decoration: none;
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
   transition: 0.2s ease;
 }
 
 .kalpo-header__catalog:hover,
 .kalpo-header__action:hover {
-  background: #f3e7cf;
+  background: #f4ead1;
 }
 
 .kalpo-header__action--cart {
-  background: #d9b58e;
-  border-color: #d9b58e;
+  background: linear-gradient(90deg, #e4c39f 0%, #d6ae84 100%);
+  border-color: transparent;
+  padding: 0 22px;
 }
 
 .kalpo-header__action--cart:hover {
-  background: #cea579;
+  background: linear-gradient(90deg, #ddb88f 0%, #cfa276 100%);
 }
 
 .kalpo-header__search {
@@ -381,67 +420,70 @@
 
 .kalpo-header__search input {
   width: 100%;
-  height: 52px;
+  height: 46px;
   border-radius: 999px;
-  border: 1px solid #beab81;
-  background: #fff8ee;
-  padding: 0 22px;
+  border: 1px solid #c94939;
+  background: #fbf7ee;
+  padding: 0 18px;
   outline: none;
-  font-size: 16px;
-  color: #4d3828;
+  font-size: 14px;
+  color: #5a3424;
 }
 
 .kalpo-header__search input::placeholder {
-  color: #8d7a68;
+  color: #a1988d;
 }
 
 .kalpo-header__delivery {
   display: flex;
   align-items: center;
-  gap: 10px;
-  color: #5a3c2d;
+  gap: 8px;
+  color: #5a3424;
 }
 
 .kalpo-header__delivery-icon {
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1;
+  color: #c94939;
 }
 
 .kalpo-header__delivery-title {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
-  line-height: 1.1;
+  line-height: 1.05;
 }
 
 .kalpo-header__delivery-text {
-  font-size: 13px;
-  line-height: 1.2;
+  font-size: 12px;
+  line-height: 1.1;
 }
 
 .kalpo-header__slots {
   max-width: 1320px;
   margin: 0 auto;
-  padding: 0 24px 16px;
+  padding: 6px 24px 14px;
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
 }
 
 .kalpo-header__slot-button {
-  min-height: 48px;
-  padding: 0 20px;
-  border: 1px solid #ccb98c;
+  min-height: 36px;
+  padding: 0 16px;
+  border: 1px solid #bca97f;
   border-radius: 999px;
-  background: #f8f0dc;
-  color: #5a3424;
-  font-size: 16px;
+  background: #f5eed9;
+  color: #5b3324;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
+  line-height: 1;
+  white-space: nowrap;
   transition: 0.2s ease;
 }
 
 .kalpo-header__slot-button:hover {
-  background: #f3e7cf;
+  background: #f1e6cd;
 }
 
 .kalpo-header__slot-button--accent {
@@ -450,6 +492,7 @@
 
 .kalpo-header__slot-button--accent::before {
   content: "⚡ ";
+  color: #c94939;
 }
 
 /* catalog page */
@@ -850,4 +893,26 @@
   .product-card__image {
     height: 190px;
   }
+
+  .kalpo-hero__promo-card {
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 20px;
+  overflow: hidden;
+  line-height: 0;
+  transition: transform 0.2s ease;
+}
+
+.kalpo-hero__promo-card:hover {
+  transform: translateY(-2px);
+}
+
+.kalpo-hero__promo-card-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 20px;
+}
 }
