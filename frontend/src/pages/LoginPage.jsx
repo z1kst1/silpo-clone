@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router";
 import { loginUser } from "../api/auth";
+import "../styles/kalpo-home.css";
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -8,6 +9,7 @@ export default function LoginPage() {
     password: "",
   });
 
+  const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -29,46 +31,35 @@ export default function LoginPage() {
 
     try {
       const data = await loginUser(formData);
-
       localStorage.setItem("silpo-user", JSON.stringify(data));
       setMessage("Вхід виконано успішно.");
     } catch {
-      setError(
-        "Бекенд для входу ще не підключений або виникла помилка авторизації."
-      );
+      setError("Бекенд для входу ще не підключений або виникла помилка.");
     } finally {
       setIsSubmitting(false);
     }
   }
 
   return (
-    <section className="auth-page">
-      <div className="auth-wrapper">
-        <div className="auth-info">
-          <span className="auth-badge">Особистий кабінет</span>
-          <h1>Увійди в акаунт Silpo</h1>
-          <p>
-            Авторизуйся, щоб переглядати свої замовлення, зберігати товари та
-            швидше оформлювати покупки.
-          </p>
+    <section className="auth-modal-page">
+      <div className="auth-modal-backdrop">
+        <div className="auth-modal-card">
+          <Link to="/" className="auth-modal-close">
+            ×
+          </Link>
 
-          <ul className="auth-benefits">
-            <li>доступ до історії замовлень</li>
-            <li>зручніше оформлення покупок</li>
-            <li>швидкий доступ до профілю</li>
-          </ul>
-        </div>
+          <div className="auth-modal-logo">
+            <img src="/images/figma/logo/logo.svg" alt="Kalpo" />
+          </div>
 
-        <div className="auth-card">
-          <h2>Вхід</h2>
+          <h1 className="auth-modal-title">Вхід</h1>
 
-          <form className="auth-form" onSubmit={handleSubmit}>
-            <label className="auth-label">
+          <form className="auth-modal-form" onSubmit={handleSubmit}>
+            <label>
               Email
               <input
                 type="email"
                 name="email"
-                className="auth-input"
                 placeholder="example@gmail.com"
                 value={formData.email}
                 onChange={handleChange}
@@ -76,30 +67,53 @@ export default function LoginPage() {
               />
             </label>
 
-            <label className="auth-label">
+            <label>
               Пароль
-              <input
-                type="password"
-                name="password"
-                className="auth-input"
-                placeholder="Введіть пароль"
-                value={formData.password}
-                onChange={handleChange}
-                required
-              />
+              <div style={{ position: "relative", width: "100%" }}>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Введіть пароль"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  style={{ paddingRight: "42px" }}
+                />
+
+                <span
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  style={{
+                    position: "absolute",
+                    right: "12px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    lineHeight: "1",
+                    color: "#555",
+                    userSelect: "none",
+                  }}
+                >
+                  {showPassword ? "🙈" : "👁"}
+                </span>
+              </div>
             </label>
 
-            <button type="submit" className="green-button auth-submit" disabled={isSubmitting}>
+            <button type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Завантаження..." : "Увійти"}
             </button>
           </form>
 
-          {message && <p className="auth-success-message">{message}</p>}
-          {error && <p className="auth-error-message">{error}</p>}
+          {message && <p className="auth-modal-success">{message}</p>}
+          {error && <p className="auth-modal-error">{error}</p>}
 
-          <div className="auth-links">
-            <Link to="/register">Ще не маєш акаунта? Зареєструватися</Link>
-          </div>
+          <p className="auth-modal-bottom">
+            Ще не маєш акаунта? <Link to="/register">Зареєструватися</Link>
+          </p>
+
+          <button type="button" className="auth-modal-help">
+            Допомога
+          </button>
         </div>
       </div>
     </section>

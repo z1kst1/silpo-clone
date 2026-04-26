@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router";
 import { registerUser } from "../api/auth";
+import "../styles/kalpo-home.css";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -10,9 +11,18 @@ export default function RegisterPage() {
     confirmPassword: "",
   });
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isFormFilled =
+    formData.name &&
+    formData.email &&
+    formData.password &&
+    formData.confirmPassword;
 
   function handleChange(event) {
     const { name, value } = event.target;
@@ -47,99 +57,130 @@ export default function RegisterPage() {
       localStorage.setItem("silpo-user", JSON.stringify(data));
       setMessage("Реєстрація пройшла успішно.");
     } catch {
-      setError(
-        "Бекенд для реєстрації ще не підключений або виникла помилка створення акаунта."
-      );
+      setError("Бекенд для реєстрації ще не підключений або виникла помилка.");
     } finally {
       setIsSubmitting(false);
     }
   }
 
   return (
-    <section className="auth-page">
-      <div className="auth-wrapper">
-        <div className="auth-info">
-          <span className="auth-badge">Новий акаунт</span>
-          <h1>Створи акаунт Silpo</h1>
-          <p>
-            Після реєстрації ти зможеш швидше оформлювати замовлення, переглядати
-            історію покупок і користуватися особистим кабінетом.
-          </p>
+    <section className="auth-modal-page">
+      <div className="auth-modal-backdrop">
+        <div className="auth-modal-card auth-modal-card--register">
+          <Link to="/" className="auth-modal-close">
+            ×
+          </Link>
 
-          <ul className="auth-benefits">
-            <li>збереження контактних даних</li>
-            <li>доступ до історії замовлень</li>
-            <li>зручніше оформлення покупок</li>
-          </ul>
-        </div>
+          <div className="auth-modal-logo">
+            <img src="/images/figma/logo/logo.svg" alt="Kalpo" />
+          </div>
 
-        <div className="auth-card">
-          <h2>Реєстрація</h2>
+          <h1 className="auth-modal-title">Реєстрація</h1>
 
-          <form className="auth-form" onSubmit={handleSubmit}>
-            <label className="auth-label">
+          <form className="auth-modal-form" onSubmit={handleSubmit}>
+            <label>
               Ім’я
               <input
                 type="text"
                 name="name"
-                className="auth-input"
-                placeholder="Введіть ім’я"
+                placeholder="Вкажіть ваше ім’я"
                 value={formData.name}
                 onChange={handleChange}
                 required
               />
             </label>
 
-            <label className="auth-label">
+            <label>
               Email
               <input
                 type="email"
                 name="email"
-                className="auth-input"
-                placeholder="example@gmail.com"
+                placeholder="Вкажіть ваш email"
                 value={formData.email}
                 onChange={handleChange}
                 required
               />
             </label>
 
-            <label className="auth-label">
+            <label>
               Пароль
-              <input
-                type="password"
-                name="password"
-                className="auth-input"
-                placeholder="Введіть пароль"
-                value={formData.password}
-                onChange={handleChange}
-                required
-              />
+              <div style={{ position: "relative", width: "100%" }}>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Вкажіть ваш пароль"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  style={{ paddingRight: "42px" }}
+                />
+
+                <span
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  style={{
+                    position: "absolute",
+                    right: "12px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    lineHeight: "1",
+                    color: "#555",
+                    userSelect: "none",
+                  }}
+                >
+                  👁
+                </span>
+              </div>
             </label>
 
-            <label className="auth-label">
+            <label>
               Підтвердження пароля
-              <input
-                type="password"
-                name="confirmPassword"
-                className="auth-input"
-                placeholder="Повторіть пароль"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                required
-              />
+              <div style={{ position: "relative", width: "100%" }}>
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  placeholder="Повторіть пароль"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  required
+                  style={{ paddingRight: "42px" }}
+                />
+
+                <span
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  style={{
+                    position: "absolute",
+                    right: "12px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    lineHeight: "1",
+                    color: "#555",
+                    userSelect: "none",
+                  }}
+                >
+                  👁
+                </span>
+              </div>
             </label>
 
-            <button type="submit" className="green-button auth-submit" disabled={isSubmitting}>
+            <button type="submit" disabled={isSubmitting || !isFormFilled}>
               {isSubmitting ? "Завантаження..." : "Зареєструватися"}
             </button>
           </form>
 
-          {message && <p className="auth-success-message">{message}</p>}
-          {error && <p className="auth-error-message">{error}</p>}
+          {message && <p className="auth-modal-success">{message}</p>}
+          {error && <p className="auth-modal-error">{error}</p>}
 
-          <div className="auth-links">
-            <Link to="/login">Вже маєш акаунт? Увійти</Link>
-          </div>
+          <p className="auth-modal-bottom">
+            Вже маєш акаунт? <Link to="/login">Увійти</Link>
+          </p>
+
+          <button type="button" className="auth-modal-help">
+            Допомога
+          </button>
         </div>
       </div>
     </section>
