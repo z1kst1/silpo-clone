@@ -16,6 +16,7 @@ export default function CatalogPage() {
     initialCategory ? [initialCategory] : []
   );
   const [selectedPriceRange, setSelectedPriceRange] = useState("all");
+  const [onlyDiscounts, setOnlyDiscounts] = useState(false);
   const [sortType, setSortType] = useState("default");
 
   const categories = [...new Set(products.map((product) => product.category))];
@@ -45,14 +46,6 @@ export default function CatalogPage() {
     });
   }
 
-  function handlePriceRangeChange(event) {
-    setSelectedPriceRange(event.target.value);
-  }
-
-  function handleSortChange(event) {
-    setSortType(event.target.value);
-  }
-
   function handleSearchSubmit(event) {
     event.preventDefault();
     updateParams(searchValue, selectedCategories);
@@ -62,6 +55,7 @@ export default function CatalogPage() {
     setSearchValue("");
     setSelectedCategories([]);
     setSelectedPriceRange("all");
+    setOnlyDiscounts(false);
     setSortType("default");
     setSearchParams({});
   }
@@ -76,7 +70,7 @@ export default function CatalogPage() {
         (product) =>
           product.name.toLowerCase().includes(currentSearch) ||
           product.category.toLowerCase().includes(currentSearch) ||
-          product.description.toLowerCase().includes(currentSearch)
+          product.description?.toLowerCase().includes(currentSearch)
       );
     }
 
@@ -100,6 +94,10 @@ export default function CatalogPage() {
       result = result.filter((product) => product.price > 80);
     }
 
+    if (onlyDiscounts) {
+      result = result.filter((product) => product.discount > 0);
+    }
+
     if (sortType === "priceAsc") {
       result.sort((a, b) => a.price - b.price);
     }
@@ -112,8 +110,23 @@ export default function CatalogPage() {
       result.sort((a, b) => a.name.localeCompare(b.name, "uk"));
     }
 
+    if (sortType === "ratingDesc") {
+      result.sort((a, b) => b.rating - a.rating);
+    }
+
+    if (sortType === "discountDesc") {
+      result.sort((a, b) => b.discount - a.discount);
+    }
+
     return result;
-  }, [products, searchValue, selectedCategories, selectedPriceRange, sortType]);
+  }, [
+    products,
+    searchValue,
+    selectedCategories,
+    selectedPriceRange,
+    onlyDiscounts,
+    sortType,
+  ]);
 
   return (
     <section className="catalog-page">
@@ -139,7 +152,8 @@ export default function CatalogPage() {
               onChange={(event) => setSearchValue(event.target.value)}
               className="catalog-search-input"
             />
-            <button type="submit" className="green-button catalog-search-button">
+
+            <button type="submit" className="catalog-search-button">
               Знайти
             </button>
           </form>
@@ -160,6 +174,19 @@ export default function CatalogPage() {
           </div>
 
           <div className="filter-group">
+            <p className="filter-title">Акції</p>
+
+            <label className="filter-label">
+              <input
+                type="checkbox"
+                checked={onlyDiscounts}
+                onChange={(event) => setOnlyDiscounts(event.target.checked)}
+              />
+              <span>Товари зі знижкою</span>
+            </label>
+          </div>
+
+          <div className="filter-group">
             <p className="filter-title">Ціна</p>
 
             <label className="filter-label">
@@ -168,7 +195,7 @@ export default function CatalogPage() {
                 name="price"
                 value="all"
                 checked={selectedPriceRange === "all"}
-                onChange={handlePriceRangeChange}
+                onChange={(event) => setSelectedPriceRange(event.target.value)}
               />
               <span>Усі ціни</span>
             </label>
@@ -179,7 +206,7 @@ export default function CatalogPage() {
                 name="price"
                 value="upTo50"
                 checked={selectedPriceRange === "upTo50"}
-                onChange={handlePriceRangeChange}
+                onChange={(event) => setSelectedPriceRange(event.target.value)}
               />
               <span>До 50 грн</span>
             </label>
@@ -190,7 +217,7 @@ export default function CatalogPage() {
                 name="price"
                 value="from50To80"
                 checked={selectedPriceRange === "from50To80"}
-                onChange={handlePriceRangeChange}
+                onChange={(event) => setSelectedPriceRange(event.target.value)}
               />
               <span>50–80 грн</span>
             </label>
@@ -201,7 +228,7 @@ export default function CatalogPage() {
                 name="price"
                 value="from80"
                 checked={selectedPriceRange === "from80"}
-                onChange={handlePriceRangeChange}
+                onChange={(event) => setSelectedPriceRange(event.target.value)}
               />
               <span>Від 80 грн</span>
             </label>
@@ -217,29 +244,43 @@ export default function CatalogPage() {
 
             <div className="catalog-sort">
               <label htmlFor="sort">Сортування</label>
-              <select id="sort" value={sortType} onChange={handleSortChange}>
+              <select
+                id="sort"
+                value={sortType}
+                onChange={(event) => setSortType(event.target.value)}
+              >
                 <option value="default">За замовчуванням</option>
                 <option value="priceAsc">Спочатку дешевші</option>
                 <option value="priceDesc">Спочатку дорожчі</option>
+                <option value="ratingDesc">За рейтингом</option>
+                <option value="discountDesc">За знижкою</option>
                 <option value="nameAsc">За назвою</option>
               </select>
             </div>
           </div>
 
-          {selectedCategories.length > 0 && (
-            <div className="catalog-active-filters">
-              {selectedCategories.map((category) => (
-                <button
-                  key={category}
-                  type="button"
-                  className="catalog-chip"
-                  onClick={() => handleCategoryChange(category)}
-                >
-                  {category} ×
-                </button>
-              ))}
-            </div>
-          )}
+          <div className="catalog-active-filters">
+            {selectedCategories.map((category) => (
+              <button
+                key={category}
+                type="button"
+                className="catalog-chip"
+                onClick={() => handleCategoryChange(category)}
+              >
+                {category} ×
+              </button>
+            ))}
+
+            {onlyDiscounts && (
+              <button
+                type="button"
+                className="catalog-chip"
+                onClick={() => setOnlyDiscounts(false)}
+              >
+                Акційні ×
+              </button>
+            )}
+          </div>
 
           {loading ? (
             <div className="catalog-empty">

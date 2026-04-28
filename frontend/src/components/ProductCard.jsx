@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 
 const FALLBACK_IMAGE =
-  "https://via.placeholder.com/420x280?text=Kalpo+Product";
+  "https://via.placeholder.com/300x220/f5f5f5/7a1f16?text=Kalpo";
 
 export default function ProductCard({ product }) {
   function handleImageError(event) {
@@ -10,6 +10,10 @@ export default function ProductCard({ product }) {
 
   return (
     <article className="product-card">
+      {product.discount > 0 && (
+        <span className="product-card__discount">-{product.discount}%</span>
+      )}
+
       <Link to={`/product/${product.id}`} className="product-card__image-link">
         <img
           src={product.image || FALLBACK_IMAGE}
@@ -26,20 +30,23 @@ export default function ProductCard({ product }) {
           <h3 className="product-card__title">{product.name}</h3>
         </Link>
 
-        <p className="product-card__description">
-          {product.description?.length > 90
-            ? `${product.description.slice(0, 90)}...`
-            : product.description}
-        </p>
+        <div className="product-card__price-row">
+          <strong className="product-card__price">{product.price} грн</strong>
 
-        <div className="product-card__bottom">
-          <p className="product-card__price">{product.price} грн</p>
+          {product.oldPrice && (
+            <span className="product-card__old-price">{product.oldPrice} грн</span>
+          )}
+        </div>
 
-          <Link to={`/product/${product.id}`} className="green-button product-card__button">
-            Переглянути товар
-          </Link>
+        <div className="product-card__meta">
+          <span>{product.weight}</span>
+          <span>★ {product.rating}</span>
         </div>
       </div>
+
+      <button type="button" className="product-card__add-button">
+        +
+      </button>
     </article>
   );
 }
