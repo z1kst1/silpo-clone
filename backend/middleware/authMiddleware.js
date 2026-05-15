@@ -1,17 +1,32 @@
 const jwt = require("jsonwebtoken");
 
-module.exports = function (req, res, next) {
-  const token = req.headers.authorization;
-
-  if (!token) {
-    return res.status(401).json({ message: "Немає токена" });
-  }
-
+// Middleware для перевірки JWT токена
+module.exports = (req, res, next) => {
   try {
-    const decoded = jwt.verify(token, "secret123");
+    // Отримуємо header:
+    // Authorization: Bearer TOKEN
+    const authHeader = req.headers.authorization;
+
+    // Якщо токена нема
+    if (!authHeader) {
+      return res.status(401).json({
+        error: "Немає токена",
+      });
+    }
+
+    // Забираємо сам токен
+    const token = authHeader.split(" ")[1];
+
+    // Перевіряємо JWT
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Зберігаємо дані користувача
     req.user = decoded;
+
     next();
-  } catch {
-    res.status(401).json({ message: "Невірний токен" });
+  } catch (error) {
+    return res.status(401).json({
+      error: "Невірний токен",
+    });
   }
 };
