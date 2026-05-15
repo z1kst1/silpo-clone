@@ -1,16 +1,10 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { loginUser } from "../api/auth";
 import "../styles/kalpo-home.css";
 
 export default function LoginPage() {
   const navigate = useNavigate();
-
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -18,11 +12,7 @@ export default function LoginPage() {
 
   function handleChange(event) {
     const { name, value } = event.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   }
 
   async function handleSubmit(event) {
@@ -32,14 +22,24 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      const data = await loginUser(formData);
+      const response = await fetch("http://localhost:3000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: formData.email, password: formData.password }),
+      });
 
-      localStorage.setItem("silpo-user", JSON.stringify(data));
-      setMessage("Вхід виконано успішно.");
+      const data = await response.json();
 
-      navigate("/profile");
-    } catch {
-      setError("Бекенд для входу ще не підключений або виникла помилка.");
+      if (response.ok) {
+        localStorage.setItem("silpo-token", data.token);
+        setMessage("Вхід виконано успішно!");
+        setTimeout(() => navigate("/profile"), 1000);
+      } else {
+        setError(data.error || "Невірний email або пароль.");
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Не вдалося підключитися до сервера. Перевірте, чи працює бекенд.");
     } finally {
       setIsSubmitting(false);
     }
@@ -49,56 +49,22 @@ export default function LoginPage() {
     <section className="auth-modal-page">
       <div className="auth-modal-backdrop">
         <div className="auth-modal-card">
-          <Link to="/" className="auth-modal-close">
-            ×
-          </Link>
-
+          <Link to="/" className="auth-modal-close">×</Link>
           <div className="auth-modal-logo">
             <img src="/images/figma/logo/logo.svg" alt="Kalpo" />
           </div>
-
           <h1 className="auth-modal-title">Вхід</h1>
 
           <form className="auth-modal-form" onSubmit={handleSubmit}>
             <label>
               Email
-              <input
-                type="email"
-                name="email"
-                placeholder="example@gmail.com"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
+              <input type="email" name="email" placeholder="example@gmail.com" value={formData.email} onChange={handleChange} required />
             </label>
-
             <label>
               Пароль
               <div style={{ position: "relative", width: "100%" }}>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  placeholder="Введіть пароль"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  style={{ paddingRight: "42px" }}
-                />
-
-                <span
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  style={{
-                    position: "absolute",
-                    right: "12px",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    cursor: "pointer",
-                    fontSize: "14px",
-                    lineHeight: "1",
-                    color: "#555",
-                    userSelect: "none",
-                  }}
-                >
+                <input type={showPassword ? "text" : "password"} name="password" placeholder="Введіть пароль" value={formData.password} onChange={handleChange} required style={{ paddingRight: "42px" }} />
+                <span onClick={() => setShowPassword((prev) => !prev)} style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", cursor: "pointer", fontSize: "14px" }}>
                   {showPassword ? "🙈" : "👁"}
                 </span>
               </div>
@@ -109,20 +75,11 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="auth-modal-bottom">
-            <Link to="/forgot-password">Забули пароль?</Link>
-          </p>
-
-          {message && <p className="auth-modal-success">{message}</p>}
-          {error && <p className="auth-modal-error">{error}</p>}
-
-          <p className="auth-modal-bottom">
-            Ще не маєш акаунта? <Link to="/register">Зареєструватися</Link>
-          </p>
-
-          <button type="button" className="auth-modal-help">
-            Допомога
-          </button>
+          <p className="auth-modal-bottom"><Link to="/forgot-password">Забули пароль?</Link></p>
+          {message && <p className="auth-modal-success" style={{ color: "green", marginTop: "10px" }}>{message}</p>}
+          {error && <p className="auth-modal-error" style={{ color: "red", marginTop: "10px" }}>{error}</p>}
+          <p className="auth-modal-bottom">Ще не маєш акаунта? <Link to="/register">Зареєструватися</Link></p>
+          <button type="button" className="auth-modal-help">Допомога</button>
         </div>
       </div>
     </section>

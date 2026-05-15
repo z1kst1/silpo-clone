@@ -1,0 +1,191 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* ЗРОБЛЕНО НА ВЕСЬ ЕКРАН */
+.profile-container {
+  display: flex;
+  width: 100%; /* Займає всю ширину */
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  align-items: stretch; /* Розтягує бокову панель до низу */
+  background-color: #FAFAFA; /* Легкий сірий фон для карток, щоб вони виділялися */
+  min-height: calc(100vh - 80px); /* Тягнеться до кінця екрану */
+}
+
+/* БОКОВЕ МЕНЮ (Прибите ліворуч, без кутів) */
+.profile-container .profile-sidebar {
+  width: 260px;
+  background-color: #FCECCD !important;
+  padding: 40px 0; /* Збільшено відступи зверху */
+  border-radius: 0 !important; /* Прямі кути */
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #EAEAEA !important;
+}
+
+.profile-container .sidebar-menu {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-container .menu-item {
+  padding: 15px 30px; /* Збільшено відступи, щоб текст був далі від краю */
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-left: 3px solid transparent;
+  transition: all 0.2s;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.profile-container .menu-item img {
+  filter: grayscale(1);
+  opacity: 0.6;
+}
+
+.profile-container .menu-item:hover,
+.profile-container .menu-item.active {
+  background-color: rgba(142, 22, 22, 0.1) !important;
+  border-left: 3px solid #8E1616 !important;
+  color: #8E1616 !important;
+}
+
+.profile-container .menu-item:hover img,
+.profile-container .menu-item.active img {
+  filter: grayscale(0);
+  opacity: 1;
+}
+
+/* Відкидає кнопку допомоги в самий низ */
+.profile-container .help-btn {
+  margin-top: auto;
+}
+
+/* ОСНОВНИЙ КОНТЕНТ */
+.profile-container .profile-main {
+  flex: 1;
+  display: flex;
+  justify-content: center; /* Центрує вміст у правій частині */
+  padding: 40px;
+}
+
+.profile-container .profile-main-inner {
+  width: 100%;
+  max-width: 900px; /* Обмежує ширину карток, щоб не розтягувались нескінченно */
+}
+
+.profile-container .page-title { font-size: 28px; margin-bottom: 5px; color: #1a1a1a; font-weight: 700; }
+.profile-container .page-subtitle { color: #666; margin-top: 0; margin-bottom: 30px; font-size: 14px; }
+
+/* КАРТКА-ПРИВІТАННЯ */
+.profile-container .welcome-card {
+  background-color: #fff !important;
+  background-image: none !important;
+  border: 1px solid #eaeaea !important;
+  border-radius: 16px !important;
+  padding: 25px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.02) !important;
+}
+
+.profile-container .user-info-wrapper { display: flex; align-items: center; gap: 20px; }
+
+.profile-container .avatar-circle {
+  width: 60px;
+  height: 60px;
+  background-color: #f5f5f5 !important;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.profile-container .user-details h2 { margin: 0 0 2px 0; font-size: 22px; color: #1a1a1a; font-weight: 600; }
+.profile-container .user-email, .profile-container .user-phone { margin: 0; color: #666; font-size: 14px;}
+
+.profile-container .edit-profile-btn {
+  background-color: #8E1616 !important;
+  color: white !important;
+  border: none !important;
+  padding: 12px 24px;
+  border-radius: 8px !important;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* СІТКА 2x2 */
+.profile-container .cards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* ІНФО-КАРТКИ */
+.profile-container .info-card {
+  background-color: #fff !important;
+  border: 1px solid #eaeaea !important;
+  border-radius: 16px !important;
+  padding: 25px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.02) !important;
+}
+
+.profile-container .card-header h3 {
+  margin: 0 0 5px 0; color: #1a1a1a; display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600;
+}
+.profile-container .card-header p { margin: 0 0 20px 0; color: #777; font-size: 13px; }
+
+.profile-container .card-body { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+
+.profile-container .data-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  font-size: 14px;
+  border-bottom: 1px solid #f9f9f9;
+  padding-bottom: 10px;
+}
+.profile-container .data-row:last-child { border-bottom: none; }
+.profile-container .data-row span { color: #666; }
+.profile-container .data-row strong { color: #1a1a1a; font-weight: 600; }
+
+.profile-container .card-footer {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #eaeaea;
+  color: #8E1616;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.profile-container .center-footer { justify-content: center; border-top: none; padding-top: 0;}
+
+.profile-container .add-address-btn {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #8E1616 !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  color: #8E1616 !important;
+  border-radius: 8px !important;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}

@@ -1,159 +1,194 @@
-import "../styles/kalpo-home.css";
+import { useEffect, useState } from "react";
+import { Link } from "react-router";
+import "../styles/ProfilePage.css";
 
 export default function ProfilePage() {
-  const savedUser = JSON.parse(localStorage.getItem("silpo-user"));
+  const [user, setUser] = useState({ name: "Гість", email: "", phone: "" });
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({ name: "", email: "", phone: "" });
 
-  const user = {
-    name:
-      `${savedUser?.user?.firstName || ""} ${savedUser?.user?.lastName || ""}`.trim() ||
-      "Користувач",
+  useEffect(() => {
+    const savedUser = localStorage.getItem("silpo-user");
+    if (savedUser) {
+      const parsed = JSON.parse(savedUser);
+      const initialData = {
+        name: parsed.firstName || parsed.name || "Користувач",
+        email: parsed.email || "",
+        phone: parsed.phone || ""
+      };
+      setUser(initialData);
+      setEditForm(initialData);
+    }
+  }, []);
 
-    email: savedUser?.user?.email || savedUser?.email || "Email не вказаний",
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm(prev => ({ ...prev, [name]: value }));
+  };
 
-    phone: savedUser?.user?.phone || "Телефон не вказаний",
+  const handleSave = async () => {
+    try {
+      const token = localStorage.getItem("silpo-token");
+      const response = await fetch("http://localhost:3000/api/users/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          firstName: editForm.name,
+          email: editForm.email,
+          phone: editForm.phone
+        })
+      });
+
+      if (response.ok) {
+        setUser(editForm);
+        setIsEditing(false);
+        const savedUser = JSON.parse(localStorage.getItem("silpo-user") || "{}");
+        localStorage.setItem("silpo-user", JSON.stringify({ ...savedUser, ...editForm, firstName: editForm.name }));
+      } else {
+        alert("Помилка збереження на сервері. Перевірте бекенд.");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Не вдалося з'єднатися з сервером.");
+    }
   };
 
   return (
-    <section className="profile-page">
-      <div className="profile-shell">
-        <aside className="profile-sidebar">
-          <nav className="profile-menu">
-            <button className="profile-menu__item profile-menu__item--active">
-              ⌂ Профіль
-            </button>
-            <button className="profile-menu__item">♡ Мої дані</button>
-            <button className="profile-menu__item">♢ Безпека</button>
-            <button className="profile-menu__item">⌖ Адреси</button>
-            <button className="profile-menu__item">▣ Історія покупок</button>
-          </nav>
+    <div className="profile-container">
+      {/* БОКОВЕ МЕНЮ (Прибите до лівого краю) */}
+      <aside className="profile-sidebar">
+        <div className="sidebar-menu">
+          <Link to="/profile" className="menu-item active">
+            <img src="/images/figma/icons/profile.svg" alt="" width="18" height="18" /> Профіль
+          </Link>
+          <Link to="/profile/data" className="menu-item">
+            <img src="/images/figma/icons/user.svg" alt="" width="18" height="18" /> Мої дані
+          </Link>
+          <Link to="/profile/security" className="menu-item">
+            <img src="/images/figma/icons/shield.svg" alt="" width="18" height="18" /> Безпека
+          </Link>
+          <Link to="/profile/addresses" className="menu-item">
+            <img src="/images/figma/icons/map-pin.svg" alt="" width="18" height="18" /> Адреси
+          </Link>
+          <Link to="/profile/orders" className="menu-item">
+            <img src="/images/figma/icons/shopping-bag.svg" alt="" width="18" height="18" /> Історія покупок
+          </Link>
+        </div>
+        <button className="menu-item help-btn">
+          <img src="/images/figma/icons/help-circle.svg" alt="" width="18" height="18" /> Допомога
+        </button>
+      </aside>
 
-          <button className="profile-help-button">♧ Допомога</button>
-        </aside>
-
-        <main className="profile-main">
-          <h1 className="profile-title">Профіль</h1>
-          <p className="profile-subtitle">
-            Керуйте своїми даними, адресами та замовленнями
-          </p>
-
-          <section className="profile-welcome-card">
-            <div className="profile-user">
-              <div className="profile-avatar">●</div>
-
-              <div>
-                <h2>Вітаємо, {user.name}! 👋</h2>
-                <p>{user.email}</p>
-                <p>{user.phone}</p>
-              </div>
-            </div>
-
-            <button className="profile-red-button">✎ Редагувати профіль</button>
-          </section>
-
-          <div className="profile-grid">
-            <section className="profile-block">
-              <h3>♡ Мої дані</h3>
-              <p className="profile-block__hint">
-                Особиста інформація та контакти
-              </p>
-
-              <div className="profile-row">
-                <span>Ім’я</span>
-                <b>{user.name}</b>
-              </div>
-
-              <div className="profile-row">
-                <span>Email</span>
-                <b>{user.email}</b>
-              </div>
-
-              <div className="profile-row">
-                <span>Телефон</span>
-                <b>{user.phone}</b>
-              </div>
-
-              <button className="profile-link-button">
-                Переглянути всі дані ›
-              </button>
-            </section>
-
-            <section className="profile-block">
-              <h3>⌖ Адреси</h3>
-              <p className="profile-block__hint">Ваші адреси доставки</p>
-
-              <div className="profile-row profile-row--address">
-                <span>Основна адреса</span>
-                <b>
-                  вул. Таращанська, 161,
-                  <br />
-                  Біла Церква, 09100
-                </b>
-              </div>
-
-              <button className="profile-outline-button">
-                ＋ Додати адресу
-              </button>
-            </section>
-
-            <section className="profile-block">
-              <h3>▣ Історія покупок</h3>
-              <p className="profile-block__hint">Ваші замовлення та покупки</p>
-
-              <div className="profile-order">
-                <span>Замовлення №1256</span>
-                <span>12.05.2024</span>
-                <b>1 238 ₴</b>
-              </div>
-
-              <div className="profile-order">
-                <span>Замовлення №1189</span>
-                <span>03.05.2024</span>
-                <b>856 ₴</b>
-              </div>
-
-              <div className="profile-order">
-                <span>Замовлення №1123</span>
-                <span>27.04.2024</span>
-                <b>1 459 ₴</b>
-              </div>
-
-              <button className="profile-link-button">
-                Переглянути всі замовлення ›
-              </button>
-            </section>
-
-            <section className="profile-block">
-              <h3>♢ Безпека</h3>
-              <p className="profile-block__hint">
-                Налаштування безпеки облікового запису
-              </p>
-
-              <div className="profile-security-row">Змінити пароль ›</div>
-              <div className="profile-security-row">Прив’язані пристрої ›</div>
-              <div className="profile-security-row">
-                Підтвердження email <span>Підтверджено ✓</span>
-              </div>
-
-              <button className="profile-link-button">
-                Налаштування безпеки ›
-              </button>
-            </section>
+      {/* ОСНОВНИЙ КОНТЕНТ */}
+      <main className="profile-main">
+        <div className="profile-main-inner">
+          <div className="profile-header">
+            <h1 className="page-title">Профіль</h1>
+            <p className="page-subtitle">Керуйте своїми даними, адресами та замовленнями</p>
           </div>
 
-          <section className="profile-promo">
-            <div className="profile-promo__icon">🍎</div>
-            <div>
-              <h3>Більше переваг з Kalpo</h3>
-              <p>
-                Слідкуйте за акціями, отримуйте персональні пропозиції та
-                замовляйте разом з нами!
-              </p>
+          <div className="welcome-card">
+            <div className="user-info-wrapper">
+              <div className="avatar-circle">
+                <img src="/images/figma/logo/avatar.svg" alt="Avatar" width="60" height="60" style={{borderRadius: "50%"}}/>
+              </div>
+              <div className="user-details">
+                <h2>Вітаємо, {user.name}!</h2>
+                <p className="user-email">{user.email}</p>
+                <p className="user-phone">{user.phone || "+38 (___) ___ __ __"}</p>
+              </div>
+            </div>
+            {isEditing ? (
+              <button className="edit-profile-btn" onClick={handleSave} style={{backgroundColor: "green"}}>Зберегти зміни</button>
+            ) : (
+              <button className="edit-profile-btn" onClick={() => setIsEditing(true)}>Редагувати профіль</button>
+            )}
+          </div>
+
+          <div className="cards-grid">
+            <div className="info-card">
+              <div className="card-header">
+                <h3><img src="/images/figma/icons/user.svg" alt="" width="16" height="16" /> Мої дані</h3>
+                <p>Особиста інформація та контакти</p>
+              </div>
+              <div className="card-body">
+                <div className="data-row">
+                  <span>Ім'я</span>
+                  {isEditing ? (
+                    <input type="text" name="name" value={editForm.name} onChange={handleChange} style={{textAlign: "right", border: "1px solid #ccc", borderRadius: "4px", padding: "2px 5px"}} />
+                  ) : (
+                    <strong>{user.name}</strong>
+                  )}
+                </div>
+                <div className="data-row">
+                  <span>Email</span>
+                  {isEditing ? (
+                    <input type="email" name="email" value={editForm.email} onChange={handleChange} style={{textAlign: "right", border: "1px solid #ccc", borderRadius: "4px", padding: "2px 5px"}} />
+                  ) : (
+                    <strong>{user.email}</strong>
+                  )}
+                </div>
+                <div className="data-row">
+                  <span>Телефон</span>
+                  {isEditing ? (
+                    <input type="tel" name="phone" value={editForm.phone} onChange={handleChange} placeholder="+380..." style={{textAlign: "right", border: "1px solid #ccc", borderRadius: "4px", padding: "2px 5px"}} />
+                  ) : (
+                    <strong>{user.phone || "Не вказано"}</strong>
+                  )}
+                </div>
+              </div>
+              <div className="card-footer">Переглянути всі дані &gt;</div>
             </div>
 
-            <button className="profile-red-button">♡ Перейти до акцій</button>
-          </section>
-        </main>
-      </div>
-    </section>
+            <div className="info-card">
+              <div className="card-header">
+                <h3><img src="/images/figma/icons/map-pin.svg" alt="" width="16" height="16" /> Адреси</h3>
+                <p>Ваші адреси доставки</p>
+              </div>
+              <div className="card-body">
+                <div className="data-row" style={{borderBottom: 'none'}}>
+                  <span>Основна адреса</span>
+                  <strong style={{textAlign: "right", maxWidth: "150px"}}>вул. Таращанська, 161, Біла Церква</strong>
+                </div>
+              </div>
+              <div className="card-footer center-footer">
+                <button className="add-address-btn">+ Додати адресу</button>
+              </div>
+            </div>
+
+            <div className="info-card">
+              <div className="card-header">
+                <h3><img src="/images/figma/icons/shopping-bag.svg" alt="" width="16" height="16" /> Історія покупок</h3>
+                <p>Ваші замовлення і покупки</p>
+              </div>
+              <div className="card-body">
+                <div className="data-row">
+                  <span>Замовлення №1</span>
+                  <span>20.03.2026</span>
+                  <strong>100.00 грн</strong>
+                </div>
+              </div>
+              <div className="card-footer">Переглянути всі дані &gt;</div>
+            </div>
+
+            <div className="info-card">
+              <div className="card-header">
+                <h3><img src="/images/figma/icons/shield.svg" alt="" width="16" height="16" /> Безпека</h3>
+                <p>Налаштування безпеки облікового запису</p>
+              </div>
+              <div className="card-body">
+                <div className="data-row"><span>Змінити пароль</span> <span>&gt;</span></div>
+                <div className="data-row"><span>Прив'язані пристрої</span> <span>&gt;</span></div>
+                <div className="data-row"><span>Підтвердження email</span> <strong style={{color: 'green'}}>Підтверджено</strong></div>
+              </div>
+              <div className="card-footer">Налаштування безпеки &gt;</div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
   );
 }

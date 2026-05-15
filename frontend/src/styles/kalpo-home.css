@@ -1535,4 +1535,64 @@
     align-items: flex-start;
   }
 }
+
+/* Стилі для блоку доставки */
+.kalpo-header__delivery {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.kalpo-header__delivery-icon {
+  display: flex;
+  align-items: center;
+}
+
+.kalpo-header__delivery-title {
+  font-weight: 600;
+  color: #1a1a1a;
+  font-size: 14px;
+}
+
+.kalpo-header__delivery-text {
+  color: #666;
+  font-size: 12px;
+}
+
+/* Загальні стилі для кнопок "Увійти/Профіль" та "Кошик" */
+.kalpo-header__action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 20px;
+  border-radius: 24px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  border: 1px solid #8E1616; /* Червоний з Figma */
+  color: #8E1616;
+  background-color: transparent;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.kalpo-header__action:hover {
+  background-color: rgba(142, 22, 22, 0.05);
+}
+
+.kalpo-header__action img {
+  display: block;
+}
+
+/* Специфічні стилі тільки для Кошика */
+.kalpo-header__action--cart {
+  border: none;
+  background-color: #E6CDB3; /* Бежевий фон з Figma */
+  color: #8E1616;
+}
+
+.kalpo-header__action--cart:hover {
+  background-color: #d6bc9f;
+}
 }

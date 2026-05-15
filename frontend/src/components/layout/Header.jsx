@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router";
 
 const timeSlots = [
@@ -12,6 +12,15 @@ const timeSlots = [
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
+
+  // Перевіряємо, чи авторизований користувач при завантаженні шапки
+  useEffect(() => {
+    const savedUser = localStorage.getItem("silpo-user");
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
+  }, []);
 
   function toggleMenu() {
     setIsMenuOpen((prev) => !prev);
@@ -36,35 +45,16 @@ export default function Header() {
 
             {isMenuOpen && (
               <div className="kalpo-header__menu">
-                <Link
-                  to="/"
-                  className="kalpo-header__menu-link"
-                  onClick={closeMenu}
-                >
+                <Link to="/" className="kalpo-header__menu-link" onClick={closeMenu}>
                   Головна
                 </Link>
-
-                <Link
-                  to="/catalog"
-                  className="kalpo-header__menu-link"
-                  onClick={closeMenu}
-                >
+                <Link to="/catalog" className="kalpo-header__menu-link" onClick={closeMenu}>
                   Каталог
                 </Link>
-
-                <Link
-                  to="/login"
-                  className="kalpo-header__menu-link"
-                  onClick={closeMenu}
-                >
+                <Link to="/login" className="kalpo-header__menu-link" onClick={closeMenu}>
                   Увійти
                 </Link>
-
-                <Link
-                  to="/cart"
-                  className="kalpo-header__menu-link"
-                  onClick={closeMenu}
-                >
+                <Link to="/cart" className="kalpo-header__menu-link" onClick={closeMenu}>
                   Кошик
                 </Link>
               </div>
@@ -88,9 +78,12 @@ export default function Header() {
           <input type="text" placeholder="Я шукаю..." />
         </div>
 
+        {/* ПРАВА ЧАСТИНА (ОНОВЛЕНА) */}
         <div className="kalpo-header__right">
           <div className="kalpo-header__delivery">
-            <span className="kalpo-header__delivery-icon">⌖</span>
+            <span className="kalpo-header__delivery-icon">
+              <img src="/images/figma/icons/location-header.svg" alt="Локація" width="24" height="24" />
+            </span>
             <div>
               <div className="kalpo-header__delivery-title">Доставка</div>
               <div className="kalpo-header__delivery-text">
@@ -99,14 +92,23 @@ export default function Header() {
             </div>
           </div>
 
-          <Link to="/login" className="kalpo-header__action">
-            Увійти
-          </Link>
+          {/* Логіка: якщо є user, показуємо кнопку профілю, якщо ні - кнопку Увійти */}
+          {user ? (
+            <Link to="/profile" className="kalpo-header__action">
+              <img src="/images/figma/icons/user-header.svg" alt="" width="16" height="16" />
+              {user.firstName || user.name}
+            </Link>
+          ) : (
+            <Link to="/login" className="kalpo-header__action">
+              Увійти
+            </Link>
+          )}
 
           <Link
             to="/cart"
             className="kalpo-header__action kalpo-header__action--cart"
           >
+            <img src="/images/figma/icons/cart-header.svg" alt="" width="16" height="16" />
             Кошик
           </Link>
         </div>
