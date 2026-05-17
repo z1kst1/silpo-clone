@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router"; // Додано useLocation
 
 const timeSlots = [
   "до 69 хв",
@@ -13,6 +13,12 @@ const timeSlots = [
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
+
+  // 1. Отримуємо поточну адресу сторінки
+  const location = useLocation();
+
+  // 2. Перевіряємо, чи ми зараз у розділі профілю
+  const isProfilePage = location.pathname.startsWith("/profile");
 
   // Перевіряємо, чи авторизований користувач при завантаженні шапки
   useEffect(() => {
@@ -78,7 +84,7 @@ export default function Header() {
           <input type="text" placeholder="Я шукаю..." />
         </div>
 
-        {/* ПРАВА ЧАСТИНА (ОНОВЛЕНА) */}
+        {/* ПРАВА ЧАСТИНА */}
         <div className="kalpo-header__right">
           <div className="kalpo-header__delivery">
             <span className="kalpo-header__delivery-icon">
@@ -114,19 +120,22 @@ export default function Header() {
         </div>
       </div>
 
-      <div className="kalpo-header__slots">
-        {timeSlots.map((slot, index) => (
-          <button
-            key={slot}
-            type="button"
-            className={`kalpo-header__slot-button ${
-              index === 0 ? "kalpo-header__slot-button--accent" : ""
-            }`}
-          >
-            {slot}
-          </button>
-        ))}
-      </div>
+      {/* 3. УМОВА: Показуємо цей блок ТІЛЬКИ якщо ми НЕ на сторінці профілю */}
+      {!isProfilePage && (
+        <div className="kalpo-header__slots">
+          {timeSlots.map((slot, index) => (
+            <button
+              key={slot}
+              type="button"
+              className={`kalpo-header__slot-button ${
+                index === 0 ? "kalpo-header__slot-button--accent" : ""
+              }`}
+            >
+              {slot}
+            </button>
+          ))}
+        </div>
+      )}
     </header>
   );
 }

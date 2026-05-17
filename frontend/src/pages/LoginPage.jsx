@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 import "../styles/kalpo-home.css";
 
 export default function LoginPage() {
-  const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState("");
@@ -22,6 +21,7 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
+      // Тут адреса правильна, бо ти казала, що писало "Успішно"
       const response = await fetch("http://localhost:3000/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -31,11 +31,26 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (response.ok) {
+        // 1. Зберігаємо токен
         localStorage.setItem("silpo-token", data.token);
-        setMessage("Вхід виконано успішно!");
-        setTimeout(() => navigate("/profile"), 1000);
+
+        // 2. ЗБЕРІГАЄМО ЮЗЕРА (Цього не було!)
+        if (data.user) {
+          localStorage.setItem("silpo-user", JSON.stringify(data.user));
+        } else {
+          // Якщо бекенд не повертає об'єкт user, зберігаємо хоча б email
+          localStorage.setItem("silpo-user", JSON.stringify({ email: formData.email, name: "Користувач" }));
+        }
+
+        setMessage("Вхід виконано успішно! Перенаправлення...");
+
+        // 3. ЖОРСТКЕ ПЕРЕНАПРАВЛЕННЯ (щоб оновилась шапка)
+        setTimeout(() => {
+          window.location.href = "/profile";
+        }, 1000);
+
       } else {
-        setError(data.error || "Невірний email або пароль.");
+        setError(data.error || data.message || "Невірний email або пароль.");
       }
     } catch (err) {
       console.error(err);
@@ -76,7 +91,7 @@ export default function LoginPage() {
           </form>
 
           <p className="auth-modal-bottom"><Link to="/forgot-password">Забули пароль?</Link></p>
-          {message && <p className="auth-modal-success" style={{ color: "green", marginTop: "10px" }}>{message}</p>}
+          {message && <p className="auth-modal-success" style={{ color: "green", marginTop: "10px", fontWeight: "bold" }}>{message}</p>}
           {error && <p className="auth-modal-error" style={{ color: "red", marginTop: "10px" }}>{error}</p>}
           <p className="auth-modal-bottom">Ще не маєш акаунта? <Link to="/register">Зареєструватися</Link></p>
           <button type="button" className="auth-modal-help">Допомога</button>
