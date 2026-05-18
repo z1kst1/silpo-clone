@@ -54,8 +54,7 @@ export default function RegisterPage() {
     try {
       // Дані для бекенду
       const payload = {
-        firstName: formData.name,
-        lastName: "",
+        name: formData.name,
         email: formData.email,
         password: formData.password,
       };

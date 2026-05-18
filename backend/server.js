@@ -86,7 +86,7 @@ let carts = {};
 app.post("/api/auth/register", async (req, res) => {
   try {
     // Отримуємо дані з frontend
-    const { email, password, firstName, lastName } = req.body;
+    const { email, password, name } = req.body;
 
     // ==========================================
     // ВАЛІДАЦІЯ
@@ -147,8 +147,7 @@ app.post("/api/auth/register", async (req, res) => {
       data: {
         email,
         password: hashedPassword,
-        firstName,
-        lastName,
+        firstName: name,
       },
     });
 
