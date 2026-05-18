@@ -1,333 +1,444 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router";
+import { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router";
 import "../styles/ProfilePage.css";
 
 export default function ProfilePage() {
-  const [user, setUser] = useState({ name: "Гість", email: "", phone: "" });
-  const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState({ name: "", email: "", phone: "" });
+  const navigate = useNavigate();
+  const fileInputRef = useRef(null);
+
+  const [user, setUser] = useState({
+    firstName: "Завантаження...",
+    lastName: "",
+    middleName: "",
+    email: "",
+    phone: "",
+    birthDate: "",
+    gender: "Не вказано",
+    avatar: "",
+  });
+
+  const [editData, setEditData] = useState({});
+  const [activeView, setActiveView] = useState("dashboard");
 
   useEffect(() => {
     const savedUser = localStorage.getItem("silpo-user");
+
     if (savedUser) {
       const parsed = JSON.parse(savedUser);
-      const initialData = {
-        name: parsed.user?.firstName || "Користувач",
-        email: parsed.user?.email || "",
-        phone: parsed.phone || "",
-      };
-      setUser(initialData);
-      setEditForm(initialData);
-    }
-  }, []);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setEditForm((prev) => ({ ...prev, [name]: value }));
+      setUser({
+        firstName: parsed.firstName || parsed.name || "Користувач",
+        lastName: parsed.lastName || "",
+        middleName: parsed.middleName || "",
+        email: parsed.email || "",
+        phone: parsed.phone || "",
+        birthDate: parsed.birthDate || "",
+        gender: parsed.gender || "Не вказано",
+        avatar: parsed.avatar || "",
+      });
+    } else {
+      navigate("/login");
+    }
+  }, [navigate]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("silpo-token");
+    localStorage.removeItem("silpo-user");
+    window.location.href = "/";
   };
 
-  const handleSave = async () => {
-    try {
-      const token = localStorage.getItem("silpo-token");
-      const response = await fetch("http://localhost:3000/api/users/profile", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          firstName: editForm.name,
-          email: editForm.email,
-          phone: editForm.phone,
-        }),
-      });
+  const openEdit = (viewName) => {
+    setEditData({ ...user });
+    setActiveView(viewName);
+  };
 
-      if (response.ok) {
-        setUser(editForm);
-        setIsEditing(false);
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+
+    if (name === "birthDate") {
+      let digits = value.replace(/\D/g, "");
+      digits = digits.substring(0, 8);
+
+      let formatted = digits;
+
+      if (digits.length > 4) {
+        formatted = `${digits.slice(0, 2)}.${digits.slice(
+          2,
+          4,
+        )}.${digits.slice(4)}`;
+      } else if (digits.length > 2) {
+        formatted = `${digits.slice(0, 2)}.${digits.slice(2)}`;
+      }
+
+      setEditData((prev) => ({
+        ...prev,
+        [name]: formatted,
+      }));
+    } else {
+      setEditData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
+  };
+
+  const handleSaveDetails = () => {
+    setUser(editData);
+
+    const savedUser = JSON.parse(localStorage.getItem("silpo-user") || "{}");
+
+    localStorage.setItem(
+      "silpo-user",
+      JSON.stringify({
+        ...savedUser,
+        ...editData,
+        name: editData.firstName,
+      }),
+    );
+
+    setActiveView("myData");
+  };
+
+  const handleAvatarClick = () => {
+    fileInputRef.current.click();
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+
+    if (file) {
+      const reader = new FileReader();
+
+      reader.onloadend = () => {
+        const base64String = reader.result;
+
+        setUser((prev) => ({
+          ...prev,
+          avatar: base64String,
+        }));
+
         const savedUser = JSON.parse(
           localStorage.getItem("silpo-user") || "{}",
         );
+
         localStorage.setItem(
           "silpo-user",
           JSON.stringify({
             ...savedUser,
-            ...editForm,
-            firstName: editForm.name,
+            avatar: base64String,
           }),
         );
-      } else {
-        alert("Помилка збереження на сервері. Перевірте бекенд.");
-      }
-    } catch (error) {
-      console.error(error);
-      alert("Не вдалося з'єднатися з сервером.");
+      };
+
+      reader.readAsDataURL(file);
     }
+
+    e.target.value = "";
   };
+
+  const handleRemoveAvatar = (e) => {
+    e.stopPropagation();
+
+    setUser((prev) => ({
+      ...prev,
+      avatar: "",
+    }));
+
+    const savedUser = JSON.parse(localStorage.getItem("silpo-user") || "{}");
+
+    localStorage.setItem(
+      "silpo-user",
+      JSON.stringify({
+        ...savedUser,
+        avatar: "",
+      }),
+    );
+  };
+
+  const fullName = [user.lastName, user.firstName, user.middleName]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <div className="profile-container">
-      {/* БОКОВЕ МЕНЮ (Прибите до лівого краю) */}
       <aside className="profile-sidebar">
         <div className="sidebar-menu">
-          <Link to="/profile" className="menu-item active">
+          <button
+            className={`menu-item ${
+              activeView === "dashboard" ? "active" : ""
+            }`}
+            onClick={() => setActiveView("dashboard")}
+          >
             <img
               src="/images/figma/icons/profile.svg"
               alt=""
               width="18"
               height="18"
-            />{" "}
+            />
             Профіль
-          </Link>
-          <Link to="/profile/data" className="menu-item">
+          </button>
+
+          <button
+            className={`menu-item ${
+              activeView !== "dashboard" ? "active" : ""
+            }`}
+            onClick={() => setActiveView("myData")}
+          >
             <img
               src="/images/figma/icons/user.svg"
               alt=""
               width="18"
               height="18"
-            />{" "}
+            />
             Мої дані
-          </Link>
-          <Link to="/profile/security" className="menu-item">
+          </button>
+
+          <button className="menu-item">
             <img
               src="/images/figma/icons/shield.svg"
               alt=""
               width="18"
               height="18"
-            />{" "}
+            />
             Безпека
-          </Link>
-          <Link to="/profile/addresses" className="menu-item">
+          </button>
+
+          <button className="menu-item">
             <img
               src="/images/figma/icons/map-pin.svg"
               alt=""
               width="18"
               height="18"
-            />{" "}
+            />
             Адреси
-          </Link>
-          <Link to="/profile/orders" className="menu-item">
+          </button>
+
+          <button className="menu-item">
             <img
               src="/images/figma/icons/shopping-bag.svg"
               alt=""
               width="18"
               height="18"
-            />{" "}
+            />
             Історія покупок
-          </Link>
+          </button>
+
+          <div className="menu-spacer"></div>
+
+          <button className="menu-item help-button">
+            <img
+              src="/images/figma/icons/help-circle.svg"
+              alt=""
+              width="18"
+              height="18"
+            />
+            Допомога
+          </button>
+
+          <button className="menu-item logout-button" onClick={handleLogout}>
+            <img
+              src="/images/figma/icons/log-out.svg"
+              alt=""
+              width="18"
+              height="18"
+            />
+            Вийти
+          </button>
         </div>
-        <button className="menu-item help-btn">
-          <img
-            src="/images/figma/icons/help-circle.svg"
-            alt=""
-            width="18"
-            height="18"
-          />{" "}
-          Допомога
-        </button>
       </aside>
 
-      {/* ОСНОВНИЙ КОНТЕНТ */}
       <main className="profile-main">
         <div className="profile-main-inner">
-          <div className="profile-header">
-            <h1 className="page-title">Профіль</h1>
-            <p className="page-subtitle">
-              Керуйте своїми даними, адресами та замовленнями
-            </p>
-          </div>
-
-          <div className="welcome-card">
-            <div className="user-info-wrapper">
-              <div className="avatar-circle">
-                <img
-                  src="/images/figma/logo/avatar.svg"
-                  alt="Avatar"
-                  width="60"
-                  height="60"
-                  style={{ borderRadius: "50%" }}
-                />
-              </div>
-              <div className="user-details">
-                <h2>Вітаємо, {user.name}!</h2>
-                <p className="user-email">{user.email}</p>
-                <p className="user-phone">
-                  {user.phone || "+38 (___) ___ __ __"}
+          {activeView === "dashboard" && (
+            <div className="fade-in-container">
+              <div className="profile-header">
+                <h1 className="page-title">Профіль</h1>
+                <p className="page-subtitle">
+                  Керуйте своїми даними, адресами та замовленнями
                 </p>
               </div>
-            </div>
-            {isEditing ? (
-              <button
-                className="edit-profile-btn"
-                onClick={handleSave}
-                style={{ backgroundColor: "green" }}
-              >
-                Зберегти зміни
-              </button>
-            ) : (
-              <button
-                className="edit-profile-btn"
-                onClick={() => setIsEditing(true)}
-              >
-                Редагувати профіль
-              </button>
-            )}
-          </div>
 
-          <div className="cards-grid">
-            <div className="info-card">
-              <div className="card-header">
-                <h3>
-                  <img
-                    src="/images/figma/icons/user.svg"
-                    alt=""
-                    width="16"
-                    height="16"
-                  />{" "}
-                  Мої дані
-                </h3>
+              <div className="welcome-card">
+                <div className="user-info-wrapper">
+                  <div className="avatar-circle" style={{ padding: 0 }}>
+                    {user.avatar ? (
+                      <img
+                        src={user.avatar}
+                        alt="Avatar"
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          borderRadius: "50%",
+                          objectFit: "cover",
+                        }}
+                      />
+                    ) : (
+                      <img
+                        src="/images/figma/icons/avatar.svg"
+                        alt="Avatar"
+                        width="60"
+                        height="60"
+                      />
+                    )}
+                  </div>
+
+                  <div className="user-details">
+                    <h2>Вітаємо, {user.firstName}!</h2>
+
+                    <p className="user-email">{user.email}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="cards-grid">
+                <div className="info-card">
+                  <div className="card-header">
+                    <h3>Мої дані</h3>
+                    <p>Особиста інформація та контакти</p>
+                  </div>
+
+                  <div className="card-body">
+                    <div className="data-row">
+                      <span>Ім'я</span>
+                      <strong>{user.firstName}</strong>
+                    </div>
+
+                    <div className="data-row">
+                      <span>Email</span>
+                      <strong>{user.email}</strong>
+                    </div>
+
+                    <div className="data-row">
+                      <span>Телефон</span>
+                      <strong>{user.phone || "Не вказано"}</strong>
+                    </div>
+                  </div>
+
+                  <button
+                    className="card-footer-link"
+                    onClick={() => setActiveView("myData")}
+                  >
+                    Переглянути всі дані ❯
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeView === "myData" && (
+            <div className="details-view">
+              <div className="details-header-text">
+                <h2>Мої дані</h2>
                 <p>Особиста інформація та контакти</p>
               </div>
-              <div className="card-body">
-                <div className="data-row">
-                  <span>Ім'я</span>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      name="name"
-                      value={editForm.name}
-                      onChange={handleChange}
+
+              <div className="details-avatar-container">
+                <div
+                  className="details-avatar"
+                  onClick={handleAvatarClick}
+                  style={{
+                    cursor: "pointer",
+                    padding: 0,
+                  }}
+                >
+                  {user.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt="Avatar"
                       style={{
-                        textAlign: "right",
-                        border: "1px solid #ccc",
-                        borderRadius: "4px",
-                        padding: "2px 5px",
+                        width: "100%",
+                        height: "100%",
+                        borderRadius: "50%",
+                        objectFit: "cover",
                       }}
                     />
                   ) : (
-                    <strong>{user.name}</strong>
+                    <svg
+                      width="36"
+                      height="36"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#666"
+                      strokeWidth="2"
+                    >
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
                   )}
-                </div>
-                <div className="data-row">
-                  <span>Email</span>
-                  {isEditing ? (
-                    <input
-                      type="email"
-                      name="email"
-                      value={editForm.email}
-                      onChange={handleChange}
-                      style={{
-                        textAlign: "right",
-                        border: "1px solid #ccc",
-                        borderRadius: "4px",
-                        padding: "2px 5px",
-                      }}
-                    />
+
+                  {user.avatar ? (
+                    <button
+                      className="avatar-action-btn remove"
+                      onClick={handleRemoveAvatar}
+                    >
+                      ×
+                    </button>
                   ) : (
-                    <strong>{user.email}</strong>
+                    <button className="avatar-action-btn add">+</button>
                   )}
-                </div>
-                <div className="data-row">
-                  <span>Телефон</span>
-                  {isEditing ? (
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={editForm.phone}
-                      onChange={handleChange}
-                      placeholder="+380..."
-                      style={{
-                        textAlign: "right",
-                        border: "1px solid #ccc",
-                        borderRadius: "4px",
-                        padding: "2px 5px",
-                      }}
-                    />
-                  ) : (
-                    <strong>{user.phone || "Не вказано"}</strong>
-                  )}
-                </div>
-              </div>
-              <div className="card-footer">Переглянути всі дані &gt;</div>
-            </div>
 
-            <div className="info-card">
-              <div className="card-header">
-                <h3>
-                  <img
-                    src="/images/figma/icons/map-pin.svg"
-                    alt=""
-                    width="16"
-                    height="16"
-                  />{" "}
-                  Адреси
-                </h3>
-                <p>Ваші адреси доставки</p>
-              </div>
-              <div className="card-body">
-                <div className="data-row" style={{ borderBottom: "none" }}>
-                  <span>Основна адреса</span>
-                  <strong style={{ textAlign: "right", maxWidth: "150px" }}>
-                    вул. Таращанська, 161, Біла Церква
-                  </strong>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    style={{ display: "none" }}
+                  />
                 </div>
               </div>
-              <div className="card-footer center-footer">
-                <button className="add-address-btn">+ Додати адресу</button>
-              </div>
-            </div>
 
-            <div className="info-card">
-              <div className="card-header">
-                <h3>
-                  <img
-                    src="/images/figma/icons/shopping-bag.svg"
-                    alt=""
-                    width="16"
-                    height="16"
-                  />{" "}
-                  Історія покупок
-                </h3>
-                <p>Ваші замовлення і покупки</p>
-              </div>
-              <div className="card-body">
-                <div className="data-row">
-                  <span>Замовлення №1</span>
-                  <span>20.03.2026</span>
-                  <strong>100.00 грн</strong>
-                </div>
-              </div>
-              <div className="card-footer">Переглянути всі дані &gt;</div>
-            </div>
+              <div className="details-cards-wrapper">
+                <div className="details-block">
+                  <div className="details-block-header">
+                    <h3>Персональна інформація</h3>
+                  </div>
 
-            <div className="info-card">
-              <div className="card-header">
-                <h3>
-                  <img
-                    src="/images/figma/icons/shield.svg"
-                    alt=""
-                    width="16"
-                    height="16"
-                  />{" "}
-                  Безпека
-                </h3>
-                <p>Налаштування безпеки облікового запису</p>
+                  <div className="details-list">
+                    <div
+                      className="details-list-item"
+                      onClick={() => openEdit("editName")}
+                    >
+                      <div className="details-item-content">
+                        <span className="details-label">Прізвище, ім’я</span>
+
+                        <strong className="details-value">{fullName}</strong>
+                      </div>
+
+                      <span className="details-action">❯</span>
+                    </div>
+
+                    <div
+                      className="details-list-item"
+                      onClick={() => openEdit("editBirthDate")}
+                    >
+                      <div className="details-item-content">
+                        <span className="details-label">Дата народження</span>
+
+                        <strong className="details-value">
+                          {user.birthDate || "Не вказано"}
+                        </strong>
+                      </div>
+
+                      <span className="details-action">❯</span>
+                    </div>
+
+                    <div
+                      className="details-list-item"
+                      onClick={() => openEdit("editGender")}
+                    >
+                      <div className="details-item-content">
+                        <span className="details-label">Стать</span>
+
+                        <strong className="details-value">{user.gender}</strong>
+                      </div>
+
+                      <span className="details-action">❯</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="card-body">
-                <div className="data-row">
-                  <span>Змінити пароль</span> <span>&gt;</span>
-                </div>
-                <div className="data-row">
-                  <span>Прив'язані пристрої</span> <span>&gt;</span>
-                </div>
-                <div className="data-row">
-                  <span>Підтвердження email</span>{" "}
-                  <strong style={{ color: "green" }}>Підтверджено</strong>
-                </div>
-              </div>
-              <div className="card-footer">Налаштування безпеки &gt;</div>
             </div>
-          </div>
+          )}
         </div>
       </main>
     </div>

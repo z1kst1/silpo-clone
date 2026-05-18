@@ -1,10 +1,13 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 import "../styles/kalpo-home.css";
 
 export default function LoginPage() {
-  const navigate = useNavigate();
-  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -12,11 +15,16 @@ export default function LoginPage() {
 
   function handleChange(event) {
     const { name, value } = event.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   }
 
   async function handleSubmit(event) {
     event.preventDefault();
+
     setMessage("");
     setError("");
     setIsSubmitting(true);
@@ -24,7 +32,9 @@ export default function LoginPage() {
     try {
       const response = await fetch("http://localhost:5000/api/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
@@ -34,15 +44,25 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (response.ok) {
+        // Зберігаємо токен
         localStorage.setItem("silpo-token", data.token);
-        localStorage.setItem("silpo-user", JSON.stringify(data.user));
+
+        // Зберігаємо юзера
+        if (data.user) {
+          localStorage.setItem("silpo-user", JSON.stringify(data.user));
+        }
+
         setMessage("Вхід виконано успішно!");
-        setTimeout(() => navigate("/profile"), 1000);
+
+        setTimeout(() => {
+          window.location.href = "/profile";
+        }, 1000);
       } else {
-        setError(data.error || "Невірний email або пароль.");
+        setError(data.error || data.message || "Невірний email або пароль.");
       }
     } catch (err) {
       console.error(err);
+
       setError(
         "Не вдалося підключитися до сервера. Перевірте, чи працює бекенд.",
       );
@@ -58,9 +78,11 @@ export default function LoginPage() {
           <Link to="/" className="auth-modal-close">
             ×
           </Link>
+
           <div className="auth-modal-logo">
             <img src="/images/figma/logo/logo.svg" alt="Kalpo" />
           </div>
+
           <h1 className="auth-modal-title">Вхід</h1>
 
           <form className="auth-modal-form" onSubmit={handleSubmit}>
@@ -75,9 +97,15 @@ export default function LoginPage() {
                 required
               />
             </label>
+
             <label>
               Пароль
-              <div style={{ position: "relative", width: "100%" }}>
+              <div
+                style={{
+                  position: "relative",
+                  width: "100%",
+                }}
+              >
                 <input
                   type={showPassword ? "text" : "password"}
                   name="password"
@@ -85,8 +113,11 @@ export default function LoginPage() {
                   value={formData.password}
                   onChange={handleChange}
                   required
-                  style={{ paddingRight: "42px" }}
+                  style={{
+                    paddingRight: "42px",
+                  }}
                 />
+
                 <span
                   onClick={() => setShowPassword((prev) => !prev)}
                   style={{
@@ -111,25 +142,36 @@ export default function LoginPage() {
           <p className="auth-modal-bottom">
             <Link to="/forgot-password">Забули пароль?</Link>
           </p>
+
           {message && (
             <p
               className="auth-modal-success"
-              style={{ color: "green", marginTop: "10px" }}
+              style={{
+                color: "green",
+                marginTop: "10px",
+                fontWeight: "bold",
+              }}
             >
               {message}
             </p>
           )}
+
           {error && (
             <p
               className="auth-modal-error"
-              style={{ color: "red", marginTop: "10px" }}
+              style={{
+                color: "red",
+                marginTop: "10px",
+              }}
             >
               {error}
             </p>
           )}
+
           <p className="auth-modal-bottom">
             Ще не маєш акаунта? <Link to="/register">Зареєструватися</Link>
           </p>
+
           <button type="button" className="auth-modal-help">
             Допомога
           </button>
