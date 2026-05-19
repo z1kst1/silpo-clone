@@ -49,7 +49,13 @@ export default function LoginPage() {
 
         // Зберігаємо юзера
         if (data.user) {
-          localStorage.setItem("silpo-user", JSON.stringify(data.user));
+          localStorage.setItem(
+            "silpo-user",
+            JSON.stringify({
+              ...data.user,
+              firstName: data.user.firstName || data.user.name || "Користувач",
+            }),
+          );
         }
 
         setMessage("Вхід виконано успішно!");

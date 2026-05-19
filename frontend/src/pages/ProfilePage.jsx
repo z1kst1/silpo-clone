@@ -8,8 +8,6 @@ export default function ProfilePage() {
 
   const [user, setUser] = useState({
     firstName: "Завантаження...",
-    lastName: "",
-    middleName: "",
     email: "",
     phone: "",
     birthDate: "",
@@ -28,8 +26,6 @@ export default function ProfilePage() {
 
       setUser({
         firstName: parsed.firstName || parsed.name || "Користувач",
-        lastName: parsed.lastName || "",
-        middleName: parsed.middleName || "",
         email: parsed.email || "",
         phone: parsed.phone || "",
         birthDate: parsed.birthDate || "",
@@ -92,7 +88,6 @@ export default function ProfilePage() {
       JSON.stringify({
         ...savedUser,
         ...editData,
-        name: editData.firstName,
       }),
     );
 
@@ -155,9 +150,7 @@ export default function ProfilePage() {
     );
   };
 
-  const fullName = [user.lastName, user.firstName, user.middleName]
-    .filter(Boolean)
-    .join(" ");
+  const fullName = user.firstName || "Користувач";
 
   return (
     <div className="profile-container">
@@ -399,7 +392,7 @@ export default function ProfilePage() {
                       onClick={() => openEdit("editName")}
                     >
                       <div className="details-item-content">
-                        <span className="details-label">Прізвище, ім’я</span>
+                        <span className="details-label">Ім’я</span>
 
                         <strong className="details-value">{fullName}</strong>
                       </div>
@@ -436,6 +429,42 @@ export default function ProfilePage() {
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+          {activeView === "editName" && (
+            <div className="edit-form-view">
+              <button
+                className="back-link-btn"
+                onClick={() => setActiveView("myData")}
+              >
+                ❮ Назад
+              </button>
+
+              <h2 className="edit-form-title">Ім’я</h2>
+
+              <div className="edit-form-inputs">
+                <input
+                  type="text"
+                  name="firstName"
+                  placeholder="Введіть ім’я"
+                  value={editData.firstName || ""}
+                  onChange={handleEditChange}
+                  className="edit-input-field"
+                />
+              </div>
+
+              <div className="edit-form-buttons">
+                <button
+                  className="btn-cancel"
+                  onClick={() => setActiveView("myData")}
+                >
+                  Скасувати
+                </button>
+
+                <button className="btn-save" onClick={handleSaveDetails}>
+                  Зберегти
+                </button>
               </div>
             </div>
           )}
