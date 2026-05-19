@@ -11,8 +11,8 @@ model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   password  String
-  firstName String?
-  lastName  String?
+  name      String?
+  role      Role     @default(USER)
   createdAt DateTime @default(now())
 }
 
@@ -24,6 +24,11 @@ model Product {
   category    String
   image       String?
   rating      Float    @default(0)
+  stock       Int      @default(0)
   createdAt   DateTime @default(now())
+}
+enum Role {
+  USER
+  ADMIN
 }
 
