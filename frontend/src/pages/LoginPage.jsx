@@ -53,7 +53,7 @@ export default function LoginPage() {
             "silpo-user",
             JSON.stringify({
               ...data.user,
-              firstName: data.user.firstName || data.user.name || "Користувач",
+              name: data.user.name || "Користувач",
             }),
           );
         }

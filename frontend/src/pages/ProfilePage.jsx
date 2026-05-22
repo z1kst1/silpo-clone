@@ -7,7 +7,7 @@ export default function ProfilePage() {
   const fileInputRef = useRef(null);
 
   const [user, setUser] = useState({
-    firstName: "Завантаження...",
+    name: "Завантаження...",
     email: "",
     phone: "",
     birthDate: "",
@@ -25,7 +25,7 @@ export default function ProfilePage() {
       const parsed = JSON.parse(savedUser);
 
       setUser({
-        firstName: parsed.firstName || parsed.name || "Користувач",
+        name: parsed.name || "Користувач",
         email: parsed.email || "",
         phone: parsed.phone || "",
         birthDate: parsed.birthDate || "",
@@ -150,7 +150,7 @@ export default function ProfilePage() {
     );
   };
 
-  const fullName = user.firstName || "Користувач";
+  const fullName = user.name || "Користувач";
 
   return (
     <div className="profile-container">
@@ -276,7 +276,7 @@ export default function ProfilePage() {
                   </div>
 
                   <div className="user-details">
-                    <h2>Вітаємо, {user.firstName}!</h2>
+                    <h2>Вітаємо, {user.name}!</h2>
 
                     <p className="user-email">{user.email}</p>
                   </div>
@@ -293,7 +293,7 @@ export default function ProfilePage() {
                   <div className="card-body">
                     <div className="data-row">
                       <span>Ім'я</span>
-                      <strong>{user.firstName}</strong>
+                      <strong>{user.name}</strong>
                     </div>
 
                     <div className="data-row">
@@ -446,9 +446,9 @@ export default function ProfilePage() {
               <div className="edit-form-inputs">
                 <input
                   type="text"
-                  name="firstName"
+                  name="name"
                   placeholder="Введіть ім’я"
-                  value={editData.firstName || ""}
+                  value={editData.name || ""}
                   onChange={handleEditChange}
                   className="edit-input-field"
                 />

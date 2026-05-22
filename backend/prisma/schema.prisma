@@ -14,6 +14,7 @@ model User {
   name      String?
   role      Role     @default(USER)
   createdAt DateTime @default(now())
+  orders Order[]
 }
 
 model Product {
@@ -26,7 +27,31 @@ model Product {
   rating      Float    @default(0)
   stock       Int      @default(0)
   createdAt   DateTime @default(now())
+  orderItems OrderItem[]
 }
+
+model Order {
+  id        Int         @id @default(autoincrement())
+  userId    Int
+  total     Float
+  status    String      @default("PENDING")
+  createdAt DateTime    @default(now())
+
+  user       User        @relation(fields: [userId], references: [id])
+  orderItems OrderItem[]
+}
+
+model OrderItem {
+  id        Int      @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  quantity  Int      @default(1)
+  price     Float
+
+  order   Order   @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+}
+
 enum Role {
   USER
   ADMIN

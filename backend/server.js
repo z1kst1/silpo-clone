@@ -59,6 +59,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const cartRoutes = require("./routes/cart");
 
 // Middleware авторизації
+const adminMiddleware = require("./middleware/adminMiddleware");
 const authMiddleware = require("./middleware/authMiddleware");
 
 // Підключення роутів
@@ -70,7 +71,6 @@ app.use("/api/cart", cartRoutes);
 
 // Поки без БД для orders/cart
 
-let orders = [];
 let carts = {};
 
 // ==========================================
@@ -147,7 +147,7 @@ app.post("/api/auth/register", async (req, res) => {
       data: {
         email,
         password: hashedPassword,
-        firstName: name,
+        name,
       },
     });
 
@@ -159,6 +159,7 @@ app.post("/api/auth/register", async (req, res) => {
       {
         userId: user.id,
         email: user.email,
+        role: user.role,
       },
       JWT_SECRET,
       {
@@ -178,8 +179,8 @@ app.post("/api/auth/register", async (req, res) => {
       user: {
         id: user.id,
         email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        name: user.name,
+        role: user.role,
       },
     });
   } catch (error) {
@@ -251,6 +252,7 @@ app.post("/api/auth/login", async (req, res) => {
       {
         userId: user.id,
         email: user.email,
+        role: user.role,
       },
       JWT_SECRET,
       {
@@ -270,8 +272,8 @@ app.post("/api/auth/login", async (req, res) => {
       user: {
         id: user.id,
         email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        name: user.name,
+        role: user.role,
       },
     });
   } catch (error) {
@@ -310,8 +312,8 @@ app.get("/api/profile", authMiddleware, async (req, res) => {
     res.json({
       id: user.id,
       email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
+      name: user.name,
+      role: user.role,
     });
   } catch (error) {
     console.error(error);
@@ -385,7 +387,7 @@ app.get("/api/products/:id", async (req, res) => {
 ==========================================
 */
 
-app.post("/api/products", async (req, res) => {
+app.post("/api/products", authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { name, description, price, category, image } = req.body;
 
@@ -423,27 +425,32 @@ app.post("/api/products", async (req, res) => {
 ==========================================
 */
 
-app.put("/api/products/:id", async (req, res) => {
-  try {
-    const productId = Number(req.params.id);
+app.put(
+  "/api/products/:id",
+  authMiddleware,
+  adminMiddleware,
+  async (req, res) => {
+    try {
+      const productId = Number(req.params.id);
 
-    const updatedProduct = await prisma.product.update({
-      where: {
-        id: productId,
-      },
+      const updatedProduct = await prisma.product.update({
+        where: {
+          id: productId,
+        },
 
-      data: req.body,
-    });
+        data: req.body,
+      });
 
-    res.json(updatedProduct);
-  } catch (error) {
-    console.error(error);
+      res.json(updatedProduct);
+    } catch (error) {
+      console.error(error);
 
-    res.status(500).json({
-      error: "Помилка оновлення товару",
-    });
-  }
-});
+      res.status(500).json({
+        error: "Помилка оновлення товару",
+      });
+    }
+  },
+);
 
 /*
 ==========================================
@@ -451,27 +458,32 @@ app.put("/api/products/:id", async (req, res) => {
 ==========================================
 */
 
-app.delete("/api/products/:id", async (req, res) => {
-  try {
-    const productId = Number(req.params.id);
+app.delete(
+  "/api/products/:id",
+  authMiddleware,
+  adminMiddleware,
+  async (req, res) => {
+    try {
+      const productId = Number(req.params.id);
 
-    await prisma.product.delete({
-      where: {
-        id: productId,
-      },
-    });
+      await prisma.product.delete({
+        where: {
+          id: productId,
+        },
+      });
 
-    res.json({
-      message: "Товар видалено",
-    });
-  } catch (error) {
-    console.error(error);
+      res.json({
+        message: "Товар видалено",
+      });
+    } catch (error) {
+      console.error(error);
 
-    res.status(500).json({
-      error: "Помилка видалення товару",
-    });
-  }
-});
+      res.status(500).json({
+        error: "Помилка видалення товару",
+      });
+    }
+  },
+);
 
 // ==========================================
 // ORDERS
@@ -483,38 +495,52 @@ app.delete("/api/products/:id", async (req, res) => {
 ==========================================
 */
 
-app.post("/api/orders", (req, res) => {
-  // Тимчасово
-  const userId = req.user?.id || 1;
+app.post("/api/orders", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.userId;
 
-  const cart = carts[userId];
+    const { items } = req.body;
 
-  // Якщо кошик порожній
-  if (!cart || cart.length === 0) {
-    return res.status(400).json({
-      message: "Кошик порожній",
+    // Перевірка
+    if (!items || items.length === 0) {
+      return res.status(400).json({
+        error: "Кошик порожній",
+      });
+    }
+
+    // Підрахунок суми
+    const total = items.reduce((sum, item) => {
+      return sum + item.price * item.quantity;
+    }, 0);
+
+    // Створення order у PostgreSQL
+    const order = await prisma.order.create({
+      data: {
+        userId,
+        total,
+
+        orderItems: {
+          create: items.map((item) => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            price: item.price,
+          })),
+        },
+      },
+
+      include: {
+        orderItems: true,
+      },
+    });
+
+    res.status(201).json(order);
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      error: "Помилка створення замовлення",
     });
   }
-
-  // Створення нового замовлення
-  const newOrder = {
-    id: Date.now(),
-
-    userId,
-
-    items: cart,
-
-    total: cart.reduce((sum, item) => sum + item.price, 0),
-
-    createdAt: new Date(),
-  };
-
-  orders.push(newOrder);
-
-  // Очищення кошика
-  carts[userId] = [];
-
-  res.status(201).json(newOrder);
 });
 
 /*

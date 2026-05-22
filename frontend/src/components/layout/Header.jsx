@@ -51,16 +51,32 @@ export default function Header() {
 
             {isMenuOpen && (
               <div className="kalpo-header__menu">
-                <Link to="/" className="kalpo-header__menu-link" onClick={closeMenu}>
+                <Link
+                  to="/"
+                  className="kalpo-header__menu-link"
+                  onClick={closeMenu}
+                >
                   Головна
                 </Link>
-                <Link to="/catalog" className="kalpo-header__menu-link" onClick={closeMenu}>
+                <Link
+                  to="/catalog"
+                  className="kalpo-header__menu-link"
+                  onClick={closeMenu}
+                >
                   Каталог
                 </Link>
-                <Link to="/login" className="kalpo-header__menu-link" onClick={closeMenu}>
+                <Link
+                  to="/login"
+                  className="kalpo-header__menu-link"
+                  onClick={closeMenu}
+                >
                   Увійти
                 </Link>
-                <Link to="/cart" className="kalpo-header__menu-link" onClick={closeMenu}>
+                <Link
+                  to="/cart"
+                  className="kalpo-header__menu-link"
+                  onClick={closeMenu}
+                >
                   Кошик
                 </Link>
               </div>
@@ -88,7 +104,12 @@ export default function Header() {
         <div className="kalpo-header__right">
           <div className="kalpo-header__delivery">
             <span className="kalpo-header__delivery-icon">
-              <img src="/images/figma/icons/location-header.svg" alt="Локація" width="24" height="24" />
+              <img
+                src="/images/figma/icons/location-header.svg"
+                alt="Локація"
+                width="24"
+                height="24"
+              />
             </span>
             <div>
               <div className="kalpo-header__delivery-title">Доставка</div>
@@ -101,8 +122,13 @@ export default function Header() {
           {/* Логіка: якщо є user, показуємо кнопку профілю, якщо ні - кнопку Увійти */}
           {user ? (
             <Link to="/profile" className="kalpo-header__action">
-              <img src="/images/figma/icons/user-header.svg" alt="" width="16" height="16" />
-              {user.firstName || user.name}
+              <img
+                src="/images/figma/icons/user-header.svg"
+                alt=""
+                width="16"
+                height="16"
+              />
+              {user.name}
             </Link>
           ) : (
             <Link to="/login" className="kalpo-header__action">
@@ -114,7 +140,12 @@ export default function Header() {
             to="/cart"
             className="kalpo-header__action kalpo-header__action--cart"
           >
-            <img src="/images/figma/icons/cart-header.svg" alt="" width="16" height="16" />
+            <img
+              src="/images/figma/icons/cart-header.svg"
+              alt=""
+              width="16"
+              height="16"
+            />
             Кошик
           </Link>
         </div>

@@ -1,6 +1,5 @@
 async function register() {
-  const firstName = document.getElementById("firstName").value;
-  const lastName = document.getElementById("lastName").value;
+  const name = document.getElementById("name").value;
 
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
@@ -13,8 +12,7 @@ async function register() {
       },
 
       body: JSON.stringify({
-        firstName,
-        lastName,
+        name,
         email,
         password,
       }),
