@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router"; // Додано useLocation
+import { Link, useLocation } from "react-router";
 
 const timeSlots = [
   "до 69 хв",
@@ -14,13 +14,11 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
 
-  // 1. Отримуємо поточну адресу сторінки
+  // Отримуємо поточну адресу сторінки для приховування слотів
   const location = useLocation();
-
-  // 2. Перевіряємо, чи ми зараз у розділі профілю
   const isProfilePage = location.pathname.startsWith("/profile");
 
-  // Перевіряємо, чи авторизований користувач при завантаженні шапки
+  // Перевіряємо, чи авторизований користувач
   useEffect(() => {
     const savedUser = localStorage.getItem("silpo-user");
     if (savedUser) {
@@ -75,8 +73,20 @@ export default function Header() {
             />
           </Link>
 
+          {/* =========================================
+              ОНОВЛЕНА КНОПКА "ВСІ ТОВАРИ" З ІКОНКАМИ
+          ========================================= */}
           <Link to="/catalog" className="kalpo-header__catalog">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
             Всі товари
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{marginLeft: '4px'}}>
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
           </Link>
         </div>
 
@@ -84,7 +94,6 @@ export default function Header() {
           <input type="text" placeholder="Я шукаю..." />
         </div>
 
-        {/* ПРАВА ЧАСТИНА */}
         <div className="kalpo-header__right">
           <div className="kalpo-header__delivery">
             <span className="kalpo-header__delivery-icon">
@@ -120,7 +129,7 @@ export default function Header() {
         </div>
       </div>
 
-      {/* 3. УМОВА: Показуємо цей блок ТІЛЬКИ якщо ми НЕ на сторінці профілю */}
+      {/* Показуємо блок з часом доставки ТІЛЬКИ якщо ми НЕ на сторінці профілю */}
       {!isProfilePage && (
         <div className="kalpo-header__slots">
           {timeSlots.map((slot, index) => (

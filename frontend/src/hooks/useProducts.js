@@ -19,6 +19,11 @@ function getInitialProducts() {
     const parsedProducts = JSON.parse(savedProducts);
 
     if (Array.isArray(parsedProducts) && parsedProducts.length > 0) {
+      const hasNewBadges = parsedProducts.some(p => p.badgeText);
+      if (!hasNewBadges) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultProducts));
+        return defaultProducts;
+      }
       return parsedProducts;
     }
 

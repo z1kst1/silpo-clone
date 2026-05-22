@@ -1,98 +1,116 @@
-.kalpo-home {
-  background: #e6d8b4;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* =========================================
+   ГОЛОВНА СТОРІНКА (НОВИЙ ДИЗАЙН)
+========================================= */
+
+.kalpo-home-wrapper {
+  background-color: #FAEDD2;
   min-height: 100vh;
-  padding-bottom: 40px;
+  padding: 30px 0 60px 0;
+  display: flex;
+  justify-content: center;
+  font-family: 'Inter', sans-serif;
+}
+
+.kalpo-home-content {
+  width: 100%;
+  max-width: 1320px;
+  padding: 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
 }
 
 .kalpo-slots {
   display: none !important;
 }
 
-/* ================= HOME HERO ================= */
-
+/* --- HERO СЕКЦІЯ (Банер + 4 картки) --- */
 .kalpo-hero {
-  max-width: 1320px;
-  margin: 0 auto;
-  padding: 10px 24px 0;
-  display: grid;
-  grid-template-columns: 2fr 1.2fr;
-  gap: 16px;
+  display: flex;
+  gap: 20px;
+  height: 280px;
 }
 
 .kalpo-hero__banner {
-  background: linear-gradient(135deg, #b8e290 0%, #7ec34c 100%);
+  flex: 1;
+  background: linear-gradient(135deg, #a8e063 0%, #56ab2f 100%);
   border-radius: 24px;
-  min-height: 280px;
-  display: grid;
-  grid-template-columns: 44px 1fr 120px 44px;
+  position: relative;
+  display: flex;
   align-items: center;
-  padding: 24px;
-}
-
-.kalpo-hero__banner-content {
-  padding: 0 10px;
+  padding: 40px 60px;
+  overflow: hidden;
 }
 
 .kalpo-hero__brand {
-  color: #18608d;
-  font-size: 36px;
-  font-weight: 800;
-  margin-bottom: 12px;
-}
-
-.kalpo-hero__banner-content h1 {
-  font-size: 52px;
-  line-height: 1;
-  margin: 0 0 10px;
   color: white;
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 2px;
+  margin-bottom: 10px;
 }
 
-.kalpo-hero__banner-content p {
-  max-width: 430px;
+.kalpo-hero__banner-content h2 {
+  color: white;
+  font-size: 42px;
+  line-height: 1.1;
   margin: 0;
-  color: #234e15;
-  font-size: 18px;
-  line-height: 1.5;
 }
 
 .kalpo-hero__discount {
-  width: 100px;
-  height: 100px;
+  background-color: white;
+  color: #CC0000;
+  font-size: 32px;
+  font-weight: 800;
+  padding: 10px 20px;
   border-radius: 50%;
-  background: white;
-  color: #d12c2c;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 800;
-  font-size: 30px;
-  margin: 0 auto;
+  width: 110px;
+  height: 110px;
+  margin-left: auto;
+  transform: rotate(-10deg);
 }
 
 .kalpo-hero__arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
   width: 36px;
   height: 36px;
-  border-radius: 12px;
-  border: none;
-  background: rgba(255, 255, 255, 0.7);
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: #333;
+  z-index: 10;
 }
+.kalpo-hero__arrow.left { left: 15px; }
+.kalpo-hero__arrow.right { right: 15px; }
 
 .kalpo-hero__cards {
+  width: 440px;
   display: grid;
   grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
   gap: 16px;
+  flex-shrink: 0;
 }
 
 .kalpo-hero__promo-card {
-  border: none;
   background: transparent;
+  border: none;
   padding: 0;
   cursor: pointer;
-  border-radius: 20px;
+  border-radius: 16px;
   overflow: hidden;
-  line-height: 0;
   transition: transform 0.2s ease;
 }
 
@@ -100,87 +118,133 @@
   transform: translateY(-2px);
 }
 
-.kalpo-hero__promo-card-image {
+.kalpo-hero__promo-card img {
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
   display: block;
-  border-radius: 20px;
 }
 
-/* ================= HOME SECTIONS ================= */
+/* --- БІЛІ СЕКЦІЇ ТОВАРІВ --- */
+.kalpo-section-block {
+  background-color: #ffffff;
+  border-radius: 24px;
+  padding: 30px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+}
 
-.kalpo-section,
-.kalpo-recipes,
-.kalpo-info {
-  max-width: 1320px;
-  margin: 20px auto 0;
-  padding: 0 24px;
+.kalpo-section-block--holiday {
+  background-color: #8E1616;
 }
 
 .kalpo-section__head {
-  background: #f4f4f4;
-  border-radius: 28px 28px 0 0;
-  padding: 26px 28px 14px;
   display: flex;
-  align-items: flex-start;
   justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.kalpo-section__head-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.kalpo-section__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.kalpo-section__icon--green {
+  background-color: #e6f4ea;
+  color: #34a853;
+}
+
+.kalpo-section__icon--red {
+  background-color: #fceceb;
+  color: #8E1616;
+}
+
+.kalpo-section__titles h2 {
+  margin: 0 0 4px 0;
+  font-size: 24px;
+  color: #1a1a1a;
+  font-weight: 700;
+}
+
+.kalpo-section__titles p {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.kalpo-section__head-right {
+  display: flex;
+  align-items: center;
   gap: 20px;
 }
 
-.kalpo-section__head h2 {
-  margin: 0 0 6px;
-  font-size: 36px;
-  color: #212121;
-}
-
-.kalpo-section__head p {
-  margin: 0;
-  color: #5a5a5a;
-  font-size: 16px;
-}
-
 .kalpo-section__link {
-  color: #414141;
-  font-weight: 700;
+  color: #1a1a1a;
   text-decoration: none;
+  font-size: 15px;
+  font-weight: 600;
 }
 
-.kalpo-products-grid {
-  background: #f4f4f4;
-  border-radius: 0 0 28px 28px;
-  padding: 8px 28px 28px;
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 18px;
-}
-
-.kalpo-section--holiday {
-  background: #9f1013;
-  border-radius: 28px;
-  padding-bottom: 28px;
-}
-
-.kalpo-section__head--light {
-  background: transparent;
-}
-
-.kalpo-section__head--light h2,
-.kalpo-section__head--light p,
 .kalpo-section__link--light {
   color: white;
 }
 
-.kalpo-products-grid--white {
-  background: white;
-  border-radius: 24px;
-  margin: 0 24px;
+.kalpo-nav-arrows {
+  display: flex;
+  gap: 8px;
 }
+
+.kalpo-nav-arrows button {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: #f5f5f5;
+  color: #333;
+  cursor: pointer;
+}
+
+.kalpo-section-block--holiday .kalpo-nav-arrows button {
+  background: rgba(255,255,255,0.2);
+  color: white;
+}
+
+/* --- КАРУСЕЛЬ --- */
+.kalpo-products-carousel {
+  display: flex;
+  gap: 18px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  scrollbar-width: none;
+  padding-right: 20px;
+}
+
+.kalpo-products-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.carousel-item {
+  flex: 0 0 220px; /* Ширина картки в каруселі */
+}
+
 
 /* ================= RECIPES ================= */
 
 .kalpo-recipes__grid {
   background: #f4f4f4;
-  border-radius: 0 0 28px 28px;
+  border-radius: 28px;
   padding: 14px 20px 24px;
   display: grid;
   grid-template-columns: 260px repeat(5, 1fr);
@@ -259,9 +323,8 @@
 
 .kalpo-info {
   background: #eceef3;
-  border-radius: 0;
-  padding-top: 54px;
-  padding-bottom: 54px;
+  border-radius: 24px;
+  padding: 54px;
 }
 
 .kalpo-info h2 {
@@ -310,8 +373,14 @@
   padding: 12px 24px 10px;
   display: grid;
   grid-template-columns: auto 1fr auto;
-  gap: 18px;
+  gap: 24px; /* Збільшили відступ між лого і кнопкою */
   align-items: center;
+}
+
+.kalpo-header__left {
+  display: flex;
+  align-items: center;
+  gap: 16px; /* Відступ між самими елементами зліва */
 }
 
 .kalpo-header__left,
@@ -936,344 +1005,6 @@
   color: #b83d31;
 }
 
-/* ================= RESPONSIVE ================= */
-
-@media (max-width: 1200px) {
-  .kalpo-products-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .kalpo-recipes__grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .kalpo-recipes__intro {
-    grid-column: 1 / -1;
-  }
-
-  .kalpo-hero {
-    grid-template-columns: 1fr;
-  }
-
-  .catalog-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 1100px) {
-  .kalpo-header__inner {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-
-  .kalpo-header__right {
-    justify-content: flex-start;
-    flex-wrap: wrap;
-  }
-}
-
-@media (max-width: 900px) {
-  .kalpo-header__right {
-    flex-wrap: wrap;
-  }
-
-  .kalpo-products-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .kalpo-hero__cards {
-    grid-template-columns: 1fr;
-  }
-
-  .catalog-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .catalog-sidebar {
-    position: static;
-  }
-
-  .catalog-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-}
-
-@media (max-width: 700px) {
-  .kalpo-header__left,
-  .kalpo-header__right {
-    flex-wrap: wrap;
-  }
-
-  .kalpo-header__logo-image {
-    height: 46px;
-  }
-
-  .kalpo-header__catalog,
-  .kalpo-header__action {
-    min-height: 44px;
-    padding: 0 18px;
-    font-size: 15px;
-  }
-
-  .kalpo-header__slot-button {
-    min-height: 42px;
-    padding: 0 16px;
-    font-size: 14px;
-  }
-}
-
-@media (max-width: 640px) {
-  .kalpo-products-grid,
-  .kalpo-recipes__grid {
-    grid-template-columns: 1fr;
-  }
-
-  .kalpo-hero__banner {
-    grid-template-columns: 1fr;
-    gap: 18px;
-    text-align: center;
-  }
-
-  .kalpo-hero__banner-content h1 {
-    font-size: 34px;
-  }
-
-  .kalpo-section__head {
-    flex-direction: column;
-  }
-
-  .catalog-page {
-    padding: 20px 14px 32px;
-  }
-
-  .catalog-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .catalog-toolbar .section-title h1 {
-    font-size: 32px;
-  }
-
-  .product-card__image {
-    height: 190px;
-  }
-
-  .auth-modal-page {
-    align-items: center;
-    padding: 28px 14px;
-  }
-
-  .auth-modal-card,
-  .auth-modal-card--register {
-    width: 100%;
-    max-width: 390px;
-  }
-
-  .auth-modal-logo {
-    width: 130px;
-    height: 130px;
-  }
-
-  .auth-modal-logo img {
-    width: 100px;
-  }
-
-  .auth-modal-title {
-    font-size: 24px;
-  }
-
-  .auth-password {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.auth-password input {
-  width: 100%;
-  padding-right: 40px;
-}
-
-.auth-password-toggle {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  font-size: 16px;
-  color: #888;
-}
-
-.auth-password {
-  position: relative;
-  width: 100%;
-}
-
-.auth-password input {
-  width: 100%;
-  padding-right: 42px;
-}
-
-.auth-password-toggle {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-
-  width: 24px !important;
-  height: 24px !important;
-  min-width: 24px;
-  padding: 0 !important;
-  margin: 0 !important;
-
-  border: none !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  color: #555555 !important;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  font-size: 14px !important;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.auth-password-field {
-  position: relative;
-  width: 100%;
-}
-
-.auth-password-field input {
-  width: 100%;
-  padding-right: 42px;
-}
-
-.auth-password-eye {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 14px;
-  color: #555;
-  cursor: pointer;
-  line-height: 1;
-}
-
-.auth-modal-error {
-  margin-top: 16px;
-  padding: 14px 16px;
-
-  background: #fdecea;
-  color: #d93025;
-
-  border-radius: 12px;
-  font-size: 14px;
-  line-height: 1.4;
-}
-
-.profile-layout {
-  display: flex;
-  gap: 24px;
-  padding: 24px;
-}
-
-.profile-sidebar {
-  width: 220px;
-  background: #f3e4c6;
-  padding: 20px;
-  border-radius: 12px;
-}
-
-.profile-sidebar nav p {
-  margin: 10px 0;
-  cursor: pointer;
-}
-
-.profile-sidebar .active {
-  color: #c93f35;
-  font-weight: 600;
-}
-
-.profile-help {
-  margin-top: 40px;
-  font-size: 12px;
-  color: #888;
-}
-
-.profile-content {
-  flex: 1;
-}
-
-.profile-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #fff;
-  padding: 20px;
-  border-radius: 16px;
-  margin-bottom: 20px;
-}
-
-.profile-edit {
-  background: #c93f35;
-  color: #fff;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 10px;
-}
-
-.profile-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-}
-
-.profile-block {
-  background: #fff;
-  padding: 16px;
-  border-radius: 16px;
-}
-
-.profile-layout {
-  display: flex;
-  gap: 24px;
-  padding: 24px 40px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.profile-content {
-  flex: 1;
-}
-
-.profile-card {
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-}
-
-.profile-block {
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-}
-
-.profile-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-
 /* ================= PROFILE PAGE ================= */
 
 .profile-page {
@@ -1511,7 +1242,68 @@
   font-size: 14px;
 }
 
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 1200px) {
+  .kalpo-products-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .kalpo-recipes__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .kalpo-recipes__intro {
+    grid-column: 1 / -1;
+  }
+
+  .kalpo-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .catalog-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1100px) {
+  .kalpo-header__inner {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .kalpo-header__right {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+}
+
 @media (max-width: 900px) {
+  .kalpo-header__right {
+    flex-wrap: wrap;
+  }
+
+  .kalpo-products-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .kalpo-hero__cards {
+    grid-template-columns: 1fr;
+  }
+
+  .catalog-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .catalog-sidebar {
+    position: static;
+  }
+
+  .catalog-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .profile-shell {
     grid-template-columns: 1fr;
   }
@@ -1536,63 +1328,498 @@
   }
 }
 
-/* Стилі для блоку доставки */
-.kalpo-header__delivery {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+@media (max-width: 700px) {
+  .kalpo-header__left,
+  .kalpo-header__right {
+    flex-wrap: wrap;
+  }
+
+  .kalpo-header__logo-image {
+    height: 46px;
+  }
+
+  .kalpo-header__catalog,
+  .kalpo-header__action {
+    min-height: 44px;
+    padding: 0 18px;
+    font-size: 15px;
+  }
+
+  .kalpo-header__slot-button {
+    min-height: 42px;
+    padding: 0 16px;
+    font-size: 14px;
+  }
 }
 
-.kalpo-header__delivery-icon {
-  display: flex;
-  align-items: center;
-}
+@media (max-width: 640px) {
+  .kalpo-products-grid,
+  .kalpo-recipes__grid {
+    grid-template-columns: 1fr;
+  }
 
-.kalpo-header__delivery-title {
-  font-weight: 600;
-  color: #1a1a1a;
-  font-size: 14px;
-}
-
-.kalpo-header__delivery-text {
-  color: #666;
-  font-size: 12px;
-}
-
-/* Загальні стилі для кнопок "Увійти/Профіль" та "Кошик" */
-.kalpo-header__action {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 8px 20px;
+  .kalpo-hero__banner {
+  flex: 1;
   border-radius: 24px;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 14px;
-  border: 1px solid #8E1616; /* Червоний з Figma */
-  color: #8E1616;
-  background-color: transparent;
-  transition: all 0.2s;
-  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  overflow: hidden;
+  background-color: #8cc63f;
 }
 
-.kalpo-header__action:hover {
-  background-color: rgba(142, 22, 22, 0.05);
-}
-
-.kalpo-header__action img {
+.kalpo-hero__banner-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain !important;
+  object-position: center !important;
   display: block;
 }
 
-/* Специфічні стилі тільки для Кошика */
-.kalpo-header__action--cart {
-  border: none;
-  background-color: #E6CDB3; /* Бежевий фон з Figma */
-  color: #8E1616;
+  .kalpo-hero__banner-content h2 {
+    font-size: 34px;
+  }
+
+  .kalpo-section__head {
+    flex-direction: column;
+  }
+
+  .catalog-page {
+    padding: 20px 14px 32px;
+  }
+
+  .catalog-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .catalog-toolbar .section-title h1 {
+    font-size: 32px;
+  }
+
+  .product-card__image {
+    height: 190px;
+  }
+
+  .auth-modal-page {
+    align-items: center;
+    padding: 28px 14px;
+  }
+
+  .auth-modal-card,
+  .auth-modal-card--register {
+    width: 100%;
+    max-width: 390px;
+  }
+
+  .auth-modal-logo {
+    width: 130px;
+    height: 130px;
+  }
+
+  .auth-modal-logo img {
+    width: 100px;
+  }
+
+  .auth-modal-title {
+    font-size: 24px;
+  }
+
+  /* --- Стилі для банера з Кефіром --- */
+.kalpo-hero__banner {
+  flex: 1;
+  border-radius: 24px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0; /* Прибрали відступи, щоб картинка була на весь блок */
+  overflow: hidden;
+  background-color: #7ec34c;
 }
 
-.kalpo-header__action--cart:hover {
-  background-color: #d6bc9f;
+.kalpo-hero__banner-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* --- Стилі для кнопки "Всі товари" в Header --- */
+.kalpo-header__catalog {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid #8b181b; /* Бордова рамка */
+  border-radius: 999px;
+  background: transparent;
+  color: #8b181b; /* Бордовий текст і іконки */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.kalpo-header__catalog:hover {
+  background: rgba(139, 24, 27, 0.05);
+}
+
+.kalpo-hero__promo-card.pure-css-card {
+  background-color: #ffffff;
+  border: none;
+  padding: 20px;
+  cursor: pointer;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: transform 0.2s ease;
+  position: relative;
+  text-align: left;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+  display: block;
+  height: 100%;
+}
+
+.pure-card-title {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: #8b181b !important; /* Примусовий бордовий колір */
+  position: relative;
+  z-index: 2;
+  display: block;
+}
+
+/* 3. Бордові крапки гарантовано відображаються */
+.pure-card-dots {
+  position: absolute;
+  bottom: -15px;
+  right: -15px;
+  width: 95px;
+  height: 95px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='12' cy='12' r='9' fill='%238b181b'/%3E%3C/svg%3E") !important;
+  background-size: 24px 24px !important;
+  border-radius: 50%;
+  z-index: 1;
+}
+
+/* =========================================
+   СТИЛІ ДЛЯ КАРТОК ТОВАРІВ (ProductCard)
+========================================= */
+
+.kalpo-product-card {
+  background: #ffffff;
+  border: 1px solid #f0f0f0;
+  border-radius: 20px;
+  padding: 16px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 320px;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.kalpo-product-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
+}
+
+/* Бейджик знижки (зелений) */
+.kalpo-product-card__badge {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  background-color: #8cc63f; /* Зелений колір з макету */
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 12px;
+  z-index: 2;
+}
+
+.kalpo-product-card__image-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 160px;
+  width: 100%;
+  margin-bottom: 16px;
+  text-decoration: none;
+  overflow: hidden;
+}
+
+.kalpo-product-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* Нижня частина картки */
+.kalpo-product-card__info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+/* Рядок з цінами та кошиком */
+.kalpo-product-card__price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 12px;
+}
+
+.kalpo-product-card__prices {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.kalpo-product-card__price-current {
+  font-size: 22px;
+  font-weight: 800;
+  color: #1a1a1a;
+  line-height: 1;
+}
+
+.kalpo-currency {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.kalpo-product-card__price-old-wrap {
+  display: inline-block;
+  background-color: #f5f5f5; /* Сірий овал */
+  padding: 2px 8px;
+  border-radius: 10px;
+  width: fit-content;
+}
+
+.kalpo-product-card__price-old {
+  font-size: 12px;
+  color: #888888;
+  text-decoration: line-through;
+  font-weight: 500;
+}
+
+/* Бордова кнопка кошика */
+.kalpo-product-card__cart-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: #8b181b; /* Бордовий колір */
+  color: #ffffff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.kalpo-product-card__cart-btn:hover {
+  background-color: #721215;
+}
+
+/* Назва та вага */
+.kalpo-product-card__title-link {
+  text-decoration: none;
+  margin-bottom: 4px;
+}
+
+.kalpo-product-card__title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333333;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Обрізає текст до 2 рядків */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.kalpo-product-card__weight {
+  font-size: 12px;
+  color: #888888;
+  margin-top: auto; /* Притискає вагу до самого низу */
+}
+
+.kalpo-products-carousel {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding: 10px 4px;
+  scroll-behavior: smooth;
+}
+
+.kalpo-products-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.carousel-item {
+  flex: 0 0 200px;
+}
+
+.kalpo-product-card {
+  background: #ffffff;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.kalpo-product-card__image-container {
+  position: relative;
+  width: 100%;
+  height: 160px;
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kalpo-product-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.kalpo-product-card__badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 8px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.1;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.kalpo-product-card__add-btn {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  background: #ffffff;
+  border: 2px solid #2563eb;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(37,99,235,0.2);
+}
+
+.kalpo-product-card__content {
+  padding: 10px 2px 2px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.kalpo-product-card__price-main {
+  font-size: 15px;
+  font-weight: 700;
+  color: #000000;
+}
+
+.kalpo-product-card__currency {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.kalpo-product-card__old-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.kalpo-product-card__price-old {
+  font-size: 11px;
+  color: #999999;
+  text-decoration: line-through;
+}
+
+.kalpo-product-card__discount-tag {
+  background: #ff7a00;
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+
+.kalpo-product-card__promo-text {
+  color: #16a34a;
+  font-size: 10px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.kalpo-product-card__title {
+  font-size: 12px;
+  color: #555555;
+  font-weight: 400;
+  margin: 6px 0;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  height: 32px;
+}
+
+.kalpo-product-card__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  font-size: 11px;
+  color: #888888;
+}
+
+.kalpo-product-card__rating {
+  color: #aaaaaa;
+}
+
+/* Ці стилі гарантують, що елементи картки ніколи не зріжуться */
+.kalpo-product-card {
+  overflow: visible !important;
+}
+
+.kalpo-product-card__image-container {
+  overflow: visible !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.kalpo-product-card__image {
+  width: auto !important;
+  height: auto !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important; /* Картинка повністю вміщується */
+}
+
+/* Гарантуємо, що кнопка "в кошик" не зріжеться і буде правильно позиціонована */
+.kalpo-product-card__add-btn {
+  overflow: visible !important;
+  z-index: 3 !important; /* Трохи вище за картинку */
 }
 }
