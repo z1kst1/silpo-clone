@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router";
+import api from "../api/api"; // Імпортуємо наш налаштований Axios
 import "../styles/kalpo-home.css";
 
 export default function LoginPage() {
@@ -21,40 +22,41 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      // Тут адреса правильна, бо ти казала, що писало "Успішно"
-      const response = await fetch("http://localhost:3000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: formData.email, password: formData.password }),
+      // Axios автоматично конвертує об'єкт у JSON і додає правильні заголовки
+      const response = await api.post("/auth/login", {
+        email: formData.email,
+        password: formData.password,
       });
 
-      const data = await response.json();
+      // В Axios дані від бекенду лежать у властивості `data`
+      const data = response.data;
 
-      if (response.ok) {
-        // 1. Зберігаємо токен
-        localStorage.setItem("silpo-token", data.token);
+      // 1. Зберігаємо токен (тепер він називається просто 'token', щоб інтерцептор його легко знаходив)
+      localStorage.setItem("token", data.token);
 
-        // 2. ЗБЕРІГАЄМО ЮЗЕРА (Цього не було!)
-        if (data.user) {
-          localStorage.setItem("silpo-user", JSON.stringify(data.user));
-        } else {
-          // Якщо бекенд не повертає об'єкт user, зберігаємо хоча б email
-          localStorage.setItem("silpo-user", JSON.stringify({ email: formData.email, name: "Користувач" }));
-        }
-
-        setMessage("Вхід виконано успішно! Перенаправлення...");
-
-        // 3. ЖОРСТКЕ ПЕРЕНАПРАВЛЕННЯ (щоб оновилась шапка)
-        setTimeout(() => {
-          window.location.href = "/profile";
-        }, 1000);
-
+      // 2. ЗБЕРІГАЄМО ЮЗЕРА
+      if (data.user) {
+        localStorage.setItem("silpo-user", JSON.stringify(data.user));
       } else {
-        setError(data.error || data.message || "Невірний email або пароль.");
+        localStorage.setItem("silpo-user", JSON.stringify({ email: formData.email, name: "Користувач" }));
       }
+
+      setMessage("Вхід виконано успішно! Перенаправлення...");
+
+      // 3. ЖОРСТКЕ ПЕРЕНАПРАВЛЕННЯ
+      setTimeout(() => {
+        window.location.href = "/profile";
+      }, 1000);
+
     } catch (err) {
       console.error(err);
-      setError("Не вдалося підключитися до сервера. Перевірте, чи працює бекенд.");
+
+      // Axios кладе відповідь з помилкою від сервера в err.response
+      if (err.response) {
+        setError(err.response.data?.error || err.response.data?.message || "Невірний email або пароль.");
+      } else {
+        setError("Не вдалося підключитися до сервера. Перевірте, чи працює бекенд.");
+      }
     } finally {
       setIsSubmitting(false);
     }

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { registerUser } from "../api/auth";
+import api from "../api/api"; // Імпортуємо наш налаштований Axios
 import "../styles/kalpo-home.css";
 
 export default function RegisterPage() {
@@ -60,11 +60,21 @@ export default function RegisterPage() {
         password: formData.password,
       };
 
-      // Відправка на бекенд
-      const data = await registerUser(payload);
+      // Відправка на бекенд через наш Axios (зміни URL, якщо він у тебе інший, наприклад /auth/signup)
+      const response = await api.post("/auth/register", payload);
+      const data = response.data;
 
-      // Зберігаємо користувача та JWT токен
-      localStorage.setItem("silpo-user", JSON.stringify(data));
+      // Зберігаємо токен (щоб інтерцептор його підхопив для наступних запитів)
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+      }
+
+      // Зберігаємо користувача
+      if (data.user) {
+        localStorage.setItem("silpo-user", JSON.stringify(data.user));
+      } else {
+        localStorage.setItem("silpo-user", JSON.stringify({ email: formData.email, name: formData.name }));
+      }
 
       setMessage("Реєстрація пройшла успішно!");
 
@@ -75,7 +85,12 @@ export default function RegisterPage() {
     } catch (err) {
       console.error(err);
 
-      setError("Не вдалося підключитися до сервера або виникла помилка.");
+      // Axios кладе відповідь з помилкою від сервера в err.response
+      if (err.response) {
+        setError(err.response.data?.error || err.response.data?.message || "Помилка при реєстрації.");
+      } else {
+        setError("Не вдалося підключитися до сервера або виникла помилка.");
+      }
     } finally {
       setIsSubmitting(false);
     }

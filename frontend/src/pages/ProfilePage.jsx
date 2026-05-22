@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router";
+import api from "../api/api"; // Імпортуємо наш Axios
 import "../styles/ProfilePage.css";
 
 export default function ProfilePage() {
@@ -21,27 +22,49 @@ export default function ProfilePage() {
 
   const fileInputRef = useRef(null);
 
+  // 1. ГОЛОВНА ЗМІНА: Отримуємо дані з реальної бази даних через бекенд
   useEffect(() => {
-    const savedUser = localStorage.getItem("silpo-user");
-    if (savedUser) {
-      const parsed = JSON.parse(savedUser);
-      setUser({
-        firstName: parsed.firstName || parsed.name || "Користувач",
-        lastName: parsed.lastName || "",
-        middleName: parsed.middleName || "",
-        email: parsed.email || "",
-        phone: parsed.phone || "",
-        birthDate: parsed.birthDate || "",
-        gender: parsed.gender || "Не вказано",
-        avatar: parsed.avatar || ""
-      });
-    } else {
-      navigate("/login");
-    }
+    const fetchProfile = async () => {
+      // Якщо токена взагалі немає, одразу викидаємо на логін
+      if (!localStorage.getItem("token")) {
+        navigate("/login");
+        return;
+      }
+
+      try {
+        // УВАГА: Заміни "/auth/me" на правильний шлях твого бекенду,
+        // який повертає дані профілю (можливо це "/users/profile" або щось подібне)
+        const response = await api.get("/auth/me");
+
+        const userData = response.data; // Дані з бази
+
+        setUser({
+          firstName: userData.firstName || userData.name || "Користувач",
+          lastName: userData.lastName || "",
+          middleName: userData.middleName || "",
+          email: userData.email || "",
+          phone: userData.phone || "",
+          birthDate: userData.birthDate || "",
+          gender: userData.gender || "Не вказано",
+          avatar: userData.avatar || ""
+        });
+
+        // Оновлюємо локал сторадж актуальними даними з бекенду
+        localStorage.setItem("silpo-user", JSON.stringify(userData));
+
+      } catch (error) {
+        console.error("Помилка завантаження профілю:", error);
+        // Якщо токен протермінований (401), наш інтерцептор в api.js
+        // сам видалить його і перекине на сторінку логіну.
+      }
+    };
+
+    fetchProfile();
   }, [navigate]);
 
+  // 2. ВИПРАВЛЕНО ВИХІД
   const handleLogout = () => {
-    localStorage.removeItem("silpo-token");
+    localStorage.removeItem("token"); // Тепер ключ правильний!
     localStorage.removeItem("silpo-user");
     window.location.href = "/";
   };
@@ -71,10 +94,15 @@ export default function ProfilePage() {
     }
   };
 
-  const handleSaveDetails = () => {
+  // 3. ЗБЕРЕЖЕННЯ ДАНИХ (Поки залишаємо локально, але згодом тут теж буде api.put)
+  const handleSaveDetails = async () => {
     setUser(editData);
     const savedUser = JSON.parse(localStorage.getItem("silpo-user") || "{}");
     localStorage.setItem("silpo-user", JSON.stringify({ ...savedUser, ...editData, name: editData.firstName }));
+
+    // ТУТ В МАЙБУТНЬОМУ БУДЕ:
+    // await api.put("/auth/update", editData);
+
     setActiveView("myData");
   };
 
