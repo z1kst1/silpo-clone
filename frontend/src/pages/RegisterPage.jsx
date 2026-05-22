@@ -26,7 +26,6 @@ export default function RegisterPage() {
     formData.password &&
     formData.confirmPassword;
 
-  // Оновлення input полів
   function handleChange(event) {
     const { name, value } = event.target;
 
@@ -36,14 +35,12 @@ export default function RegisterPage() {
     }));
   }
 
-  // Реєстрація
   async function handleSubmit(event) {
     event.preventDefault();
 
     setMessage("");
     setError("");
 
-    // Перевірка паролів
     if (formData.password !== formData.confirmPassword) {
       setError("Паролі не співпадають.");
       return;
@@ -52,22 +49,18 @@ export default function RegisterPage() {
     setIsSubmitting(true);
 
     try {
-      // Дані для бекенду
       const payload = {
         name: formData.name,
         email: formData.email,
         password: formData.password,
       };
 
-      // Відправка на бекенд
       const data = await registerUser(payload);
 
-      // Зберігаємо користувача та JWT токен
       localStorage.setItem("silpo-user", JSON.stringify(data));
 
       setMessage("Реєстрація пройшла успішно!");
 
-      // Переходимо в профіль
       setTimeout(() => {
         navigate("/profile");
       }, 1500);
@@ -95,7 +88,6 @@ export default function RegisterPage() {
           <h1 className="auth-modal-title">Реєстрація</h1>
 
           <form className="auth-modal-form" onSubmit={handleSubmit}>
-            {/* Ім’я */}
             <label>
               Ім’я
               <input
@@ -108,7 +100,6 @@ export default function RegisterPage() {
               />
             </label>
 
-            {/* Email */}
             <label>
               Email
               <input
@@ -121,7 +112,6 @@ export default function RegisterPage() {
               />
             </label>
 
-            {/* Пароль */}
             <label>
               Пароль
               <div
@@ -158,7 +148,6 @@ export default function RegisterPage() {
               </div>
             </label>
 
-            {/* Підтвердження пароля */}
             <label>
               Підтвердження пароля
               <div
@@ -195,13 +184,11 @@ export default function RegisterPage() {
               </div>
             </label>
 
-            {/* Кнопка */}
             <button type="submit" disabled={isSubmitting || !isFormFilled}>
               {isSubmitting ? "Завантаження..." : "Зареєструватися"}
             </button>
           </form>
 
-          {/* Повідомлення */}
           {message && (
             <p
               className="auth-modal-success"

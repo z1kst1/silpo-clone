@@ -1,7 +1,6 @@
 import { Link } from "react-router";
 
-const FALLBACK_IMAGE =
-  "https://via.placeholder.com/420x280?text=Kalpo+Product";
+const FALLBACK_IMAGE = "https://via.placeholder.com/420x280?text=Kalpo+Product";
 
 export default function ProductCard({ product }) {
   function handleImageError(event) {
@@ -22,7 +21,10 @@ export default function ProductCard({ product }) {
       <div className="product-card__content">
         <p className="product-card__category">{product.category}</p>
 
-        <Link to={`/product/${product.id}`} className="product-card__title-link">
+        <Link
+          to={`/product/${product.id}`}
+          className="product-card__title-link"
+        >
           <h3 className="product-card__title">{product.name}</h3>
         </Link>
 
@@ -35,7 +37,10 @@ export default function ProductCard({ product }) {
         <div className="product-card__bottom">
           <p className="product-card__price">{product.price} грн</p>
 
-          <Link to={`/product/${product.id}`} className="green-button product-card__button">
+          <Link
+            to={`/product/${product.id}`}
+            className="green-button product-card__button"
+          >
             Переглянути товар
           </Link>
         </div>

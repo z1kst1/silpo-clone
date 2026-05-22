@@ -44,10 +44,8 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (response.ok) {
-        // Зберігаємо токен
         localStorage.setItem("silpo-token", data.token);
 
-        // Зберігаємо юзера
         if (data.user) {
           localStorage.setItem(
             "silpo-user",

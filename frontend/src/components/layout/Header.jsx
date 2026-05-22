@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router"; // Додано useLocation
+import { Link, useLocation } from "react-router";
 
 const timeSlots = [
   "до 69 хв",
@@ -14,15 +14,13 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
 
-  // 1. Отримуємо поточну адресу сторінки
   const location = useLocation();
 
-  // 2. Перевіряємо, чи ми зараз у розділі профілю
   const isProfilePage = location.pathname.startsWith("/profile");
 
-  // Перевіряємо, чи авторизований користувач при завантаженні шапки
   useEffect(() => {
     const savedUser = localStorage.getItem("silpo-user");
+
     if (savedUser) {
       setUser(JSON.parse(savedUser));
     }
@@ -58,6 +56,7 @@ export default function Header() {
                 >
                   Головна
                 </Link>
+
                 <Link
                   to="/catalog"
                   className="kalpo-header__menu-link"
@@ -65,6 +64,7 @@ export default function Header() {
                 >
                   Каталог
                 </Link>
+
                 <Link
                   to="/login"
                   className="kalpo-header__menu-link"
@@ -72,6 +72,7 @@ export default function Header() {
                 >
                   Увійти
                 </Link>
+
                 <Link
                   to="/cart"
                   className="kalpo-header__menu-link"
@@ -100,7 +101,6 @@ export default function Header() {
           <input type="text" placeholder="Я шукаю..." />
         </div>
 
-        {/* ПРАВА ЧАСТИНА */}
         <div className="kalpo-header__right">
           <div className="kalpo-header__delivery">
             <span className="kalpo-header__delivery-icon">
@@ -111,15 +111,16 @@ export default function Header() {
                 height="24"
               />
             </span>
+
             <div>
               <div className="kalpo-header__delivery-title">Доставка</div>
+
               <div className="kalpo-header__delivery-text">
                 Біла Церква, Таращанська 161
               </div>
             </div>
           </div>
 
-          {/* Логіка: якщо є user, показуємо кнопку профілю, якщо ні - кнопку Увійти */}
           {user ? (
             <Link to="/profile" className="kalpo-header__action">
               <img
@@ -128,6 +129,7 @@ export default function Header() {
                 width="16"
                 height="16"
               />
+
               {user.name}
             </Link>
           ) : (
@@ -151,7 +153,6 @@ export default function Header() {
         </div>
       </div>
 
-      {/* 3. УМОВА: Показуємо цей блок ТІЛЬКИ якщо ми НЕ на сторінці профілю */}
       {!isProfilePage && (
         <div className="kalpo-header__slots">
           {timeSlots.map((slot, index) => (

@@ -13,7 +13,7 @@ export default function CatalogPage() {
 
   const [searchValue, setSearchValue] = useState(initialSearch);
   const [selectedCategories, setSelectedCategories] = useState(
-    initialCategory ? [initialCategory] : []
+    initialCategory ? [initialCategory] : [],
   );
   const [selectedPriceRange, setSelectedPriceRange] = useState("all");
   const [sortType, setSortType] = useState("default");
@@ -41,6 +41,7 @@ export default function CatalogPage() {
         : [...prev, category];
 
       updateParams(searchValue, nextCategories);
+
       return nextCategories;
     });
   }
@@ -76,13 +77,13 @@ export default function CatalogPage() {
         (product) =>
           product.name.toLowerCase().includes(currentSearch) ||
           product.category.toLowerCase().includes(currentSearch) ||
-          product.description.toLowerCase().includes(currentSearch)
+          product.description.toLowerCase().includes(currentSearch),
       );
     }
 
     if (selectedCategories.length > 0) {
       result = result.filter((product) =>
-        selectedCategories.includes(product.category)
+        selectedCategories.includes(product.category),
       );
     }
 
@@ -92,7 +93,7 @@ export default function CatalogPage() {
 
     if (selectedPriceRange === "from50To80") {
       result = result.filter(
-        (product) => product.price > 50 && product.price <= 80
+        (product) => product.price > 50 && product.price <= 80,
       );
     }
 
@@ -139,7 +140,11 @@ export default function CatalogPage() {
               onChange={(event) => setSearchValue(event.target.value)}
               className="catalog-search-input"
             />
-            <button type="submit" className="green-button catalog-search-button">
+
+            <button
+              type="submit"
+              className="green-button catalog-search-button"
+            >
               Знайти
             </button>
           </form>
@@ -154,6 +159,7 @@ export default function CatalogPage() {
                   checked={selectedCategories.includes(category)}
                   onChange={() => handleCategoryChange(category)}
                 />
+
                 <span>{category}</span>
               </label>
             ))}
@@ -170,6 +176,7 @@ export default function CatalogPage() {
                 checked={selectedPriceRange === "all"}
                 onChange={handlePriceRangeChange}
               />
+
               <span>Усі ціни</span>
             </label>
 
@@ -181,6 +188,7 @@ export default function CatalogPage() {
                 checked={selectedPriceRange === "upTo50"}
                 onChange={handlePriceRangeChange}
               />
+
               <span>До 50 грн</span>
             </label>
 
@@ -192,6 +200,7 @@ export default function CatalogPage() {
                 checked={selectedPriceRange === "from50To80"}
                 onChange={handlePriceRangeChange}
               />
+
               <span>50–80 грн</span>
             </label>
 
@@ -203,6 +212,7 @@ export default function CatalogPage() {
                 checked={selectedPriceRange === "from80"}
                 onChange={handlePriceRangeChange}
               />
+
               <span>Від 80 грн</span>
             </label>
           </div>
@@ -217,6 +227,7 @@ export default function CatalogPage() {
 
             <div className="catalog-sort">
               <label htmlFor="sort">Сортування</label>
+
               <select id="sort" value={sortType} onChange={handleSortChange}>
                 <option value="default">За замовчуванням</option>
                 <option value="priceAsc">Спочатку дешевші</option>
