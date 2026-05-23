@@ -35,13 +35,20 @@
 
 .kalpo-hero__banner {
   flex: 1;
-  background: linear-gradient(135deg, #a8e063 0%, #56ab2f 100%);
+  background-color: #7ec34c; /* Колір як у Фігмі */
   border-radius: 24px;
   position: relative;
   display: flex;
   align-items: center;
-  padding: 40px 60px;
+  padding: 0; /* Прибираємо відступи на комп'ютері */
   overflow: hidden;
+}
+
+.kalpo-hero__banner-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Завдяки цьому картинка ідеально заповнить блок і нічого не обріжеться */
+  display: block;
 }
 
 .kalpo-hero__brand {
@@ -1511,12 +1518,9 @@
   background: #ffffff;
   border: 1px solid #f0f0f0;
   border-radius: 20px;
-  padding: 16px;
   position: relative;
   display: flex;
   flex-direction: column;
-  height: 100%;
-  min-height: 320px;
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
@@ -1725,7 +1729,6 @@
 }
 
 .kalpo-product-card__content {
-  padding: 10px 2px 2px;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -1821,5 +1824,57 @@
 .kalpo-product-card__add-btn {
   overflow: visible !important;
   z-index: 3 !important; /* Трохи вище за картинку */
+}
+
+/* =========================================
+   ІДЕАЛЬНІ КАРТКИ ТОВАРІВ (ФІКС РОЗМІРІВ)
+========================================= */
+.kalpo-product-card {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+
+.kalpo-product-card__image-container {
+  width: 100%;
+  height: 200px !important; /* Робимо картинку великою і пропорційною */
+  position: relative;
+  border-radius: 20px;
+}
+
+.kalpo-product-card__image {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important; /* Картинка заповнить увесь виділений блок */
+  border-radius: 20px;
+}
+
+.kalpo-product-card__content {
+  padding: 16px 4px 0 !important; /* Акуратний відступ тексту від картинки */
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+/* =========================================
+   ЄДИНИЙ БЕЖЕВИЙ ФОН (ЯК У ФІГМІ)
+========================================= */
+body, html {
+  /* Задаємо єдиний колір для всього вікна браузера */
+  background-color: #f5e4c3 !important;
+}
+
+/* Робимо шапку та обгортку прозорими, щоб вони зливалися з фоном body */
+header,
+.header,
+.kalpo-header,
+.kalpo-home-wrapper {
+  background-color: transparent !important;
+  border-bottom: none !important;
 }
 }

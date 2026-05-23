@@ -12,23 +12,25 @@ const figmaFallback = {
 export default function ProductCard({ product }) {
   const meta = figmaFallback[product.id] || {};
   const currentPrice = Number(product.price).toFixed(2);
-  const oldPrice = product.oldPrice || meta.old || (product.price * 1.3).toFixed(2);
-  const discount = product.hasOwnProperty('discount') ? product.discount : (meta.disc || 33);
+  const oldPrice = product.oldPrice || meta.old;
+  const discount = product.hasOwnProperty('discount') ? product.discount : meta.disc;
   const badgeText = product.badgeText !== undefined ? product.badgeText : meta.badge;
   const weight = product.weight || meta.weight || "100 г";
   const rating = product.rating || meta.rate || "4.5";
   const deliveryTime = product.deliveryTime || meta.deliveryTime;
   const extraInfo = product.info || meta.info;
 
+  const buttonText = product.buttonText;
+
   return (
     <div
       className="kalpo-product-card"
       style={{
-        width: "170px",
-        height: "230px",
-        background: "#ffffff",
-        borderRadius: "20px",
-        padding: "10px",
+        width: "100%",
+        height: "100%",
+        backgroundColor: "#ffffff", /* ПОВЕРТАЄМО БІЛИЙ ФОН */
+        borderRadius: "16px",
+        padding: "8px",             /* ТІСНИЙ ВІДСТУП ЯК У ФІГМІ */
         display: "flex",
         flexDirection: "column",
         boxSizing: "border-box",
@@ -41,8 +43,8 @@ export default function ProductCard({ product }) {
         style={{
           position: "relative",
           width: "100%",
-          height: "105px",
-          borderRadius: "14px",
+          height: "130px",   /* ЗМЕНШЕНА ВИСОТА ФОТО для компактності */
+          borderRadius: "12px",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -55,14 +57,14 @@ export default function ProductCard({ product }) {
             className="kalpo-product-card__badge"
             style={{
               position: "absolute",
-              top: "-10px",
-              left: "-10px",
+              top: "-4px",
+              left: "-4px",
               background: product.badgeBg || meta.bg || "#ffdf00",
               color: product.badgeColor || meta.clr || "#000000",
-              width: "36px",
-              height: "36px",
+              width: "40px",
+              height: "40px",
               borderRadius: "50%",
-              fontSize: badgeText.length > 5 ? "6px" : "8px",
+              fontSize: badgeText.length > 5 ? "8px" : "11px",
               fontWeight: "700",
               display: "flex",
               alignItems: "center",
@@ -86,7 +88,8 @@ export default function ProductCard({ product }) {
           style={{
             width: "100%",
             height: "100%",
-            objectFit: "contain"
+            objectFit: "contain",
+            borderRadius: "12px"
           }}
         />
 
@@ -95,51 +98,58 @@ export default function ProductCard({ product }) {
           className="kalpo-product-card__add-btn"
           style={{
             position: "absolute",
-            bottom: "4px",
-            right: "4px",
-            height: "28px",
-            width: deliveryTime ? "auto" : "28px",
-            padding: deliveryTime ? "0 8px" : "0",
+            bottom: "-12px",
+            ...(buttonText
+              ? { left: "50%", transform: "translateX(-50%)", width: "calc(100% - 8px)", borderRadius: "8px", height: "30px", padding: "0 10px", justifyContent: "space-between" }
+              : { right: "4px", width: deliveryTime ? "auto" : "32px", borderRadius: deliveryTime ? "16px" : "50%", height: "32px", padding: deliveryTime ? "0 10px" : "0", justifyContent: "center" }),
             background: "#ffffff",
             border: "1px solid #1e40af",
-            borderRadius: deliveryTime ? "14px" : "50%",
             display: "flex",
             alignItems: "center",
-            justifyContent: "center",
             gap: "4px",
             cursor: "pointer",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+            boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
             zIndex: 10
           }}
         >
-          {deliveryTime && <span style={{ fontSize: "11px", fontWeight: "600", color: "#1e40af" }}>{deliveryTime}</span>}
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1e40af" strokeWidth="3" strokeLinecap="round">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
+          {buttonText ? (
+            <>
+              <span style={{ fontSize: "11px", fontWeight: "600", color: "#1e40af" }}>{buttonText}</span>
+              <span style={{ fontSize: "15px", fontWeight: "600", color: "#1e40af" }}>+</span>
+            </>
+          ) : (
+            <>
+              {deliveryTime && <span style={{ fontSize: "12px", fontWeight: "600", color: "#1e40af" }}>{deliveryTime}</span>}
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e40af" strokeWidth="3" strokeLinecap="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </>
+          )}
         </button>
       </div>
 
-      <div className="kalpo-product-card__content" style={{ display: "flex", flexDirection: "column", flex: 1, paddingTop: "10px" }}>
-        <div className="kalpo-product-card__price-main" style={{ fontSize: "15px", fontWeight: "600", color: "#000000", lineHeight: "1" }}>
-          {currentPrice} <span className="kalpo-product-card__currency" style={{ fontSize: "11px", fontWeight: "400" }}>грн</span>
+      <div className="kalpo-product-card__content" style={{ display: "flex", flexDirection: "column", flex: 1, paddingTop: "6px" }}>
+
+        <div className="kalpo-product-card__price-main" style={{ fontSize: "18px", fontWeight: "700", color: "#000000", lineHeight: "1" }}>
+          {currentPrice} <span className="kalpo-product-card__currency" style={{ fontSize: "12px", fontWeight: "500" }}>грн</span>
         </div>
 
-        <div className="kalpo-product-card__old-row" style={{ display: "flex", alignItems: "center", gap: "4px", margin: "4px 0 2px 0", minHeight: "14px" }}>
+        <div className="kalpo-product-card__old-row" style={{ display: "flex", alignItems: "center", gap: "6px", margin: "4px 0", minHeight: "14px" }}>
           {oldPrice && (
-            <span className="kalpo-product-card__price-old" style={{ fontSize: "11px", color: "#b5b5b5", textDecoration: "line-through", fontWeight: "400" }}>
-              {Number(oldPrice).toFixed(2)}
+            <span className="kalpo-product-card__price-old" style={{ fontSize: "12px", color: "#888", textDecoration: "line-through", fontWeight: "500" }}>
+              {Number(oldPrice).toFixed(2)} грн
             </span>
           )}
           {discount && (
-            <span className="kalpo-product-card__discount-tag" style={{ background: "#ff7a00", color: "#ffffff", fontSize: "9px", fontWeight: "400", padding: "1px 4px", borderRadius: "4px", lineHeight: "1" }}>
+            <span className="kalpo-product-card__discount-tag" style={{ background: "#ff7a00", color: "#ffffff", fontSize: "10px", fontWeight: "600", padding: "2px 4px", borderRadius: "4px", lineHeight: "1" }}>
               -{discount}%
             </span>
           )}
         </div>
 
         {extraInfo && (
-          <div className="kalpo-product-card__promo-text" style={{ color: "#16a34a", fontSize: "10px", fontWeight: "400", marginBottom: "2px", lineHeight: "1" }}>
+          <div className="kalpo-product-card__promo-text" style={{ color: "#16a34a", fontSize: "11px", fontWeight: "500", marginBottom: "2px", lineHeight: "1" }}>
             {extraInfo}
           </div>
         )}
@@ -147,24 +157,23 @@ export default function ProductCard({ product }) {
         <h3
           className="kalpo-product-card__title"
           style={{
-            margin: "2px 0 4px 0",
-            fontSize: "11px",
+            margin: "2px 0 6px 0",
+            fontSize: "13px",
             color: "#333333",
-            fontWeight: "400",
-            lineHeight: "1.25",
+            fontWeight: "500",
+            lineHeight: "1.3",
             display: "-webkit-box",
-            WebkitLineClamp: 2,
+            WebkitLineClamp: 3,
             WebkitBoxOrient: "vertical",
-            overflow: "hidden",
-            height: "28px"
+            overflow: "hidden"
           }}
         >
           {product.title}
         </h3>
 
-        <div className="kalpo-product-card__footer" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "auto", fontSize: "11px", color: "#888888" }}>
+        <div className="kalpo-product-card__footer" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "auto", fontSize: "12px", color: "#888888" }}>
           <span>{weight}</span>
-          <span className="kalpo-product-card__rating" style={{ display: "flex", alignItems: "center", gap: "2px" }}>
+          <span className="kalpo-product-card__rating" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
             <svg width="10" height="10" viewBox="0 0 24 24" fill="#c2c2c2">
               <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
             </svg>

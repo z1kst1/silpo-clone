@@ -35,7 +35,7 @@ export default function Header() {
   }
 
   return (
-    <header className="kalpo-header">
+    <header className="kalpo-header" style={{ backgroundColor: "#f4ead5", borderBottom: "none", boxShadow: "none" }}>
       <div className="kalpo-header__inner">
         <div className="kalpo-header__left">
           <div className="kalpo-header__burger-wrap">

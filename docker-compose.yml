@@ -18,27 +18,32 @@ services:
   # 2. КОНТЕЙНЕР БЕКЕНДУ
   backend:
     build:
-      context: ./backend # Вказуємо Докеру, де лежить наш бекенд
+      context: ./backend
     container_name: silpo_backend
     restart: always
     ports:
       - "3000:3000"
     environment:
-      # УВАГА: Тут замість localhost ми пишемо 'db', бо в Докері контейнери спілкуються за іменами
       DATABASE_URL: postgresql://postgres:mysecretpassword@db:5432/silpo_db?schema=public
     depends_on:
-      - db # Бекенд чекатиме, поки запуститься база
+      - db
+    volumes:
+      - ./backend:/app           # Міст для миттєвого оновлення бекенду
+      - /app/node_modules        # Захищаємо встановлені бібліотеки
 
   # 3. КОНТЕЙНЕР ФРОНТЕНДУ
   frontend:
     build:
-      context: ./frontend # УВАГА: Якщо твоя папка фронтенду називається інакше (наприклад, kalpo), зміни цю назву!
+      context: ./frontend
     container_name: silpo_frontend
     restart: always
     ports:
       - "5173:5173"
     depends_on:
-      - backend # Фронтенд чекатиме, поки запуститься бекенд
+      - backend
+    volumes:
+      - ./frontend:/app          # Міст для миттєвого оновлення фронтенду
+      - /app/node_modules        # Захищаємо встановлені бібліотеки
 
 volumes:
   postgres_data:
