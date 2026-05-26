@@ -1,273 +1,283 @@
 import { useMemo, useState } from "react";
-import { useSearchParams } from "react-router";
+import { useSearchParams, Link } from "react-router";
 import ProductCard from "../components/ProductCard";
 import useProducts from "../hooks/useProducts";
-import "../styles/kalpo-home.css";
+
+const mockCategories = [
+  { name: "Всі", count: 207, icon: "/images/figma/icons/categories/all.svg" },
+  { name: "Добрі промо", count: 2, icon: "/images/figma/icons/categories/promo.svg" },
+  { name: "Риба", count: 110, icon: "/images/figma/icons/categories/fish.svg" },
+  { name: "Сири", count: 1, icon: "/images/figma/icons/categories/cheese.svg" },
+  { name: "Готові страви і кулінарія", count: 28, icon: "/images/figma/icons/categories/food.svg" },
+  { name: "Власні марки", count: 3, icon: "/images/figma/icons/categories/brands.svg" },
+  { name: "Здорове харчування", count: 2, icon: "/images/figma/icons/categories/healthy.svg" },
+  { name: "Бакалія і консерви", count: 13, icon: "/images/figma/icons/categories/cans.svg" },
+  { name: "Заморожена продукція", count: 4, icon: "/images/figma/icons/categories/frozen.svg" }
+];
+
+// ПОВНИЙ список секцій фільтрів з макету Фігми
+const filterSectionsList = [
+  "Часто шукають",
+  "Обробка риби",
+  "Акційні пропозиції", // Цей пункт отримає спеціальну іконку
+  "Основа продукту",
+  "Сорт",
+  "Смак",
+  "Кількість одиниць",
+  "Країна",
+  "Особливі",
+  "Спосіб обробки риби",
+  "Підвид",
+  "Додатковий смак",
+  "Вид продукту",
+  "Тип продукту",
+  "Тип упаковки",
+  "Ступінь обробки риби",
+  "Властивості",
+  "Фасування",
+  "Вид риби",
+  "Тип охолодження",
+  "Частина риби",
+  "Спосіб приготування страви",
+  "Вид страви",
+  "Торгова марка",
+  "Масова частка жиру (%)",
+  "Вид хліба та випічки",
+  "Вид борошна",
+  "Форма продукту",
+  "Вид бакалії",
+  "Основна сировина",
+  "Вид снеків і чипсів",
+  "Підвид снеків і чипсів",
+  "Вид замороженої продукції",
+  "Підвид замороженої продукції"
+];
 
 export default function CatalogPage() {
   const { products, loading } = useProducts();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const initialSearch = searchParams.get("search") || "";
-  const initialCategory = searchParams.get("category") || "";
+  const searchQuery = searchParams.get("search") || "";
+  const initialCategory = searchParams.get("category") || "Всі";
 
-  const [searchValue, setSearchValue] = useState(initialSearch);
-  const [selectedCategories, setSelectedCategories] = useState(
-    initialCategory ? [initialCategory] : []
-  );
-  const [selectedPriceRange, setSelectedPriceRange] = useState("all");
-  const [sortType, setSortType] = useState("default");
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
 
-  const categories = [...new Set(products.map((product) => product.category))];
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [openFilterSections, setOpenFilterSections] = useState([]);
 
-  function updateParams(nextSearch, nextCategories) {
-    const params = new URLSearchParams();
-
-    if (nextSearch.trim()) {
-      params.set("search", nextSearch.trim());
+  function handleCategoryClick(categoryName) {
+    setSelectedCategory(categoryName);
+    const params = new URLSearchParams(searchParams);
+    if (categoryName === "Всі") {
+      params.delete("category");
+    } else {
+      params.set("category", categoryName);
     }
-
-    if (nextCategories.length === 1) {
-      params.set("category", nextCategories[0]);
-    }
-
     setSearchParams(params);
   }
 
-  function handleCategoryChange(category) {
-    setSelectedCategories((prev) => {
-      const nextCategories = prev.includes(category)
-        ? prev.filter((item) => item !== category)
-        : [...prev, category];
-
-      updateParams(searchValue, nextCategories);
-      return nextCategories;
-    });
-  }
-
-  function handlePriceRangeChange(event) {
-    setSelectedPriceRange(event.target.value);
-  }
-
-  function handleSortChange(event) {
-    setSortType(event.target.value);
-  }
-
-  function handleSearchSubmit(event) {
-    event.preventDefault();
-    updateParams(searchValue, selectedCategories);
-  }
-
-  function clearFilters() {
-    setSearchValue("");
-    setSelectedCategories([]);
-    setSelectedPriceRange("all");
-    setSortType("default");
-    setSearchParams({});
+  function toggleFilterSection(sectionName) {
+    setOpenFilterSections((prev) =>
+      prev.includes(sectionName)
+        ? prev.filter((name) => name !== sectionName)
+        : [...prev, sectionName]
+    );
   }
 
   const filteredProducts = useMemo(() => {
     let result = [...products];
-
-    const currentSearch = searchValue.toLowerCase().trim();
+    const currentSearch = searchQuery.toLowerCase().trim();
 
     if (currentSearch) {
       result = result.filter(
         (product) =>
-          product.name.toLowerCase().includes(currentSearch) ||
-          product.category.toLowerCase().includes(currentSearch) ||
-          product.description.toLowerCase().includes(currentSearch)
+          (product.title && product.title.toLowerCase().includes(currentSearch)) ||
+          (product.category && product.category.toLowerCase().includes(currentSearch)) ||
+          (product.description && product.description.toLowerCase().includes(currentSearch))
       );
     }
 
-    if (selectedCategories.length > 0) {
-      result = result.filter((product) =>
-        selectedCategories.includes(product.category)
-      );
-    }
-
-    if (selectedPriceRange === "upTo50") {
-      result = result.filter((product) => product.price <= 50);
-    }
-
-    if (selectedPriceRange === "from50To80") {
-      result = result.filter(
-        (product) => product.price > 50 && product.price <= 80
-      );
-    }
-
-    if (selectedPriceRange === "from80") {
-      result = result.filter((product) => product.price > 80);
-    }
-
-    if (sortType === "priceAsc") {
-      result.sort((a, b) => a.price - b.price);
-    }
-
-    if (sortType === "priceDesc") {
-      result.sort((a, b) => b.price - a.price);
-    }
-
-    if (sortType === "nameAsc") {
-      result.sort((a, b) => a.name.localeCompare(b.name, "uk"));
+    if (selectedCategory !== "Всі") {
+      result = result.filter((product) => product.category === selectedCategory);
     }
 
     return result;
-  }, [products, searchValue, selectedCategories, selectedPriceRange, sortType]);
+  }, [products, searchQuery, selectedCategory]);
+
+  if (loading) {
+    return <div style={{ padding: "80px", textAlign: "center", minHeight: "100vh" }}><h2>Завантаження товарів...</h2></div>;
+  }
 
   return (
-    <section className="catalog-page">
-      <div className="catalog-layout">
-        <aside className="catalog-sidebar">
-          <div className="catalog-sidebar__top">
-            <h3>Фільтри</h3>
-
-            <button
-              type="button"
-              className="catalog-clear-button"
-              onClick={clearFilters}
-            >
-              Очистити
-            </button>
-          </div>
-
-          <form className="catalog-search-form" onSubmit={handleSearchSubmit}>
-            <input
-              type="text"
-              placeholder="Пошук у каталозі"
-              value={searchValue}
-              onChange={(event) => setSearchValue(event.target.value)}
-              className="catalog-search-input"
-            />
-            <button type="submit" className="green-button catalog-search-button">
-              Знайти
-            </button>
-          </form>
-
-          <div className="filter-group">
-            <p className="filter-title">Категорії</p>
-
-            {categories.map((category) => (
-              <label key={category} className="filter-label">
-                <input
-                  type="checkbox"
-                  checked={selectedCategories.includes(category)}
-                  onChange={() => handleCategoryChange(category)}
-                />
-                <span>{category}</span>
-              </label>
-            ))}
-          </div>
-
-          <div className="filter-group">
-            <p className="filter-title">Ціна</p>
-
-            <label className="filter-label">
-              <input
-                type="radio"
-                name="price"
-                value="all"
-                checked={selectedPriceRange === "all"}
-                onChange={handlePriceRangeChange}
-              />
-              <span>Усі ціни</span>
-            </label>
-
-            <label className="filter-label">
-              <input
-                type="radio"
-                name="price"
-                value="upTo50"
-                checked={selectedPriceRange === "upTo50"}
-                onChange={handlePriceRangeChange}
-              />
-              <span>До 50 грн</span>
-            </label>
-
-            <label className="filter-label">
-              <input
-                type="radio"
-                name="price"
-                value="from50To80"
-                checked={selectedPriceRange === "from50To80"}
-                onChange={handlePriceRangeChange}
-              />
-              <span>50–80 грн</span>
-            </label>
-
-            <label className="filter-label">
-              <input
-                type="radio"
-                name="price"
-                value="from80"
-                checked={selectedPriceRange === "from80"}
-                onChange={handlePriceRangeChange}
-              />
-              <span>Від 80 грн</span>
-            </label>
-          </div>
-        </aside>
-
-        <div className="catalog-content">
-          <div className="catalog-toolbar">
-            <div className="section-title">
-              <h1>Каталог товарів</h1>
-              <p>Обирай продукти швидко та зручно</p>
+    <>
+      {/* МОДАЛЬНЕ ВІКНО ФІЛЬТРІВ */}
+      {isFilterOpen && (
+        <div style={{
+          position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
+          backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex"
+        }}>
+          <div style={{
+            width: "360px", backgroundColor: "#fff", height: "100%",
+            display: "flex", flexDirection: "column", boxShadow: "4px 0 24px rgba(0,0,0,0.15)"
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 24px", borderBottom: "1px solid #f0f0f0" }}>
+              <h2 style={{ fontSize: "20px", margin: 0, fontWeight: "700" }}>Фільтри</h2>
+              <button onClick={() => setIsFilterOpen(false)} style={{ background: "none", border: "none", fontSize: "20px", cursor: "pointer", color: "#888" }}>✕</button>
             </div>
 
-            <div className="catalog-sort">
-              <label htmlFor="sort">Сортування</label>
-              <select id="sort" value={sortType} onChange={handleSortChange}>
-                <option value="default">За замовчуванням</option>
-                <option value="priceAsc">Спочатку дешевші</option>
-                <option value="priceDesc">Спочатку дорожчі</option>
-                <option value="nameAsc">За назвою</option>
-              </select>
+            {/* Вміст, який скролиться */}
+            <div style={{ flex: 1, overflowY: "auto" }}>
+              {filterSectionsList.map((section) => {
+                const isOpen = openFilterSections.includes(section);
+                const isPromo = section === "Акційні пропозиції";
+
+                return (
+                  <div key={section} style={{ borderBottom: "1px solid #f0f0f0" }}>
+                    <div
+                      onClick={() => toggleFilterSection(section)}
+                      style={{
+                        display: "flex", justifyContent: "space-between", alignItems: "center",
+                        padding: "20px 24px", cursor: "pointer", fontSize: "14px", fontWeight: "600", color: "#333"
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        {/* Малюємо іконку, якщо це "Акційні пропозиції" */}
+                        {isPromo && (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e45e25" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                          </svg>
+                        )}
+                        {section}
+                      </div>
+                      <svg
+                        width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2.5"
+                        style={{ transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}
+                      >
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                      </svg>
+                    </div>
+                    {isOpen && (
+                      <div style={{ padding: "0 24px 20px", color: "#666", fontSize: "13px" }}>
+                        Тут будуть опції для "{section}"...
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div style={{ padding: "16px 24px", borderTop: "1px solid #f0f0f0", backgroundColor: "#fff" }}>
+              <button
+                onClick={() => setIsFilterOpen(false)}
+                style={{
+                  width: "100%", padding: "14px", backgroundColor: "#2b56e8", color: "#fff",
+                  borderRadius: "24px", border: "none", fontSize: "15px", fontWeight: "600", cursor: "pointer"
+                }}
+              >
+                Показати результати
+              </button>
             </div>
           </div>
 
-          {selectedCategories.length > 0 && (
-            <div className="catalog-active-filters">
-              {selectedCategories.map((category) => (
+          <div style={{ flex: 1 }} onClick={() => setIsFilterOpen(false)}></div>
+        </div>
+      )}
+
+      {/* ОСНОВНИЙ КОНТЕНТ */}
+      <div style={{ backgroundColor: "#F5E6BE", minHeight: "100vh", paddingBottom: "60px", fontFamily: "system-ui, -apple-system, sans-serif" }}>
+        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "24px" }}>
+
+          <div style={{ fontSize: "12px", color: "#666", marginBottom: "24px" }}>
+            <Link to="/" style={{ color: "#666", textDecoration: "none" }}>Головна</Link>
+            <span style={{ margin: "0 6px" }}>›</span>
+            <span style={{ color: "#000" }}>{searchQuery ? "Пошук" : "Каталог"}</span>
+          </div>
+
+          <h1 style={{ fontSize: "28px", fontWeight: "700", marginBottom: "16px", color: "#222" }}>
+            {searchQuery ? `Результати пошуку “${searchQuery}”` : "Каталог товарів"}
+          </h1>
+          <p style={{ fontSize: "15px", color: "#222", marginBottom: "16px", fontWeight: "600" }}>Продукти</p>
+
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "32px" }}>
+            {mockCategories.map((cat, idx) => {
+              const isActive = selectedCategory === cat.name;
+              return (
                 <button
-                  key={category}
-                  type="button"
-                  className="catalog-chip"
-                  onClick={() => handleCategoryChange(category)}
+                  key={idx}
+                  onClick={() => handleCategoryClick(cat.name)}
+                  style={{
+                    display: "flex", alignItems: "center", gap: "8px",
+                    padding: "8px 16px", borderRadius: "24px",
+                    border: "1px solid #8b181b",
+                    backgroundColor: isActive ? "#eedbb5" : "transparent",
+                    color: "#8b181b", cursor: "pointer", fontSize: "13px", fontWeight: "600",
+                    transition: "all 0.2s"
+                  }}
                 >
-                  {category} ×
+                  <img src={cat.icon} alt={cat.name} style={{ width: "16px", height: "16px", objectFit: "contain" }} onError={(e) => e.target.style.display='none'} />
+                  {cat.name}
+                  <span style={{ color: "#8b181b", fontSize: "11px", fontWeight: "400", opacity: 0.7 }}>{cat.count}</span>
                 </button>
+              );
+            })}
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
+            <div
+              onClick={() => setIsFilterOpen(true)}
+              style={{ display: "flex", alignItems: "center", gap: "8px", color: "#8b181b", fontSize: "14px", fontWeight: "600", cursor: "pointer" }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line>
+                <line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line>
+                <line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line>
+              </svg>
+              Фільтри
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#8b181b", fontSize: "14px", fontWeight: "600", cursor: "pointer" }}>
+              За замовчуванням
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="21" y1="10" x2="7" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="11" y2="14"></line><line x1="21" y1="18" x2="15" y2="18"></line>
+              </svg>
+            </div>
+          </div>
+
+          {filteredProducts.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "60px 0", color: "#666" }}>
+              <h2 style={{ fontSize: "20px", marginBottom: "12px" }}>На жаль, товарів не знайдено</h2>
+              <p>Спробуйте змінити пошуковий запит або обрати іншу категорію.</p>
+            </div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: "24px", marginBottom: "48px" }}>
+              {filteredProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
               ))}
             </div>
           )}
 
-          {loading ? (
-            <div className="catalog-empty">
-              <h2>Завантаження товарів...</h2>
-              <p>Зачекай кілька секунд, дані підтягуються.</p>
+          {filteredProducts.length > 0 && (
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "16px", marginTop: "20px" }}>
+              <button style={{
+                padding: "10px 48px", borderRadius: "24px", border: "1px solid #8b181b",
+                backgroundColor: "transparent", color: "#8b181b", fontSize: "14px", fontWeight: "600", cursor: "pointer"
+              }}>
+                Показати ще
+              </button>
+              <div style={{ display: "flex", gap: "16px", alignItems: "center", fontSize: "14px", color: "#666", fontWeight: "500" }}>
+                <span style={{ cursor: "pointer", fontSize: "12px" }}>❮</span>
+                <span style={{ cursor: "pointer", color: "#8b181b", fontWeight: "700" }}>1</span>
+                <span style={{ cursor: "pointer" }}>2</span>
+                <span>..</span>
+                <span style={{ cursor: "pointer" }}>5</span>
+                <span style={{ cursor: "pointer", fontSize: "12px" }}>❯</span>
+              </div>
             </div>
-          ) : (
-            <>
-              <p className="catalog-results-count">
-                Знайдено товарів: <strong>{filteredProducts.length}</strong>
-              </p>
-
-              {filteredProducts.length === 0 ? (
-                <div className="catalog-empty">
-                  <h2>Нічого не знайдено</h2>
-                  <p>Спробуй змінити пошук або очистити фільтри.</p>
-                </div>
-              ) : (
-                <div className="catalog-grid">
-                  {filteredProducts.map((product) => (
-                    <ProductCard key={product.id} product={product} />
-                  ))}
-                </div>
-              )}
-            </>
           )}
+
         </div>
       </div>
-    </section>
+    </>
   );
 }

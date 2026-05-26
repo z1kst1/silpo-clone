@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router";
 import Layout from "./components/layout/Layout";
 import HomePage from "./pages/HomePage";
 import CatalogPage from "./pages/CatalogPage";
+import CategoriesPage from "./pages/CategoriesPage"; // ДОДАЛИ ІМПОРТ
 import CartPage from "./pages/CartPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -16,6 +17,7 @@ export default function App() {
         <Route index element={<HomePage />} />
 
         <Route path="catalog" element={<CatalogPage />} />
+        <Route path="categories" element={<CategoriesPage />} /> {/* ДОДАЛИ МАРШРУТ */}
         <Route path="cart" element={<CartPage />} />
         <Route path="product/:id" element={<ProductPage />} />
         <Route path="profile" element={<ProfilePage />} />

@@ -51,6 +51,7 @@ const mockRecipes = [
   { id: 11, title: "Запечена редиска із соусом", image: "/images/figma/recipes/baked-radish.jpg" }
 ];
 
+/* Встановили правильні шляхи до папки /figma/baskets/ */
 const mockBaskets = [
   { id: 301, title: "Святковий бокс Light", price: 1249.00, weight: "шт", image: "/images/figma/baskets/box-light.jpg", buttonText: "Предзамовити" },
   { id: 302, title: "Святковий бокс Classic", price: 1899.00, weight: "шт", image: "/images/figma/baskets/box-classic.jpg", buttonText: "Предзамовити" },
@@ -65,7 +66,6 @@ const mockBaskets = [
 /* ================= КОМПОНЕНТ РЕЦЕПТУ ================= */
 function RecipeCard({ recipe }) {
   return (
-    // Зменшили розміри: ширина 160px, висота 270px
     <div style={{ flex: "0 0 160px", height: "270px", borderRadius: "16px", position: "relative", overflow: "hidden", cursor: "pointer", boxShadow: "0 4px 12px rgba(0,0,0,0.05)", flexShrink: 0 }}>
       <img src={recipe.image} alt={recipe.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
     </div>
@@ -186,13 +186,9 @@ export default function HomePage() {
           </div>
 
           <div ref={recipesRef} onScroll={() => handleScroll(recipesRef, "recipes")} style={{ display: "flex", gap: "16px", width: "100%", overflowX: "auto", scrollbarWidth: "none" }}>
-
-            {/* Червона плашка теж стала 160x270px */}
             <Link to="/recipes" style={{ flex: "0 0 160px", height: "270px", borderRadius: "16px", overflow: "hidden", display: "block", flexShrink: 0 }}>
               <img src="/images/figma/recipes/recipes-promo.jpg" alt="Рецепти оселились тут" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
             </Link>
-
-            {/* Решта карток рецептів */}
             {mockRecipes.map((recipe) => (
               <RecipeCard key={recipe.id} recipe={recipe} />
             ))}

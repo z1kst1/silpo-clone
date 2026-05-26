@@ -1877,4 +1877,8 @@ header,
   background-color: transparent !important;
   border-bottom: none !important;
 }
+
+body {
+  background-color: #F5E6BE;
+}
 }

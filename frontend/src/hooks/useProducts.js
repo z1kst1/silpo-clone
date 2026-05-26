@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import defaultProducts from "../data/products";
 import { getProducts } from "../api/products";
 
-const STORAGE_KEY = "silpo-products";
+const STORAGE_KEY = "silpo-products-2";
 
 function getInitialProducts() {
   if (typeof window === "undefined") {
