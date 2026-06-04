@@ -2,552 +2,306 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
-
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-
 const { PrismaClient } = require("@prisma/client");
-const { Pool } = require("pg");
 const { PrismaPg } = require("@prisma/adapter-pg");
+const { Pool } = require("pg");
 
 // ==========================================
 // DATABASE
 // ==========================================
-
-// Новий стандарт підключення Prisma через PostgreSQL adapter
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
 const adapter = new PrismaPg(pool);
-
-const prisma = new PrismaClient({
-  adapter,
-});
+const prisma = new PrismaClient({ adapter });
 
 // ==========================================
 // EXPRESS APP
 // ==========================================
 
 const app = express();
-
-// ==========================================
-// MIDDLEWARES
-// ==========================================
-
-// Дозволяє frontend робити запити
 app.use(cors());
-
-// Дозволяє читати JSON body
 app.use(express.json());
-
-// ==========================================
-// JWT SECRET
-// ==========================================
-
-// Секретний ключ для JWT токенів
-// Повинен бути в .env
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
 // ==========================================
-// ROUTES
+// РОУТИ
 // ==========================================
 
-// Роути кошика
 const cartRoutes = require("./routes/cart");
-
-// Middleware авторизації
 const authMiddleware = require("./middleware/authMiddleware");
 
-// Підключення роутів
 app.use("/api/cart", cartRoutes);
 
 // ==========================================
-// ТИМЧАСОВІ ДАНІ
+// РЕЄСТРАЦІЯ
 // ==========================================
-
-// Поки без БД для orders/cart
-
-let orders = [];
-let carts = {};
-
-// ==========================================
-// AUTH
-// ==========================================
-
-/*
-==========================================
-РЕЄСТРАЦІЯ
-==========================================
-*/
 
 app.post("/api/auth/register", async (req, res) => {
   try {
-    // Отримуємо дані з frontend
     const { email, password, firstName, lastName } = req.body;
 
-    // ==========================================
-    // ВАЛІДАЦІЯ
-    // ==========================================
+    if (!email) return res.status(400).json({ error: "Email обов'язковий" });
+    if (!password) return res.status(400).json({ error: "Пароль обов'язковий" });
+    if (password.length < 6) return res.status(400).json({ error: "Пароль мінімум 6 символів" });
 
-    // Перевірка чи введений email
-    if (!email) {
-      return res.status(400).json({
-        error: "Email обов'язковий",
-      });
-    }
-
-    // Перевірка чи введений пароль
-    if (!password) {
-      return res.status(400).json({
-        error: "Пароль обов'язковий",
-      });
-    }
-
-    // Мінімальна довжина пароля
-    if (password.length < 6) {
-      return res.status(400).json({
-        error: "Пароль повинен містити мінімум 6 символів",
-      });
-    }
-
-    // ==========================================
-    // ПЕРЕВІРКА ЧИ USER ВЖЕ ІСНУЄ
-    // ==========================================
-
-    const existingUser = await prisma.user.findUnique({
-      where: {
-        email,
-      },
-    });
-
-    // Якщо email вже зайнятий
-    if (existingUser) {
-      return res.status(400).json({
-        error: "Користувач з таким email вже існує",
-      });
-    }
-
-    // ==========================================
-    // ХЕШУВАННЯ ПАРОЛЯ
-    // ==========================================
-
-    // НІКОЛИ не зберігаємо пароль як plain text
-    // bcrypt автоматично створює hash
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) return res.status(400).json({ error: "Користувач з таким email вже існує" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // ==========================================
-    // СТВОРЕННЯ КОРИСТУВАЧА
-    // ==========================================
-
     const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        firstName,
-        lastName,
-      },
+      data: { email, password: hashedPassword, firstName, lastName },
     });
 
-    // ==========================================
-    // СТВОРЕННЯ JWT ТОКЕНА
-    // ==========================================
-
     const token = jwt.sign(
-      {
-        userId: user.id,
-        email: user.email,
-      },
+      { userId: user.id, email: user.email },
       JWT_SECRET,
-      {
-        expiresIn: "7d",
-      },
+      { expiresIn: "7d" }
     );
-
-    // ==========================================
-    // ВІДПОВІДЬ FRONTEND
-    // ==========================================
 
     res.status(201).json({
       message: "Реєстрація успішна",
-
       token,
-
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-      },
+      user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName },
     });
   } catch (error) {
-    console.error("REGISTER ERROR:");
-    console.error(error);
-
-    res.status(500).json({
-      error: "Помилка сервера при реєстрації",
-    });
+    console.error("REGISTER ERROR:", error);
+    res.status(500).json({ error: "Помилка сервера при реєстрації" });
   }
 });
 
-/*
-==========================================
-ЛОГІН
-==========================================
-*/
+// ==========================================
+// ЛОГІН
+// ==========================================
 
 app.post("/api/auth/login", async (req, res) => {
   try {
-    // Дані з frontend
     const { email, password } = req.body;
 
-    // ==========================================
-    // ВАЛІДАЦІЯ
-    // ==========================================
+    if (!email || !password) return res.status(400).json({ error: "Email та пароль обов'язкові" });
 
-    if (!email || !password) {
-      return res.status(400).json({
-        error: "Email та пароль обов'язкові",
-      });
-    }
-
-    // ==========================================
-    // ПОШУК КОРИСТУВАЧА
-    // ==========================================
-
-    const user = await prisma.user.findUnique({
-      where: {
-        email,
-      },
-    });
-
-    // Якщо користувача нема
-    if (!user) {
-      return res.status(404).json({
-        error: "Користувача не знайдено",
-      });
-    }
-
-    // ==========================================
-    // ПЕРЕВІРКА ПАРОЛЯ
-    // ==========================================
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) return res.status(404).json({ error: "Користувача не знайдено" });
 
     const validPassword = await bcrypt.compare(password, user.password);
-
-    // Якщо пароль неправильний
-    if (!validPassword) {
-      return res.status(401).json({
-        error: "Невірний пароль",
-      });
-    }
-
-    // ==========================================
-    // JWT TOKEN
-    // ==========================================
+    if (!validPassword) return res.status(401).json({ error: "Невірний пароль" });
 
     const token = jwt.sign(
-      {
-        userId: user.id,
-        email: user.email,
-      },
+      { userId: user.id, email: user.email },
       JWT_SECRET,
-      {
-        expiresIn: "7d",
-      },
+      { expiresIn: "7d" }
     );
-
-    // ==========================================
-    // RESPONSE
-    // ==========================================
 
     res.json({
       message: "Успішний вхід",
-
       token,
-
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-      },
+      user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName },
     });
   } catch (error) {
-    console.error("LOGIN ERROR:");
-    console.error(error);
-
-    res.status(500).json({
-      error: "Помилка сервера",
-    });
+    console.error("LOGIN ERROR:", error);
+    res.status(500).json({ error: "Помилка сервера" });
   }
 });
 
 // ==========================================
-// PROFILE
+// ПРОФІЛЬ — ОТРИМАТИ
+// /api/profile  і  /api/auth/me  — обидва працюють
 // ==========================================
 
-// Protected route
-// Працює тільки якщо є JWT токен
-
-app.get("/api/profile", authMiddleware, async (req, res) => {
+const getProfile = async (req, res) => {
   try {
-    const user = await prisma.user.findUnique({
-      where: {
-        id: req.user.userId,
-      },
-    });
+    const user = await prisma.user.findUnique({ where: { id: req.user.userId } });
 
-    // Якщо user не знайдений
-    if (!user) {
-      return res.status(404).json({
-        error: "Користувача не знайдено",
-      });
-    }
+    if (!user) return res.status(404).json({ error: "Користувача не знайдено" });
 
-    // Не відправляємо пароль
     res.json({
       id: user.id,
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
+      phone: user.phone || null,
+      birthDate: user.birthDate || null,
+      isAdmin: user.isAdmin,
     });
   } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      error: "Помилка сервера",
-    });
+    console.error("GET PROFILE ERROR:", error);
+    res.status(500).json({ error: "Помилка сервера" });
   }
-});
+};
+
+app.get("/api/profile", authMiddleware, getProfile);
+app.get("/api/auth/me", authMiddleware, getProfile);
 
 // ==========================================
-// PRODUCTS
+// ПРОФІЛЬ — ОНОВИТИ
 // ==========================================
 
-/*
-==========================================
-ОТРИМАТИ ВСІ ТОВАРИ
-==========================================
-*/
-
-app.get("/api/products", async (req, res) => {
+app.put("/api/profile", authMiddleware, async (req, res) => {
   try {
-    const products = await prisma.product.findMany();
+    const { firstName, lastName, phone, birthDate } = req.body;
 
-    res.json(products);
-  } catch (error) {
-    console.error("GET PRODUCTS ERROR:");
-    console.error(error);
-
-    res.status(500).json({
-      error: "Помилка отримання товарів",
-    });
-  }
-});
-
-/*
-==========================================
-ОТРИМАТИ ТОВАР ПО ID
-==========================================
-*/
-
-app.get("/api/products/:id", async (req, res) => {
-  try {
-    const productId = Number(req.params.id);
-
-    const product = await prisma.product.findUnique({
-      where: {
-        id: productId,
+    const updatedUser = await prisma.user.update({
+      where: { id: req.user.userId },
+      data: {
+        firstName,
+        lastName,
+        phone,
+        birthDate: birthDate ? new Date(birthDate) : null,
       },
     });
 
-    if (!product) {
-      return res.status(404).json({
-        error: "Товар не знайдено",
-      });
-    }
-
-    res.json(product);
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      error: "Помилка отримання товару",
+    res.json({
+      id: updatedUser.id,
+      email: updatedUser.email,
+      firstName: updatedUser.firstName,
+      lastName: updatedUser.lastName,
+      phone: updatedUser.phone || null,
+      birthDate: updatedUser.birthDate || null,
     });
+  } catch (error) {
+    console.error("UPDATE PROFILE ERROR:", error);
+    res.status(500).json({ error: "Помилка оновлення профілю" });
   }
 });
 
-/*
-==========================================
-СТВОРИТИ ТОВАР
-==========================================
-*/
+// ==========================================
+// ТОВАРИ — ОТРИМАТИ ВСІ
+// ?category=Молочні&search=молоко
+// ==========================================
+
+app.get("/api/products", async (req, res) => {
+  try {
+    const { category, search } = req.query;
+    const where = {};
+
+    if (category) where.category = category;
+    if (search) where.name = { contains: search, mode: "insensitive" };
+
+    const products = await prisma.product.findMany({ where });
+    res.json(products);
+  } catch (error) {
+    console.error("GET PRODUCTS ERROR:", error);
+    res.status(500).json({ error: "Помилка отримання товарів" });
+  }
+});
+
+// ==========================================
+// ТОВАРИ — ОТРИМАТИ ПО ID
+// ==========================================
+
+app.get("/api/products/:id", async (req, res) => {
+  try {
+    const product = await prisma.product.findUnique({
+      where: { id: Number(req.params.id) },
+    });
+
+    if (!product) return res.status(404).json({ error: "Товар не знайдено" });
+
+    res.json(product);
+  } catch (error) {
+    console.error("GET PRODUCT ERROR:", error);
+    res.status(500).json({ error: "Помилка отримання товару" });
+  }
+});
+
+// ==========================================
+// ТОВАРИ — СТВОРИТИ
+// ==========================================
 
 app.post("/api/products", async (req, res) => {
   try {
     const { name, description, price, category, image } = req.body;
 
-    // Базова валідація
-    if (!name || !price) {
-      return res.status(400).json({
-        error: "Назва та ціна обов'язкові",
-      });
-    }
+    if (!name || !price) return res.status(400).json({ error: "Назва та ціна обов'язкові" });
 
     const newProduct = await prisma.product.create({
-      data: {
-        name,
-        description,
-        price,
-        category,
-        image,
-        rating: 0,
-      },
+      data: { name, description, price, category, image, rating: 0 },
     });
 
     res.status(201).json(newProduct);
   } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      error: "Помилка створення товару",
-    });
+    console.error("CREATE PRODUCT ERROR:", error);
+    res.status(500).json({ error: "Помилка створення товару" });
   }
 });
 
-/*
-==========================================
-ОНОВИТИ ТОВАР
-==========================================
-*/
+// ==========================================
+// ТОВАРИ — ОНОВИТИ
+// ==========================================
 
 app.put("/api/products/:id", async (req, res) => {
   try {
-    const productId = Number(req.params.id);
-
     const updatedProduct = await prisma.product.update({
-      where: {
-        id: productId,
-      },
-
+      where: { id: Number(req.params.id) },
       data: req.body,
     });
-
     res.json(updatedProduct);
   } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      error: "Помилка оновлення товару",
-    });
+    console.error("UPDATE PRODUCT ERROR:", error);
+    res.status(500).json({ error: "Помилка оновлення товару" });
   }
 });
 
-/*
-==========================================
-ВИДАЛИТИ ТОВАР
-==========================================
-*/
+// ==========================================
+// ТОВАРИ — ВИДАЛИТИ
+// ==========================================
 
 app.delete("/api/products/:id", async (req, res) => {
   try {
-    const productId = Number(req.params.id);
-
-    await prisma.product.delete({
-      where: {
-        id: productId,
-      },
-    });
-
-    res.json({
-      message: "Товар видалено",
-    });
+    await prisma.product.delete({ where: { id: Number(req.params.id) } });
+    res.json({ message: "Товар видалено" });
   } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      error: "Помилка видалення товару",
-    });
+    console.error("DELETE PRODUCT ERROR:", error);
+    res.status(500).json({ error: "Помилка видалення товару" });
   }
 });
 
 // ==========================================
-// ORDERS
+// ЗАМОВЛЕННЯ — тимчасово в пам'яті
 // ==========================================
 
-/*
-==========================================
-СТВОРИТИ ЗАМОВЛЕННЯ
-==========================================
-*/
+let orders = [];
 
-app.post("/api/orders", (req, res) => {
-  // Тимчасово
-  const userId = req.user?.id || 1;
+app.post("/api/orders", authMiddleware, (req, res) => {
+  const { items, total, address } = req.body;
 
-  const cart = carts[userId];
-
-  // Якщо кошик порожній
-  if (!cart || cart.length === 0) {
-    return res.status(400).json({
-      message: "Кошик порожній",
-    });
+  if (!items || items.length === 0) {
+    return res.status(400).json({ error: "Кошик порожній" });
   }
 
-  // Створення нового замовлення
   const newOrder = {
     id: Date.now(),
-
-    userId,
-
-    items: cart,
-
-    total: cart.reduce((sum, item) => sum + item.price, 0),
-
+    userId: req.user.userId,
+    items,
+    total,
+    address,
     createdAt: new Date(),
   };
 
   orders.push(newOrder);
-
-  // Очищення кошика
-  carts[userId] = [];
-
   res.status(201).json(newOrder);
 });
 
-/*
-==========================================
-МОЇ ЗАМОВЛЕННЯ
-==========================================
-*/
-
-app.get("/api/orders/my", (req, res) => {
-  const userId = req.user?.id || 1;
-
-  const userOrders = orders.filter((order) => order.userId === userId);
-
-  res.json(userOrders);
+app.get("/api/orders/my", authMiddleware, (req, res) => {
+  res.json(orders.filter((o) => o.userId === req.user.userId));
 });
 
-/*
-==========================================
-ВСІ ЗАМОВЛЕННЯ
-==========================================
-*/
-
-app.get("/api/orders", (req, res) => {
+app.get("/api/orders", authMiddleware, (req, res) => {
   res.json(orders);
 });
 
 // ==========================================
-// SERVER
+// СТАРТ СЕРВЕРА
 // ==========================================
 
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`✅ Server running on port ${PORT}`);
 });

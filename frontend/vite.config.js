@@ -4,14 +4,14 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   server: {
-    host: true, // Обов'язково, щоб Докер випустив сайт назовні
+    host: true,
     port: 5173,
     watch: {
-      usePolling: true, // Та сама магія для Windows, яка сама оновлюватиме сторінку
+      usePolling: true,
     },
     proxy: {
       "/api": {
-        target: "http://backend:3000",
+        target: "http://127.0.0.1:3000",
         changeOrigin: true,
         secure: false,
       },
