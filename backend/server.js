@@ -47,11 +47,16 @@ app.post("/api/auth/register", async (req, res) => {
     const { email, password, firstName, lastName } = req.body;
 
     if (!email) return res.status(400).json({ error: "Email обов'язковий" });
-    if (!password) return res.status(400).json({ error: "Пароль обов'язковий" });
-    if (password.length < 6) return res.status(400).json({ error: "Пароль мінімум 6 символів" });
+    if (!password)
+      return res.status(400).json({ error: "Пароль обов'язковий" });
+    if (password.length < 6)
+      return res.status(400).json({ error: "Пароль мінімум 6 символів" });
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (existingUser) return res.status(400).json({ error: "Користувач з таким email вже існує" });
+    if (existingUser)
+      return res
+        .status(400)
+        .json({ error: "Користувач з таким email вже існує" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -59,16 +64,19 @@ app.post("/api/auth/register", async (req, res) => {
       data: { email, password: hashedPassword, firstName, lastName },
     });
 
-    const token = jwt.sign(
-      { userId: user.id, email: user.email },
-      JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+    const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, {
+      expiresIn: "7d",
+    });
 
     res.status(201).json({
       message: "Реєстрація успішна",
       token,
-      user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName },
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
     });
   } catch (error) {
     console.error("REGISTER ERROR:", error);
@@ -84,24 +92,30 @@ app.post("/api/auth/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password) return res.status(400).json({ error: "Email та пароль обов'язкові" });
+    if (!email || !password)
+      return res.status(400).json({ error: "Email та пароль обов'язкові" });
 
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) return res.status(404).json({ error: "Користувача не знайдено" });
+    if (!user)
+      return res.status(404).json({ error: "Користувача не знайдено" });
 
     const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword) return res.status(401).json({ error: "Невірний пароль" });
+    if (!validPassword)
+      return res.status(401).json({ error: "Невірний пароль" });
 
-    const token = jwt.sign(
-      { userId: user.id, email: user.email },
-      JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+    const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, {
+      expiresIn: "7d",
+    });
 
     res.json({
       message: "Успішний вхід",
       token,
-      user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName },
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
     });
   } catch (error) {
     console.error("LOGIN ERROR:", error);
@@ -116,9 +130,12 @@ app.post("/api/auth/login", async (req, res) => {
 
 const getProfile = async (req, res) => {
   try {
-    const user = await prisma.user.findUnique({ where: { id: req.user.userId } });
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.userId },
+    });
 
-    if (!user) return res.status(404).json({ error: "Користувача не знайдено" });
+    if (!user)
+      return res.status(404).json({ error: "Користувача не знайдено" });
 
     res.json({
       id: user.id,
@@ -218,7 +235,8 @@ app.post("/api/products", async (req, res) => {
   try {
     const { name, description, price, category, image } = req.body;
 
-    if (!name || !price) return res.status(400).json({ error: "Назва та ціна обов'язкові" });
+    if (!name || !price)
+      return res.status(400).json({ error: "Назва та ціна обов'язкові" });
 
     const newProduct = await prisma.product.create({
       data: { name, description, price, category, image, rating: 0 },
