@@ -28,7 +28,7 @@ const authMiddleware = (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     // Зберігаємо дані юзера в запит — щоб роути могли їх використати
-    req.user = decoded; // містить { userId, email }
+    req.user = decoded; // містить { userId, email, isAdmin }
 
     next(); // пропускаємо далі
   } catch (error) {

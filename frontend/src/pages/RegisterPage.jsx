@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import api from "../api/api"; // Імпортуємо наш налаштований Axios
+import api from "../api/api";
+import { useAuth } from "../context/AuthContext";
 import "../styles/kalpo-home.css";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -12,10 +14,8 @@ export default function RegisterPage() {
     password: "",
     confirmPassword: "",
   });
-
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -26,24 +26,16 @@ export default function RegisterPage() {
     formData.password &&
     formData.confirmPassword;
 
-  // Оновлення input полів
   function handleChange(event) {
     const { name, value } = event.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   }
 
-  // Реєстрація
   async function handleSubmit(event) {
     event.preventDefault();
-
     setMessage("");
     setError("");
 
-    // Перевірка паролів
     if (formData.password !== formData.confirmPassword) {
       setError("Паролі не співпадають.");
       return;
@@ -52,44 +44,28 @@ export default function RegisterPage() {
     setIsSubmitting(true);
 
     try {
-      // Дані для бекенду
-      const payload = {
+      const response = await api.post("/auth/register", {
         firstName: formData.name,
         lastName: "",
         email: formData.email,
         password: formData.password,
-      };
+      });
 
-      // Відправка на бекенд через наш Axios (зміни URL, якщо він у тебе інший, наприклад /auth/signup)
-      const response = await api.post("/auth/register", payload);
       const data = response.data;
 
-      // Зберігаємо токен (щоб інтерцептор його підхопив для наступних запитів)
-      if (data.token) {
-        localStorage.setItem("token", data.token);
-      }
-
-      // Зберігаємо користувача
-      if (data.user) {
-        localStorage.setItem("silpo-user", JSON.stringify(data.user));
-      } else {
-        localStorage.setItem("silpo-user", JSON.stringify({ email: formData.email, name: formData.name }));
-      }
+      login({
+        accessToken: data.accessToken || data.token,
+        refreshToken: data.refreshToken,
+        user: data.user,
+      });
 
       setMessage("Реєстрація пройшла успішно!");
-
-      // Переходимо в профіль
-      setTimeout(() => {
-        navigate("/profile");
-      }, 1500);
+      setTimeout(() => navigate("/profile"), 800);
     } catch (err) {
-      console.error(err);
-
-      // Axios кладе відповідь з помилкою від сервера в err.response
       if (err.response) {
-        setError(err.response.data?.error || err.response.data?.message || "Помилка при реєстрації.");
+        setError(err.response.data?.error || "Помилка при реєстрації.");
       } else {
-        setError("Не вдалося підключитися до сервера або виникла помилка.");
+        setError("Не вдалося підключитися до сервера.");
       }
     } finally {
       setIsSubmitting(false);
@@ -103,28 +79,23 @@ export default function RegisterPage() {
           <Link to="/" className="auth-modal-close">
             ×
           </Link>
-
           <div className="auth-modal-logo">
             <img src="/images/figma/logo/logo.svg" alt="Kalpo" />
           </div>
-
           <h1 className="auth-modal-title">Реєстрація</h1>
 
           <form className="auth-modal-form" onSubmit={handleSubmit}>
-            {/* Ім’я */}
             <label>
-              Ім’я
+              Ім'я
               <input
                 type="text"
                 name="name"
-                placeholder="Вкажіть ваше ім’я"
+                placeholder="Вкажіть ваше ім'я"
                 value={formData.name}
                 onChange={handleChange}
                 required
               />
             </label>
-
-            {/* Email */}
             <label>
               Email
               <input
@@ -136,16 +107,9 @@ export default function RegisterPage() {
                 required
               />
             </label>
-
-            {/* Пароль */}
             <label>
               Пароль
-              <div
-                style={{
-                  position: "relative",
-                  width: "100%",
-                }}
-              >
+              <div style={{ position: "relative", width: "100%" }}>
                 <input
                   type={showPassword ? "text" : "password"}
                   name="password"
@@ -153,13 +117,10 @@ export default function RegisterPage() {
                   value={formData.password}
                   onChange={handleChange}
                   required
-                  style={{
-                    paddingRight: "42px",
-                  }}
+                  style={{ paddingRight: "42px" }}
                 />
-
                 <span
-                  onClick={() => setShowPassword((prev) => !prev)}
+                  onClick={() => setShowPassword((p) => !p)}
                   style={{
                     position: "absolute",
                     right: "12px",
@@ -173,16 +134,9 @@ export default function RegisterPage() {
                 </span>
               </div>
             </label>
-
-            {/* Підтвердження пароля */}
             <label>
               Підтвердження пароля
-              <div
-                style={{
-                  position: "relative",
-                  width: "100%",
-                }}
-              >
+              <div style={{ position: "relative", width: "100%" }}>
                 <input
                   type={showConfirmPassword ? "text" : "password"}
                   name="confirmPassword"
@@ -190,13 +144,10 @@ export default function RegisterPage() {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   required
-                  style={{
-                    paddingRight: "42px",
-                  }}
+                  style={{ paddingRight: "42px" }}
                 />
-
                 <span
-                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  onClick={() => setShowConfirmPassword((p) => !p)}
                   style={{
                     position: "absolute",
                     right: "12px",
@@ -210,42 +161,25 @@ export default function RegisterPage() {
                 </span>
               </div>
             </label>
-
-            {/* Кнопка */}
             <button type="submit" disabled={isSubmitting || !isFormFilled}>
               {isSubmitting ? "Завантаження..." : "Зареєструватися"}
             </button>
           </form>
 
-          {/* Повідомлення */}
           {message && (
-            <p
-              className="auth-modal-success"
-              style={{
-                color: "green",
-                marginTop: "10px",
-              }}
-            >
-              {message}
-            </p>
+            <p style={{ color: "green", marginTop: "10px" }}>{message}</p>
           )}
-
           {error && (
             <p
               className="auth-modal-error"
-              style={{
-                color: "red",
-                marginTop: "10px",
-              }}
+              style={{ color: "red", marginTop: "10px" }}
             >
               {error}
             </p>
           )}
-
           <p className="auth-modal-bottom">
             Вже маєш акаунт? <Link to="/login">Увійти</Link>
           </p>
-
           <button type="button" className="auth-modal-help">
             Допомога
           </button>

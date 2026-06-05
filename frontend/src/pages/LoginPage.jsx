@@ -1,9 +1,13 @@
 import { useState } from "react";
-import { Link } from "react-router";
-import api from "../api/api"; // Імпортуємо наш налаштований Axios
+import { Link, useNavigate } from "react-router";
+import api from "../api/api";
+import { useAuth } from "../context/AuthContext";
 import "../styles/kalpo-home.css";
 
 export default function LoginPage() {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState("");
@@ -22,48 +26,28 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      // Axios автоматично конвертує об'єкт у JSON і додає правильні заголовки
+      // Відправляємо дані на бекенд
       const response = await api.post("/auth/login", {
         email: formData.email,
         password: formData.password,
       });
 
-      // В Axios дані від бекенду лежать у властивості `data`
       const data = response.data;
 
-      // 1. Зберігаємо токен (тепер він називається просто 'token', щоб інтерцептор його легко знаходив)
-      localStorage.setItem("token", data.token);
+      // Зберігаємо через AuthContext
+      login({
+        accessToken: data.accessToken || data.token,
+        refreshToken: data.refreshToken,
+        user: data.user,
+      });
 
-      // 2. ЗБЕРІГАЄМО ЮЗЕРА
-      if (data.user) {
-        localStorage.setItem("silpo-user", JSON.stringify(data.user));
-      } else {
-        localStorage.setItem(
-          "silpo-user",
-          JSON.stringify({ email: formData.email, name: "Користувач" }),
-        );
-      }
-
-      setMessage("Вхід виконано успішно! Перенаправлення...");
-
-      // 3. ЖОРСТКЕ ПЕРЕНАПРАВЛЕННЯ
-      setTimeout(() => {
-        window.location.href = "/profile";
-      }, 1000);
+      setMessage("Вхід виконано успішно!");
+      setTimeout(() => navigate("/profile"), 800);
     } catch (err) {
-      console.error(err);
-
-      // Axios кладе відповідь з помилкою від сервера в err.response
       if (err.response) {
-        setError(
-          err.response.data?.error ||
-            err.response.data?.message ||
-            "Невірний email або пароль.",
-        );
+        setError(err.response.data?.error || "Невірний email або пароль.");
       } else {
-        setError(
-          "Не вдалося підключитися до сервера. Перевірте, чи працює бекенд.",
-        );
+        setError("Не вдалося підключитися до сервера.");
       }
     } finally {
       setIsSubmitting(false);
@@ -107,7 +91,7 @@ export default function LoginPage() {
                   style={{ paddingRight: "42px" }}
                 />
                 <span
-                  onClick={() => setShowPassword((prev) => !prev)}
+                  onClick={() => setShowPassword((p) => !p)}
                   style={{
                     position: "absolute",
                     right: "12px",
@@ -132,7 +116,6 @@ export default function LoginPage() {
           </p>
           {message && (
             <p
-              className="auth-modal-success"
               style={{ color: "green", marginTop: "10px", fontWeight: "bold" }}
             >
               {message}
