@@ -9,6 +9,10 @@ const { PrismaClient } = require("@prisma/client");
 const { PrismaPg } = require("@prisma/adapter-pg");
 const { Pool } = require("pg");
 
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
@@ -590,6 +594,47 @@ app.get(
     }
   },
 );
+
+// ==========================================
+// ЗАВАНТАЖЕННЯ ЗОБРАЖЕНЬ
+// ==========================================
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+  filename: (req, file, cb) => {
+    const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(file.originalname)}`;
+    cb(null, uniqueName);
+  },
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (req, file, cb) => {
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
+    if (allowed.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Тільки JPG, PNG, WEBP"));
+    }
+  },
+});
+
+// Створюємо папку uploads якщо нема
+
+if (!fs.existsSync("uploads")) fs.mkdirSync("uploads");
+
+// Статичні файли
+app.use("/uploads", express.static("uploads"));
+
+// Роут завантаження
+app.post("/api/upload", authMiddleware, upload.single("image"), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: "Файл не завантажено" });
+  const imageUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
+  res.json({ url: imageUrl, filename: req.file.filename });
+});
 
 // ==========================================
 // СТАРТ
