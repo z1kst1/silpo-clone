@@ -4,6 +4,8 @@ import { BrowserRouter } from "react-router";
 import App from "./App";
 import { CartProvider } from "./context/CartContext";
 import { AuthProvider } from "./context/AuthContext";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "./styles/global.css";
 import "./styles/account.css";
 import "./styles/admin.css";
@@ -15,6 +17,17 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <AuthProvider>
         <CartProvider>
           <App />
+          {/* ✅ Toast-сповіщення — один раз для всього застосунку */}
+          <ToastContainer
+            position="bottom-right"
+            autoClose={2500}
+            hideProgressBar={false}
+            newestOnTop
+            closeOnClick
+            pauseOnHover
+            draggable
+            theme="light"
+          />
         </CartProvider>
       </AuthProvider>
     </BrowserRouter>

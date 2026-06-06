@@ -10,6 +10,8 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ProductPage from "./pages/ProductPage";
 import ProfilePage from "./pages/ProfilePage";
 import CheckoutPage from "./pages/CheckoutPage";
+import OrderSuccessPage from "./pages/OrderSuccessPage";
+import NotFoundPage from "./pages/NotFoundPage";
 
 // Захищений маршрут — тільки для авторизованих
 function PrivateRoute({ children }) {
@@ -26,6 +28,12 @@ function PublicOnlyRoute({ children }) {
 export default function App() {
   return (
     <Routes>
+      {/* Сторінка успішного замовлення — без Layout (хедер/футер не потрібні) */}
+      <Route path="order-success" element={<OrderSuccessPage />} />
+
+      {/* Сторінка 404 — без Layout */}
+      <Route path="*" element={<NotFoundPage />} />
+
       <Route path="/" element={<Layout />}>
         <Route index element={<HomePage />} />
         <Route path="catalog" element={<CatalogPage />} />
