@@ -3,16 +3,15 @@ import { useMemo, useState, useEffect } from "react";
 import ProductCard from "../components/ProductCard";
 import { useCart } from "../context/CartContext";
 import useProducts from "../hooks/useProducts";
+import ReviewsSection from "../components/ReviewsSection";
 
 export default function ProductPage() {
   const { id } = useParams();
   const { addToCart } = useCart();
   const { products, loading } = useProducts();
 
-  // Знаходимо товар
   const product = products.find((item) => Number(item.id) === Number(id));
 
-  // Стан для обраного фото в галереї
   const [activeImage, setActiveImage] = useState("");
 
   useEffect(() => {
@@ -21,18 +20,24 @@ export default function ProductPage() {
     }
   }, [product]);
 
-  // Схожі товари (з розширенням до 10 штук для красивого скролу)
   const relatedProducts = useMemo(() => {
-    if (!product) return [];
-    const filtered = products.filter((item) => item.category === product.category && Number(item.id) !== Number(product.id));
+    if (!product || !products.length) return [];
 
-    let extended = [...filtered];
-    if (extended.length > 0) {
-      while (extended.length < 10) {
-        extended = [...extended, ...filtered];
-      }
+    const sameCategory = products.filter(
+      (item) => item.category === product.category && Number(item.id) !== Number(product.id)
+    );
+
+    let results = [...sameCategory];
+
+    if (results.length < 8) {
+      const otherProducts = products.filter(
+        (item) => item.category !== product.category && Number(item.id) !== Number(product.id)
+      );
+      const shuffledOthers = [...otherProducts].sort(() => 0.5 - Math.random());
+      results = [...results, ...shuffledOthers.slice(0, 8 - results.length)];
     }
-    return extended.slice(0, 10);
+
+    return results.sort(() => 0.5 - Math.random()).slice(0, 8);
   }, [product, products]);
 
   function handleAddToCart() {
@@ -53,19 +58,16 @@ export default function ProductPage() {
     );
   }
 
-  // Масив для мініатюр (поки використовуємо головне фото 3 рази)
   const gallery = [product.image, product.image, product.image];
 
-  // Форматування ціни
   const currentPrice = Number(product.price) || 209.90;
   const priceInt = Math.floor(currentPrice);
   const priceDecimal = (currentPrice % 1).toFixed(2).substring(2);
 
   return (
     <div style={{ backgroundColor: "#F5E6BE", minHeight: "100vh", paddingBottom: "40px", fontFamily: "system-ui, -apple-system, sans-serif" }}>
-      <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "16px 24px" }}>
+      <div style={{ maxWidth: "1440px", margin: "0 auto", padding: "16px 40px" }}>
 
-        {/* Хлібні крихти */}
         <div style={{ fontSize: "12px", color: "#666", marginBottom: "24px", display: "flex", gap: "8px", alignItems: "center" }}>
           <Link to="/" style={{ color: "#666", textDecoration: "none" }}>Головна</Link><span>›</span>
           <Link to="/catalog" style={{ color: "#666", textDecoration: "none" }}>Каталог</Link><span>›</span>
@@ -73,13 +75,9 @@ export default function ProductPage() {
           <span style={{ color: "#000", fontWeight: "500" }}>{product.title || product.name}</span>
         </div>
 
-        {/* ОСНОВНИЙ БЛОК ТОВАРУ */}
         <div style={{ display: "flex", gap: "24px", marginBottom: "40px", alignItems: "flex-start" }}>
 
-          {/* ЛІВА ЧАСТИНА: Галерея з мініатюрами */}
           <div style={{ flex: 1, display: "flex", gap: "16px" }}>
-
-            {/* Колонка мініатюр */}
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               {gallery.map((img, index) => (
                 <div
@@ -91,16 +89,13 @@ export default function ProductPage() {
               ))}
             </div>
 
-            {/* Велике фото */}
             <div style={{ flex: 1, backgroundColor: "#fff", borderRadius: "24px", display: "flex", alignItems: "center", justifyContent: "center", height: "440px", padding: "48px", overflow: "hidden" }}>
               <img src={activeImage} alt={product.title || product.name} style={{ width: "100%", height: "100%", objectFit: "contain" }} onError={(e) => e.target.style.display='none'} />
             </div>
           </div>
 
-          {/* ПРАВА ЧАСТИНА: Інформація */}
           <div style={{ width: "380px", display: "flex", flexDirection: "column", gap: "16px" }}>
 
-            {/* Ціна та кнопка */}
             <div style={{ backgroundColor: "#fff", padding: "24px", borderRadius: "24px" }}>
               <h1 style={{ fontSize: "18px", fontWeight: "700", margin: "0 0 12px 0", lineHeight: "1.3" }}>
                 {product.title || product.name || "Назва товару"}
@@ -116,13 +111,12 @@ export default function ProductPage() {
                   <span style={{ fontSize: "14px", fontWeight: "500", marginLeft: "4px" }}>грн</span>
                 </div>
                 <button onClick={handleAddToCart} style={{ backgroundColor: "#1e40af", color: "#fff", border: "none", borderRadius: "8px", padding: "10px 20px", fontSize: "14px", fontWeight: "600", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" }}>
-                  <img src="/images/figma/icons/cart-btn-white.svg" alt="Кошик" width="18" height="18" onError={(e) => e.target.style.display='none'} />
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
                   У кошик
                 </button>
               </div>
             </div>
 
-            {/* Склад */}
             <div style={{ backgroundColor: "#fff", padding: "20px 24px", borderRadius: "24px", fontSize: "13px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontWeight: "700", marginBottom: "12px" }}>Склад <span style={{ color: "#888", transform: "rotate(180deg)", fontSize: "10px" }}>▼</span></div>
               <p style={{ color: "#444", marginBottom: "16px", lineHeight: "1.4" }}>
@@ -130,13 +124,13 @@ export default function ProductPage() {
               </p>
               <div style={{ display: "flex", justifyContent: "space-between", color: "#666", marginBottom: "16px", fontSize: "12px" }}>
                 <span>Містить алергени</span>
-                {/* Оновлено! Тепер воно бере дані з бази або ставить "-" */}
-                <span style={{ textAlign: "right", fontWeight: "600", color: "#000" }}>{product.allergens || "-"}</span>
+                <span style={{ textAlign: "right", fontWeight: "600", color: "#000" }}>
+                  {product.allergens && product.allergens !== "-" ? product.allergens : "немає"}
+                </span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontWeight: "700", paddingTop: "16px", borderTop: "1px solid #f0f0f0" }}>Загальна інформація <span style={{ color: "#888", fontSize: "10px" }}>▼</span></div>
             </div>
 
-            {/* Харчова цінність */}
             <div style={{ backgroundColor: "#fff", padding: "20px 24px", borderRadius: "24px" }}>
               <div style={{ fontWeight: "700", fontSize: "13px", marginBottom: "16px" }}>Харчова цінність на 100 г</div>
               <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", rowGap: "16px", columnGap: "8px", fontSize: "12px" }}>
@@ -150,8 +144,11 @@ export default function ProductPage() {
           </div>
         </div>
 
-        {/* СХОЖІ ТОВАРИ (Червоний блок) */}
-        <div style={{ backgroundColor: "#8b181b", borderRadius: "32px", padding: "32px 0 0 0", overflow: "hidden", position: "relative" }}>
+
+        {/* ВІДГУКИ */}
+        <ReviewsSection productId={id} />
+
+                <div style={{ backgroundColor: "#8b181b", borderRadius: "32px", padding: "32px 0 0 0", overflow: "hidden", position: "relative" }}>
 
           <div style={{ padding: "0 32px", display: "flex", justifyContent: "space-between", alignItems: "center", color: "#fff", marginBottom: "24px" }}>
             <h2 style={{ fontSize: "20px", fontWeight: "700", margin: 0 }}>Схожі товари</h2>

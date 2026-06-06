@@ -8,15 +8,26 @@ export default function ProfilePage() {
   const navigate = useNavigate();
   const { logout } = useAuth();
 
-  const [user, setUser] = useState({
-    firstName: "Завантаження...",
-    lastName: "",
-    middleName: "",
-    email: "",
-    phone: "",
-    birthDate: "",
-    gender: "Не вказано",
-    avatar: "",
+  // ✅ Одразу берємо з localStorage — щоб не показувало "Завантаження..."
+  const getSavedUser = () => {
+    try {
+      const saved = localStorage.getItem("silpo-user");
+      return saved ? JSON.parse(saved) : null;
+    } catch { return null; }
+  };
+
+  const [user, setUser] = useState(() => {
+    const saved = getSavedUser();
+    return {
+      firstName: saved?.firstName || saved?.name || "Користувач",
+      lastName: saved?.lastName || "",
+      middleName: saved?.middleName || "",
+      email: saved?.email || "",
+      phone: saved?.phone || "",
+      birthDate: saved?.birthDate || "",
+      gender: saved?.gender || "Не вказано",
+      avatar: saved?.avatar || "",
+    };
   });
 
   const [editData, setEditData] = useState({});
