@@ -34,6 +34,10 @@ export default function ProfilePage() {
   const [activeView, setActiveView] = useState("dashboard");
   const [saveError, setSaveError] = useState("");
 
+  // ✅ Стан для замовлень
+  const [orders, setOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+
   const fileInputRef = useRef(null);
 
   // Отримуємо дані профілю з бекенду
@@ -68,6 +72,20 @@ export default function ProfilePage() {
     };
 
     fetchProfile();
+
+    // ✅ Завантажуємо замовлення з бекенду
+    const fetchOrders = async () => {
+      try {
+        const response = await api.get("/orders/my");
+        setOrders(response.data || []);
+      } catch {
+        // Бекенд ще не готовий — показуємо порожній список
+        setOrders([]);
+      } finally {
+        setOrdersLoading(false);
+      }
+    };
+    fetchOrders();
   }, [navigate]);
 
   // Вихід через AuthContext
@@ -426,17 +444,36 @@ export default function ProfilePage() {
                     </div>
                   </div>
                   <div className="card-body purchase-list">
-                    <div className="purchase-item">
-                      <div className="purchase-meta">
-                        <span className="purchase-id">Замовлення №1256</span>
-                        <span className="purchase-date">12.05.2024</span>
+                    {ordersLoading ? (
+                      <div style={{ padding: "8px 0", color: "#888", fontSize: "13px" }}>
+                        Завантаження...
                       </div>
-                      <span className="purchase-price">
-                        1 238 ₴ <span>❯</span>
-                      </span>
-                    </div>
+                    ) : orders.length === 0 ? (
+                      <div style={{ padding: "8px 0", color: "#888", fontSize: "13px" }}>
+                        Замовлень ще немає
+                      </div>
+                    ) : (
+                      orders.slice(0, 2).map((order) => (
+                        <div className="purchase-item" key={order.id}>
+                          <div className="purchase-meta">
+                            <span className="purchase-id">Замовлення №{order.id}</span>
+                            <span className="purchase-date">
+                              {order.createdAt
+                                ? new Date(order.createdAt).toLocaleDateString("uk-UA")
+                                : ""}
+                            </span>
+                          </div>
+                          <span className="purchase-price">
+                            {Number(order.totalPrice).toFixed(2)} ₴ <span>❯</span>
+                          </span>
+                        </div>
+                      ))
+                    )}
                   </div>
-                  <button className="card-footer-link">
+                  <button
+                    className="card-footer-link"
+                    onClick={() => setActiveView("orders")}
+                  >
                     Переглянути всі замовлення <span>❯</span>
                   </button>
                 </div>
@@ -856,6 +893,91 @@ export default function ProfilePage() {
                   Зберегти
                 </button>
               </div>
+            </div>
+          )}
+
+          {/* ЕКРАН ЗАМОВЛЕНЬ */}
+          {activeView === "orders" && (
+            <div className="details-view">
+              <button
+                className="back-link-btn"
+                onClick={() => setActiveView("dashboard")}
+              >
+                ❮ Назад
+              </button>
+              <div className="details-header-text">
+                <h2>Історія замовлень</h2>
+                <p>Всі ваші покупки</p>
+              </div>
+
+              {ordersLoading ? (
+                <div style={{ textAlign: "center", padding: "40px", color: "#888" }}>
+                  Завантаження замовлень...
+                </div>
+              ) : orders.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "60px 24px" }}>
+                  <div style={{ fontSize: "48px", marginBottom: "16px" }}>🛒</div>
+                  <h3 style={{ fontSize: "18px", fontWeight: "700", margin: "0 0 8px 0", color: "#202124" }}>
+                    Замовлень ще немає
+                  </h3>
+                  <p style={{ color: "#888", fontSize: "14px", margin: "0 0 24px 0" }}>
+                    Зробіть перше замовлення в нашому каталозі
+                  </p>
+                  <button
+                    onClick={() => window.location.href = "/catalog"}
+                    style={{ backgroundColor: "#8E1616", color: "#fff", border: "none", borderRadius: "12px", padding: "12px 24px", fontWeight: "600", cursor: "pointer", fontSize: "14px" }}
+                  >
+                    До каталогу
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {orders.map((order) => (
+                    <div
+                      key={order.id}
+                      style={{ backgroundColor: "#fafafa", borderRadius: "16px", padding: "20px 24px", border: "1px solid #f0f0f0" }}
+                    >
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px" }}>
+                        <div>
+                          <div style={{ fontWeight: "700", fontSize: "15px", color: "#202124", marginBottom: "4px" }}>
+                            Замовлення #{order.id}
+                          </div>
+                          <div style={{ fontSize: "13px", color: "#888" }}>
+                            {order.createdAt
+                              ? new Date(order.createdAt).toLocaleDateString("uk-UA", { day: "numeric", month: "long", year: "numeric" })
+                              : ""}
+                          </div>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <div style={{ fontWeight: "700", fontSize: "16px", color: "#202124" }}>
+                            {Number(order.totalPrice).toFixed(2)} ₴
+                          </div>
+                          <div style={{ fontSize: "12px", marginTop: "4px", padding: "2px 8px", borderRadius: "6px", backgroundColor: order.status === "completed" ? "#f0fdf4" : "#fff7ed", color: order.status === "completed" ? "#16a34a" : "#ea580c", fontWeight: "600" }}>
+                            {order.status === "completed" ? "Виконано" : order.status === "cancelled" ? "Скасовано" : "В обробці"}
+                          </div>
+                        </div>
+                      </div>
+
+                      {order.items && order.items.length > 0 && (
+                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                          {order.items.map((item, idx) => (
+                            <div key={idx} style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: "#555" }}>
+                              <span>{item.product?.name || item.product?.title || `Товар #${item.productId}`} × {item.quantity}</span>
+                              <span style={{ fontWeight: "600" }}>{(Number(item.price) * item.quantity).toFixed(2)} ₴</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {order.deliveryAddress && (
+                        <div style={{ marginTop: "12px", fontSize: "12px", color: "#888", borderTop: "1px solid #f0f0f0", paddingTop: "12px" }}>
+                          📍 {order.deliveryAddress}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
