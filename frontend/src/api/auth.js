@@ -29,8 +29,6 @@ export async function registerUser(payload) {
 
   return response.json();
 }
-<<<<<<< HEAD
-=======
 
 export async function forgotPassword(payload) {
   const response = await fetch("/api/auth/forgot-password", {
@@ -47,4 +45,3 @@ export async function forgotPassword(payload) {
 
   return response.json();
 }
->>>>>>> feature/reviews-orders

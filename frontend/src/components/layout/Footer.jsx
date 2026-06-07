@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-export default function Footer() {
-  return (
-    <footer className="footer">
-      <p>© 2026 Сільпо клон | Навчальний проєкт</p>
-=======
 import { useLocation, Link } from "react-router"; // Додай цей імпорт зверху
 
 export default function Footer() {
@@ -170,7 +164,6 @@ export default function Footer() {
           © Kalpo, 2026
         </div>
       </div>
->>>>>>> feature/reviews-orders
     </footer>
   );
 }

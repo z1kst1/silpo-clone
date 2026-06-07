@@ -2,11 +2,7 @@ import { useEffect, useState } from "react";
 import defaultProducts from "../data/products";
 import { getProducts } from "../api/products";
 
-<<<<<<< HEAD
-const STORAGE_KEY = "silpo-products";
-=======
 const STORAGE_KEY = "silpo-products-2";
->>>>>>> feature/reviews-orders
 
 function getInitialProducts() {
   if (typeof window === "undefined") {
@@ -23,14 +19,11 @@ function getInitialProducts() {
     const parsedProducts = JSON.parse(savedProducts);
 
     if (Array.isArray(parsedProducts) && parsedProducts.length > 0) {
-<<<<<<< HEAD
-=======
       const hasNewBadges = parsedProducts.some(p => p.badgeText);
       if (!hasNewBadges) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultProducts));
         return defaultProducts;
       }
->>>>>>> feature/reviews-orders
       return parsedProducts;
     }
 
