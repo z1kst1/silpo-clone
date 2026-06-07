@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  # 1. КОНТЕЙНЕР БАЗИ ДАНИХ
+  db:
+    image: postgres:15-alpine
+    container_name: silpo_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword # Якщо у тебе інший пароль в .env, зміни його тут
+      POSTGRES_DB: silpo_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # 2. КОНТЕЙНЕР БЕКЕНДУ
+  backend:
+    build:
+      context: ./backend
+    container_name: silpo_backend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://postgres:mysecretpassword@db:5432/silpo_db?schema=public
+    depends_on:
+      - db
+    volumes:
+      - ./backend:/app           # Міст для миттєвого оновлення бекенду
+      - /app/node_modules        # Захищаємо встановлені бібліотеки
+
+  # 3. КОНТЕЙНЕР ФРОНТЕНДУ
+  frontend:
+    build:
+      context: ./frontend
+    container_name: silpo_frontend
+    restart: always
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app          # Міст для миттєвого оновлення фронтенду
+      - /app/node_modules        # Захищаємо встановлені бібліотеки
+
+volumes:
+  postgres_data:

@@ -1,0 +1,722 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+.profile-container {
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  min-height: calc(100vh - 94px);
+  align-items: stretch;
+  font-family: 'Inter', sans-serif;
+  background-color: #ffffff;
+}
+
+/* ЛІВА КОНСОЛЬ */
+.profile-container .profile-sidebar {
+  width: 300px;
+  background-color: #FCECCD !important;
+  margin: 0 !important;
+  padding: 20px 0 !important;
+  border-radius: 0 !important;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  border-right: 1px solid #f2e2c4;
+}
+
+.profile-container .sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.profile-container .menu-spacer {
+  flex-grow: 1;
+}
+
+.profile-container .menu-item {
+  /* Замість padding-left тепер використовуємо margin-left,
+     щоб відсунути весь фон кнопки, а не лише текст */
+  margin-left: 75px;
+  padding: 10px 15px 10px 15px;
+  width: calc(100% - 75px); /* Зменшуємо ширину, щоб кнопка не вилазила за край */
+
+  text-decoration: none;
+  color: #2b2b2b;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-left: 4px solid transparent;
+  transition: all 0.15s ease;
+  background: none;
+  border-top: none;
+  border-right: none;
+  border-bottom: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.profile-container .menu-item img {
+  filter: grayscale(1);
+  opacity: 0.6;
+}
+
+.profile-container .menu-item:hover,
+.profile-container .menu-item.active {
+  background-color: rgba(142, 22, 22, 0.08) !important;
+  border-left: 4px solid #8E1616 !important;
+  color: #8E1616 !important;
+}
+
+.profile-container .menu-item:hover img,
+.profile-container .menu-item.active img {
+  filter: grayscale(0);
+  opacity: 1;
+}
+
+.profile-container .logout-button {
+  color: #8E1616 !important;
+  font-weight: 600;
+  margin-top: 5px;
+}
+
+.profile-container .profile-main {
+  flex: 1;
+  display: flex;
+  justify-content: flex-start;
+  padding: 40px 60px; /* 40px зверху, 60px зліва від меню. Якщо треба ближче - зроби 40px замість 60px */
+  background-color: #fcfcfc;
+}
+
+.profile-container .profile-main-inner {
+  width: 100%;
+  max-width: 900px; /* Трохи розширив, щоб карткам було вільніше після зсуву вліво */
+}
+
+.profile-container .page-title {
+  font-size: 24px;
+  margin: 0 0 4px 0;
+  color: #1a1a1a;
+  font-weight: 700;
+}
+
+.profile-container .page-subtitle {
+  color: #777;
+  margin: 0 0 20px 0;
+  font-size: 13px;
+}
+
+/* КАРТКА ПРИВІТАННЯ */
+.profile-container .welcome-card {
+  background-color: #fff !important;
+  border: 1px solid #eaeaea !important;
+  border-radius: 12px !important;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.02) !important;
+}
+
+.profile-container .user-info-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.profile-container .avatar-circle {
+  width: 60px;
+  height: 60px;
+  background-color: #fdf6ec !important;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #fbecd5;
+  overflow: hidden;
+}
+
+.profile-container .avatar-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-container .user-details h2 {
+  margin: 0 0 2px 0;
+  font-size: 18px;
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.profile-container .user-email,
+.profile-container .user-phone {
+  margin: 0;
+  color: #666;
+  font-size: 13px;
+}
+
+.profile-container .edit-profile-btn {
+  background-color: #8E1616 !important;
+  color: white !important;
+  border: none !important;
+  padding: 10px 18px;
+  border-radius: 6px !important;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.profile-container .edit-profile-btn.save-mode {
+  background-color: #2e7d32 !important;
+}
+
+/* СІТКА КАРТОК 2x2 */
+.profile-container .cards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+/* ІНФОРМАЦІЙНІ КАРТКИ */
+.profile-container .info-card {
+  background-color: #fff !important;
+  border: 1px solid #eaeaea !important;
+  border-radius: 16px !important;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.02) !important;
+  min-height: 210px;
+}
+
+/* НОВИЙ СТИЛЬ ДЛЯ ЗАГОЛОВКІВ (Квадратик з іконкою) */
+.profile-container .card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.profile-container .header-icon-wrapper {
+  width: 44px;
+  height: 44px;
+  background-color: #Fcf3f3; /* Світло-червоний фон з Фігми */
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.profile-container .header-text-group h3 {
+  margin: 0;
+  color: #1a1a1a;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.profile-container .header-text-group p {
+  margin: 2px 0 0 0;
+  color: #888;
+  font-size: 12px;
+}
+
+.profile-container .card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* РЯДКИ З ДАНИМИ */
+.profile-container .data-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  border-bottom: 1px solid #f9f9f9;
+  padding-bottom: 6px;
+}
+
+.profile-container .data-row:last-child {
+  border-bottom: none;
+}
+
+.profile-container .data-row span {
+  color: #777;
+}
+
+.profile-container .data-row strong {
+  color: #1a1a1a;
+  font-weight: 500;
+}
+
+/* Специфікація для картки адрес */
+.profile-container .address-row {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.profile-container .address-type-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.profile-container .address-text-value {
+  color: #2b2b2b !important;
+  font-weight: 400 !important;
+  line-height: 1.4;
+}
+
+/* Нижній блок картки адрес */
+.profile-container .card-footer-container {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* КНОПКИ ТА ПОСИЛАННЯ В КАРТКАХ */
+.profile-container .card-footer-link {
+  background: none;
+  border: none;
+  padding: 10px 0 0 0;
+  margin-top: auto;
+  border-top: 1px solid #eaeaea;
+  color: #8E1616;
+  font-weight: 600;
+  font-size: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  cursor: pointer;
+  text-align: left;
+}
+
+.profile-container .add-address-btn {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #8E1616 !important;
+  background-color: transparent !important;
+  color: #8E1616 !important;
+  border-radius: 6px !important;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  text-align: center;
+}
+
+/* СПИСОК ЗАМОВЛЕНЬ */
+.profile-container .purchase-list {
+  gap: 6px;
+}
+
+.profile-container .purchase-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  padding: 4px 0;
+  border-bottom: 1px solid #f9f9f9;
+}
+
+.profile-container .purchase-item:last-child {
+  border-bottom: none;
+}
+
+.profile-container .purchase-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.profile-container .purchase-id {
+  font-weight: 500;
+  color: #2b2b2b;
+}
+
+.profile-container .purchase-date {
+  font-size: 11px;
+  color: #888;
+}
+
+.profile-container .purchase-price {
+  font-weight: 600;
+  color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.profile-container .purchase-price span {
+  color: #8E1616;
+  font-size: 10px;
+}
+
+/* БЛОК БЕЗПЕКИ */
+.profile-container .security-body {
+  gap: 6px;
+}
+
+.profile-container .security-row-action {
+  background: none;
+  border: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 6px 0;
+  font-size: 13px;
+  color: #2b2b2b;
+  cursor: pointer;
+  border-bottom: 1px solid #f9f9f9;
+  font-family: inherit;
+}
+
+.profile-container .security-row-action span:last-child {
+  color: #8E1616;
+  font-size: 10px;
+}
+
+.profile-container .security-row-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 13px;
+  color: #2b2b2b;
+}
+
+.profile-container .status-verified {
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.profile-container .editing-input {
+  text-align: right;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 12px;
+  max-width: 150px;
+}
+
+/* =========================================
+   СТИЛІ ДЛЯ ДЕТАЛЬНОГО ЕКРАНУ "МОЇ ДАНІ"
+========================================= */
+
+.details-view {
+  width: 100%;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ЗАГОЛОВОК (Без іконки) */
+.details-header-text {
+  margin-bottom: 25px;
+}
+
+.details-header-text h2 {
+  font-size: 28px;
+  color: #1a1a1a;
+  margin: 0 0 4px 0;
+  font-weight: 700;
+}
+
+.details-header-text p {
+  margin: 0;
+  color: #777;
+  font-size: 14px;
+}
+
+/* АВАТАР ПО ЦЕНТРУ */
+.details-avatar-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 35px;
+}
+
+.details-avatar {
+  width: 80px;
+  height: 80px;
+  background-color: #e2e2e2;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* =========================================
+   СТИЛІ ДЛЯ АВАТАРУ В "МОЇ ДАНІ"
+========================================= */
+
+.details-avatar {
+  /* Існуючі стилі кола аватару */
+  width: 80px;
+  height: 80px;
+  background-color: #e2e2e2;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative; /* Потрібно для позиціонування кнопки хрестика/плюса */
+}
+
+/* ОНОВЛЕНО: Універсальна кнопка дії (плюс або хрестик) */
+.avatar-action-btn {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 26px;
+  height: 26px;
+  background-color: #fff;
+  border: 1px solid #8E1616; /* Червона рамка з теми */
+  color: #8E1616; /* Червоний колір символу */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: all 0.2s ease;
+  z-index: 2; /* Щоб кнопка була поверх фото */
+}
+
+.avatar-action-btn:hover {
+  transform: scale(1.1); /* Легкий ефект при наведенні */
+  background-color: #fff8f8;
+}
+
+/* Специфічні стилі для плюсика */
+.avatar-action-btn.add {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/* ОНОВЛЕНО: Специфічні стилі для хрестика (видалення) */
+.avatar-action-btn.remove {
+  font-size: 20px; /* Трохи більший для симетрії */
+  font-weight: normal; /* Хрестик краще виглядає тоншим */
+  border-color: #CC0000; /* Яскравіший червоний для видалення */
+  color: #CC0000;
+}
+
+.avatar-action-btn.remove:hover {
+  background-color: #fff0f0;
+}
+
+/* ОБГОРТКА ДЛЯ КАРТОК (Щоб не були занадто широкими) */
+.details-cards-wrapper {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.details-block {
+  background-color: #fff;
+  border: 1px solid #eaeaea;
+  border-radius: 16px;
+  padding: 20px 25px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+}
+
+/* ЧЕРВОНЕ КОЛО ДЛЯ ІКОНОК */
+.details-block-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.details-icon-solid {
+  width: 34px;
+  height: 34px;
+  background-color: #8E1616;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.details-block-header h3 {
+  margin: 0;
+  font-size: 15px;
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+/* ВЕРСТКА РЯДКІВ (Стовпчиком, як у Фігмі) */
+.details-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.details-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f2f2f2;
+  cursor: pointer;
+}
+
+.details-list-item:first-child {
+  padding-top: 0;
+}
+
+.details-list-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.details-item-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.details-label {
+  font-size: 11px;
+  color: #888;
+}
+
+.details-value {
+  font-size: 14px;
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+/* ІКОНКИ ДІЙ СПРАВА (Стрілка, плюс, олівчик) */
+.details-action {
+  color: #8E1616;
+  font-size: 20px;
+  line-height: 1;
+  font-weight: 400;
+  display: flex;
+  align-items: center;
+}
+
+.details-action.arrow {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* =========================================
+   СТИЛІ ДЛЯ ФОРМ РЕДАГУВАННЯ (Ім'я, Дата)
+========================================= */
+
+.edit-form-view {
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  animation: fadeIn 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.back-link-btn {
+  background: none;
+  border: none;
+  color: #8E1616;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 10px;
+  text-align: left;
+  display: inline-block;
+  width: fit-content;
+}
+
+.edit-form-title {
+  font-size: 28px;
+  color: #1a1a1a;
+  margin: 0 0 30px 0;
+  font-weight: 700;
+}
+
+.edit-form-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.edit-input-field {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 15px;
+  color: #1a1a1a;
+  outline: none;
+  transition: border-color 0.2s ease;
+  font-family: inherit;
+}
+
+.edit-input-field:focus {
+  border-color: #8E1616;
+}
+
+.edit-input-field::placeholder {
+  color: #999;
+}
+
+.edit-form-buttons {
+  display: flex;
+  gap: 15px;
+}
+
+.btn-cancel {
+  flex: 1;
+  padding: 12px 0;
+  background-color: transparent;
+  border: 1px solid #8E1616;
+  color: #8E1616;
+  border-radius: 25px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-cancel:hover {
+  background-color: rgba(142, 22, 22, 0.05);
+}
+
+.btn-save {
+  flex: 1;
+  padding: 12px 0;
+  background-color: #8E1616;
+  border: 1px solid #8E1616;
+  color: white;
+  border-radius: 25px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-save:hover {
+  background-color: #7a1212;
+}
+
+/* Додатково: плавний перехід для основного дашборду */
+.fade-in-container {
+  animation: fadeIn 0.2s ease;
+}
