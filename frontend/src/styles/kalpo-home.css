@@ -1,186 +1,3 @@
-<<<<<<< HEAD
-.kalpo-home {
-  background: #e6d8b4;
-  min-height: 100vh;
-  padding-bottom: 40px;
-}
-
-.kalpo-slots {
-  max-width: 1320px;
-  margin: 0 auto;
-  padding: 14px 24px 6px;
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.kalpo-slots__button {
-  border: 1px solid #cbb88d;
-  background: #f6f0df;
-  color: #5e4630;
-  border-radius: 999px;
-  padding: 10px 14px;
-  cursor: pointer;
-}
-
-.kalpo-hero {
-  max-width: 1320px;
-  margin: 0 auto;
-  padding: 10px 24px 0;
-  display: grid;
-  grid-template-columns: 2fr 1.2fr;
-  gap: 16px;
-}
-
-.kalpo-hero__banner {
-  background: linear-gradient(135deg, #b8e290 0%, #7ec34c 100%);
-  border-radius: 24px;
-  min-height: 280px;
-  display: grid;
-  grid-template-columns: 44px 1fr 120px 44px;
-  align-items: center;
-  padding: 24px;
-}
-
-.kalpo-hero__banner-content {
-  padding: 0 10px;
-}
-
-.kalpo-hero__brand {
-  color: #18608d;
-  font-size: 36px;
-  font-weight: 800;
-  margin-bottom: 12px;
-}
-
-.kalpo-hero__banner-content h1 {
-  font-size: 52px;
-  line-height: 1;
-  margin: 0 0 10px;
-  color: white;
-}
-
-.kalpo-hero__banner-content p {
-  max-width: 430px;
-  margin: 0;
-  color: #234e15;
-  font-size: 18px;
-  line-height: 1.5;
-}
-
-.kalpo-hero__discount {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  background: white;
-  color: #d12c2c;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-size: 30px;
-  margin: 0 auto;
-}
-
-.kalpo-hero__arrow {
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
-  border: none;
-  background: rgba(255, 255, 255, 0.7);
-  cursor: pointer;
-  font-size: 22px;
-}
-
-.kalpo-hero__cards {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.kalpo-hero__mini-card {
-  background: #f8f6f1;
-  border-radius: 20px;
-  padding: 22px;
-  min-height: 132px;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  color: #8d1919;
-  font-size: 28px;
-  font-weight: 700;
-}
-
-.kalpo-hero__dots {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 25% 25%, #9e1818 0 8px, transparent 9px),
-    radial-gradient(circle at 70% 20%, #9e1818 0 10px, transparent 11px),
-    radial-gradient(circle at 50% 50%, #9e1818 0 14px, transparent 15px),
-    radial-gradient(circle at 82% 62%, #9e1818 0 8px, transparent 9px),
-    radial-gradient(circle at 20% 78%, #9e1818 0 12px, transparent 13px);
-}
-
-.kalpo-section,
-.kalpo-recipes,
-.kalpo-info {
-  max-width: 1320px;
-  margin: 20px auto 0;
-  padding: 0 24px;
-}
-
-.kalpo-section__head {
-  background: #f4f4f4;
-  border-radius: 28px 28px 0 0;
-  padding: 26px 28px 14px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
-}
-
-.kalpo-section__head h2 {
-  margin: 0 0 6px;
-  font-size: 36px;
-  color: #212121;
-}
-
-.kalpo-section__head p {
-  margin: 0;
-  color: #5a5a5a;
-  font-size: 16px;
-}
-
-.kalpo-section__link {
-  color: #414141;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.kalpo-products-grid {
-  background: #f4f4f4;
-  border-radius: 0 0 28px 28px;
-  padding: 8px 28px 28px;
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 18px;
-}
-
-.kalpo-section--holiday {
-  background: #9f1013;
-  border-radius: 28px;
-  padding-bottom: 28px;
-}
-
-.kalpo-section__head--light {
-  background: transparent;
-}
-
-.kalpo-section__head--light h2,
-.kalpo-section__head--light p,
-=======
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 /* =========================================
@@ -387,22 +204,10 @@
   font-weight: 600;
 }
 
->>>>>>> feature/reviews-orders
 .kalpo-section__link--light {
   color: white;
 }
 
-<<<<<<< HEAD
-.kalpo-products-grid--white {
-  background: white;
-  border-radius: 24px;
-  margin: 0 24px;
-}
-
-.kalpo-recipes__grid {
-  background: #f4f4f4;
-  border-radius: 0 0 28px 28px;
-=======
 .kalpo-nav-arrows {
   display: flex;
   gap: 8px;
@@ -447,7 +252,6 @@
 .kalpo-recipes__grid {
   background: #f4f4f4;
   border-radius: 28px;
->>>>>>> feature/reviews-orders
   padding: 14px 20px 24px;
   display: grid;
   grid-template-columns: 260px repeat(5, 1fr);
@@ -522,20 +326,12 @@
   line-height: 1.3;
 }
 
-<<<<<<< HEAD
-.kalpo-info {
-  background: #eceef3;
-  border-radius: 0;
-  padding-top: 54px;
-  padding-bottom: 54px;
-=======
 /* ================= INFO ================= */
 
 .kalpo-info {
   background: #eceef3;
   border-radius: 24px;
   padding: 54px;
->>>>>>> feature/reviews-orders
 }
 
 .kalpo-info h2 {
@@ -568,17 +364,11 @@
   padding: 0;
 }
 
-<<<<<<< HEAD
-.kalpo-header {
-  background: #e6d8b4;
-  border-bottom: 1px solid #d3c192;
-=======
 /* ================= HEADER ================= */
 
 .kalpo-header {
   background: #e9ddb8;
   border-bottom: 1px solid #d8ca9f;
->>>>>>> feature/reviews-orders
   position: sticky;
   top: 0;
   z-index: 50;
@@ -587,15 +377,6 @@
 .kalpo-header__inner {
   max-width: 1320px;
   margin: 0 auto;
-<<<<<<< HEAD
-  padding: 18px 24px;
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 20px;
-  align-items: center;
-}
-
-=======
   padding: 12px 24px 10px;
   display: grid;
   grid-template-columns: auto 1fr auto;
@@ -609,36 +390,10 @@
   gap: 16px; /* Відступ між самими елементами зліва */
 }
 
->>>>>>> feature/reviews-orders
 .kalpo-header__left,
 .kalpo-header__right {
   display: flex;
   align-items: center;
-<<<<<<< HEAD
-  gap: 14px;
-}
-
-.kalpo-header__burger,
-.kalpo-header__catalog,
-.kalpo-header__action {
-  border: 1px solid #cdb98b;
-  background: #f8f0dc;
-  border-radius: 999px;
-  min-height: 42px;
-  padding: 0 16px;
-  text-decoration: none;
-  color: #5a3b26;
-  display: inline-flex;
-  align-items: center;
-  font-weight: 700;
-}
-
-.kalpo-header__logo {
-  font-size: 38px;
-  font-weight: 800;
-  text-decoration: none;
-  color: #6d2d1c;
-=======
   gap: 12px;
 }
 
@@ -741,19 +496,10 @@
 
 .kalpo-header__search {
   width: 100%;
->>>>>>> feature/reviews-orders
 }
 
 .kalpo-header__search input {
   width: 100%;
-<<<<<<< HEAD
-  min-height: 44px;
-  border-radius: 999px;
-  border: 1px solid #bfa776;
-  padding: 0 18px;
-  background: #fff8ee;
-  outline: none;
-=======
   height: 46px;
   border-radius: 999px;
   border: 1px solid #c94939;
@@ -766,16 +512,11 @@
 
 .kalpo-header__search input::placeholder {
   color: #a1988d;
->>>>>>> feature/reviews-orders
 }
 
 .kalpo-header__delivery {
   display: flex;
   align-items: center;
-<<<<<<< HEAD
-  gap: 10px;
-  color: #5b4332;
-=======
   gap: 8px;
   color: #5a3424;
 }
@@ -784,28 +525,16 @@
   font-size: 16px;
   line-height: 1;
   color: #c94939;
->>>>>>> feature/reviews-orders
 }
 
 .kalpo-header__delivery-title {
   font-size: 13px;
   font-weight: 700;
-<<<<<<< HEAD
-=======
   line-height: 1.05;
->>>>>>> feature/reviews-orders
 }
 
 .kalpo-header__delivery-text {
   font-size: 12px;
-<<<<<<< HEAD
-}
-
-.kalpo-header__action--cart {
-  background: #d9b58e;
-}
-
-=======
   line-height: 1.1;
 }
 
@@ -1522,7 +1251,6 @@
 
 /* ================= RESPONSIVE ================= */
 
->>>>>>> feature/reviews-orders
 @media (max-width: 1200px) {
   .kalpo-products-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1539,15 +1267,6 @@
   .kalpo-hero {
     grid-template-columns: 1fr;
   }
-<<<<<<< HEAD
-}
-
-@media (max-width: 900px) {
-  .kalpo-header__inner {
-    grid-template-columns: 1fr;
-  }
-
-=======
 
   .catalog-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1567,7 +1286,6 @@
 }
 
 @media (max-width: 900px) {
->>>>>>> feature/reviews-orders
   .kalpo-header__right {
     flex-wrap: wrap;
   }
@@ -1579,8 +1297,6 @@
   .kalpo-hero__cards {
     grid-template-columns: 1fr;
   }
-<<<<<<< HEAD
-=======
 
   .catalog-layout {
     grid-template-columns: 1fr;
@@ -1641,7 +1357,6 @@
     padding: 0 16px;
     font-size: 14px;
   }
->>>>>>> feature/reviews-orders
 }
 
 @media (max-width: 640px) {
@@ -1651,14 +1366,6 @@
   }
 
   .kalpo-hero__banner {
-<<<<<<< HEAD
-    grid-template-columns: 1fr;
-    gap: 18px;
-    text-align: center;
-  }
-
-  .kalpo-hero__banner-content h1 {
-=======
   flex: 1;
   border-radius: 24px;
   position: relative;
@@ -1678,15 +1385,12 @@
 }
 
   .kalpo-hero__banner-content h2 {
->>>>>>> feature/reviews-orders
     font-size: 34px;
   }
 
   .kalpo-section__head {
     flex-direction: column;
   }
-<<<<<<< HEAD
-=======
 
   .catalog-page {
     padding: 20px 14px 32px;
@@ -2177,5 +1881,4 @@ header,
 body {
   background-color: #F5E6BE;
 }
->>>>>>> feature/reviews-orders
 }
