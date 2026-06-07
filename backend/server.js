@@ -252,20 +252,51 @@ app.put("/api/profile", authMiddleware, async (req, res) => {
 });
 
 // ==========================================
-// ТОВАРИ — публічні (GET)
+// ТОВАРИ — публічні (GET) з пагінацією та сортуванням
 // ==========================================
 
 app.get("/api/products", async (req, res) => {
   try {
-    const { category, search } = req.query;
+    const {
+      category,
+      search,
+      page = 1,
+      limit = 20,
+      sortBy = "createdAt",
+      order = "desc",
+    } = req.query;
+
     const where = {};
     if (category) where.category = category;
     if (search) where.name = { contains: search, mode: "insensitive" };
-    const products = await prisma.product.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
+
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const validSortFields = ["createdAt", "price", "rating", "name"];
+    const validOrders = ["asc", "desc"];
+
+    const orderBy = {
+      [validSortFields.includes(sortBy) ? sortBy : "createdAt"]:
+        validOrders.includes(order) ? order : "desc",
+    };
+
+    const [products, total] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        orderBy,
+        skip,
+        take: Number(limit),
+      }),
+      prisma.product.count({ where }),
+    ]);
+
+    res.json({
+      products,
+      total,
+      page: Number(page),
+      limit: Number(limit),
+      totalPages: Math.ceil(total / Number(limit)),
     });
-    res.json(products);
   } catch (error) {
     console.error("GET PRODUCTS ERROR:", error);
     res.status(500).json({ error: "Помилка отримання товарів" });
@@ -292,8 +323,6 @@ app.get("/api/products/:id", async (req, res) => {
 
 // ==========================================
 // ТОВАРИ — тільки адмін (POST/PUT/DELETE)
-// authMiddleware перевіряє токен
-// adminMiddleware перевіряє isAdmin
 // ==========================================
 
 app.post("/api/products", authMiddleware, adminMiddleware, async (req, res) => {
@@ -362,7 +391,6 @@ app.delete(
 // ВІДГУКИ
 // ==========================================
 
-// Отримати відгуки для товару
 app.get("/api/products/:id/reviews", async (req, res) => {
   try {
     const reviews = await prisma.review.findMany({
@@ -376,7 +404,6 @@ app.get("/api/products/:id/reviews", async (req, res) => {
   }
 });
 
-// Додати відгук (тільки авторизований)
 app.post("/api/products/:id/reviews", authMiddleware, async (req, res) => {
   try {
     const { rating, comment } = req.body;
@@ -386,7 +413,6 @@ app.post("/api/products/:id/reviews", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "Рейтинг має бути від 1 до 5" });
     }
 
-    // Перевіряємо чи не залишав вже відгук
     const existing = await prisma.review.findFirst({
       where: { userId: req.user.userId, productId },
     });
@@ -405,7 +431,6 @@ app.post("/api/products/:id/reviews", authMiddleware, async (req, res) => {
       include: { user: { select: { firstName: true, lastName: true } } },
     });
 
-    // Оновлюємо середній рейтинг товару
     const allReviews = await prisma.review.findMany({ where: { productId } });
     const avgRating =
       allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
@@ -421,7 +446,6 @@ app.post("/api/products/:id/reviews", authMiddleware, async (req, res) => {
   }
 });
 
-// Видалити відгук (адмін або автор)
 app.delete("/api/reviews/:id", authMiddleware, async (req, res) => {
   try {
     const review = await prisma.review.findUnique({
@@ -443,10 +467,9 @@ app.delete("/api/reviews/:id", authMiddleware, async (req, res) => {
 });
 
 // ==========================================
-// ЗАМОВЛЕННЯ — в базі даних
+// ЗАМОВЛЕННЯ
 // ==========================================
 
-// Створити замовлення
 app.post("/api/orders", authMiddleware, async (req, res) => {
   try {
     const { items, total, address, paymentMethod, comment } = req.body;
@@ -481,7 +504,6 @@ app.post("/api/orders", authMiddleware, async (req, res) => {
   }
 });
 
-// Мої замовлення
 app.get("/api/orders/my", authMiddleware, async (req, res) => {
   try {
     const orders = await prisma.order.findMany({
@@ -496,7 +518,6 @@ app.get("/api/orders/my", authMiddleware, async (req, res) => {
   }
 });
 
-// Отримати одне замовлення
 app.get("/api/orders/:id", authMiddleware, async (req, res) => {
   try {
     const order = await prisma.order.findUnique({
@@ -507,7 +528,6 @@ app.get("/api/orders/:id", authMiddleware, async (req, res) => {
     if (!order)
       return res.status(404).json({ error: "Замовлення не знайдено" });
 
-    // Тільки власник або адмін
     if (order.userId !== req.user.userId && !req.user.isAdmin) {
       return res.status(403).json({ error: "Немає доступу" });
     }
@@ -518,7 +538,6 @@ app.get("/api/orders/:id", authMiddleware, async (req, res) => {
   }
 });
 
-// Всі замовлення (тільки адмін)
 app.get("/api/orders", authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const orders = await prisma.order.findMany({
@@ -534,7 +553,6 @@ app.get("/api/orders", authMiddleware, adminMiddleware, async (req, res) => {
   }
 });
 
-// Оновити статус замовлення (тільки адмін)
 app.patch(
   "/api/orders/:id/status",
   authMiddleware,
@@ -611,7 +629,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowed = ["image/jpeg", "image/png", "image/webp"];
     if (allowed.includes(file.mimetype)) {
@@ -622,14 +640,9 @@ const upload = multer({
   },
 });
 
-// Створюємо папку uploads якщо нема
-
 if (!fs.existsSync("uploads")) fs.mkdirSync("uploads");
-
-// Статичні файли
 app.use("/uploads", express.static("uploads"));
 
-// Роут завантаження
 app.post("/api/upload", authMiddleware, upload.single("image"), (req, res) => {
   if (!req.file) return res.status(400).json({ error: "Файл не завантажено" });
   const imageUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
