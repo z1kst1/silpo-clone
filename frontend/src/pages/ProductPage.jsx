@@ -8,17 +8,30 @@ import ReviewsSection from "../components/ReviewsSection";
 export default function ProductPage() {
   const { id } = useParams();
   const { addToCart } = useCart();
-  const { products, loading } = useProducts();
-
-  const product = products.find((item) => Number(item.id) === Number(id));
-
+  // ✅ Завантажуємо товар напряму з API по ID
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [activeImage, setActiveImage] = useState("");
 
   useEffect(() => {
-    if (product) {
-      setActiveImage(product.image);
+    async function loadProduct() {
+      setLoading(true);
+      try {
+        const data = await getProductById(id);
+        setProduct(data);
+        setActiveImage(data.image || "");
+      } catch (err) {
+        console.error("Помилка завантаження товару:", err);
+        setProduct(null);
+      } finally {
+        setLoading(false);
+      }
     }
-  }, [product]);
+    loadProduct();
+  }, [id]);
+
+  // Для схожих товарів — беремо з загального списку
+  const { products } = useProducts({ limit: 20 });
 
   const relatedProducts = useMemo(() => {
     if (!product || !products.length) return [];
