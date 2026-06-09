@@ -7,15 +7,6 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  firstName String?
-  lastName  String?
-  createdAt DateTime @default(now())
-}
-
 model Product {
   id          Int      @id @default(autoincrement())
   name        String
@@ -25,5 +16,64 @@ model Product {
   image       String?
   rating      Float    @default(0)
   createdAt   DateTime @default(now())
+  reviews     Review[]
 }
 
+model User {
+  id            Int            @id @default(autoincrement())
+  email         String         @unique
+  password      String
+  firstName     String?
+  lastName      String?
+  phone         String?
+  birthDate     DateTime?
+  gender        String?
+  isAdmin       Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  refreshTokens RefreshToken[]
+  reviews       Review[]
+  orders        Order[]
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  rating    Int      // 1-5
+  comment   String?
+  userId    Int
+  productId Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Order {
+  id          Int         @id @default(autoincrement())
+  userId      Int
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  total       Float
+  address     String
+  status      String      @default("pending")
+  paymentMethod String    @default("cash")
+  comment     String?
+  createdAt   DateTime    @default(now())
+  items       OrderItem[]
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId Int
+  name      String
+  price     Float
+  quantity  Int
+}

@@ -1,29 +1,37 @@
-async function addToCart(productName) {
-  const token = localStorage.getItem("token");
+const express = require("express");
+const router = express.Router();
+const auth = require("../middleware/authMiddleware");
 
-  if (!token) {
-    alert("Спочатку увійди!");
-    return;
+let carts = {};
+
+// GET CART
+router.get("/", auth, (req, res) => {
+  const userId = req.user.userId; // виправлено: userId, не id
+  res.json({ cart: carts[userId] || [] });
+});
+
+// ADD ITEM
+router.post("/add", auth, (req, res) => {
+  const userId = req.user.userId; // виправлено
+  const { product } = req.body;
+
+  if (!carts[userId]) {
+    carts[userId] = [];
   }
 
-  try {
-    const response = await fetch("http://localhost:3000/api/cart/add", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: token,
-      },
-      body: JSON.stringify({
-        product: {
-          name: productName,
-        },
-      }),
-    });
+  carts[userId].push(product);
+  res.json(carts[userId]);
+});
 
-    const data = await response.json();
+// DELETE ITEM
+router.post("/remove", auth, (req, res) => {
+  const userId = req.user.userId; // виправлено
+  const { index } = req.body;
 
-    alert("Товар додано в кошик!");
-  } catch (error) {
-    alert("Помилка");
-  }
-}
+  if (!carts[userId]) return res.json([]);
+
+  carts[userId].splice(index, 1);
+  res.json(carts[userId]);
+});
+
+module.exports = router;

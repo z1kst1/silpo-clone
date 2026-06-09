@@ -34,4 +34,25 @@ router.post("/remove", auth, (req, res) => {
   res.json(carts[userId]);
 });
 
+router.post("/checkout", auth, (req, res) => {
+  if (!req.user.cart || req.user.cart.length === 0) {
+    return res.status(400).json({ message: "Кошик пустий" });
+  }
+
+  const order = {
+    items: req.user.cart,
+    date: new Date(),
+  };
+
+  req.user.orders = req.user.orders || [];
+  req.user.orders.push(order);
+
+  req.user.cart = [];
+
+  res.json({ message: "Замовлення оформлено" });
+});
+
+router.get("/orders", auth, (req, res) => {
+  res.json({ orders: req.user.orders || [] });
+});
 module.exports = router;

@@ -1,40 +1,102 @@
-import axios from 'axios';
-
-// Створюємо екземпляр axios із базовими налаштуваннями
+import axios from "axios";
+// Створюємо інстанс axios з базовим URL та заголовками
 const api = axios.create({
-  baseURL: '/api', // Vite буде проксіювати це на твій http://localhost:3000
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  baseURL: "/api",
+  headers: { "Content-Type": "application/json" },
 });
 
-// ІНТЕРЦЕПТОР ДЛЯ ЗАПИТІВ (Request Interceptor)
-// Автоматично додає токен Bearer у Header кожного запиту, якщо він є
+// Додаємо access token до кожного запиту
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token'); // або sessionStorage
+    const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error),
 );
 
-// ІНТЕРЦЕПТОР ДЛЯ ВІДПОВІДЕЙ (Response Interceptor)
-// Перехоплює помилки від сервера. Якщо помилка 401 (токен злетів) — робимо рефреш або редірект
-api.interceptors.response.use(
-  (response) => response, // Якщо все ок, просто повертаємо відповідь
-  async (error) => {
-    if (error.response && error.response.status === 401) {
-      console.log('Токен застарів або невалідний, розлогінюємо...');
-      localStorage.removeItem('token');
-      window.location.href = '/login'; // викидаємо на вхід
+// Автоматичний refresh при 401
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
     }
+  });
+  failedQueue = [];
+};
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    // Якщо 401 і це не повторний запит і не сам refresh
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.url.includes("/auth/refresh")
+    ) {
+      if (isRefreshing) {
+        // Якщо вже рефрешимо — ставимо в чергу
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return api(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      const refreshToken = localStorage.getItem("refreshToken");
+
+      if (!refreshToken) {
+        // Немає refresh token — логаут
+        localStorage.removeItem("token");
+        localStorage.removeItem("silpo-user");
+        window.location.href = "/login";
+        return Promise.reject(error);
+      }
+
+      try {
+        const { data } = await axios.post("/api/auth/refresh", {
+          refreshToken,
+        });
+
+        // Зберігаємо нові токени
+        localStorage.setItem("token", data.accessToken);
+        localStorage.setItem("refreshToken", data.refreshToken);
+
+        // Оновлюємо header і повторяємо оригінальний запит
+        api.defaults.headers.common.Authorization = `Bearer ${data.accessToken}`;
+        originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
+
+        processQueue(null, data.accessToken);
+        return api(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("silpo-user");
+        window.location.href = "/login";
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;
