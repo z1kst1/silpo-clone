@@ -33,6 +33,11 @@ model User {
   refreshTokens RefreshToken[]
   reviews       Review[]
   orders        Order[]
+  passwordResetTokens PasswordResetToken[]
+
+  // Поля для функціоналу відновлення паролю (додаємо сюди)
+  resetToken        String?   @unique
+  resetTokenExpires DateTime?
 }
 
 model RefreshToken {
@@ -76,4 +81,13 @@ model OrderItem {
   name      String
   price     Float
   quantity  Int
+}
+
+model PasswordResetToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 }

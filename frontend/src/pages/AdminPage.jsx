@@ -13,8 +13,8 @@ function useAdminCheck() {
       navigate("/login");
       return;
     }
-    // Якщо є user і він не адмін — на головну
-    if (user && user.role !== "ADMIN") {
+    // Якщо є user і isAdmin не true — на головну
+    if (user && user.isAdmin === false) {
       navigate("/");
     }
   }, [user, navigate]);

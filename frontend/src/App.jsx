@@ -21,7 +21,7 @@ function AdminRoute({ children }) {
     try { return JSON.parse(localStorage.getItem("silpo-user") || "{}"); } catch { return {}; }
   })();
   if (!token) return <Navigate to="/login" replace />;
-  if (user.role && user.role !== "ADMIN") return <Navigate to="/" replace />;
+  if (user && user.isAdmin === false) return <Navigate to="/" replace />;
   return children;
 }
 
