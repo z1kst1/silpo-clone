@@ -12,6 +12,18 @@ import ProfilePage from "./pages/ProfilePage";
 import CheckoutPage from "./pages/CheckoutPage";
 import OrderSuccessPage from "./pages/OrderSuccessPage";
 import NotFoundPage from "./pages/NotFoundPage";
+import AdminPage from "./pages/AdminPage";
+
+// Захищений маршрут для адміна
+function AdminRoute({ children }) {
+  const token = localStorage.getItem("token");
+  const user = (() => {
+    try { return JSON.parse(localStorage.getItem("silpo-user") || "{}"); } catch { return {}; }
+  })();
+  if (!token) return <Navigate to="/login" replace />;
+  if (user.role && user.role !== "ADMIN") return <Navigate to="/" replace />;
+  return children;
+}
 
 // Захищений маршрут — тільки для авторизованих
 function PrivateRoute({ children }) {
@@ -48,6 +60,14 @@ export default function App() {
             <PrivateRoute>
               <ProfilePage />
             </PrivateRoute>
+          }
+        />
+        <Route
+          path="admin"
+          element={
+            <AdminRoute>
+              <AdminPage />
+            </AdminRoute>
           }
         />
         <Route
