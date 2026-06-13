@@ -9,9 +9,7 @@ const { PrismaClient } = require("@prisma/client");
 const { PrismaPg } = require("@prisma/adapter-pg");
 const { Pool } = require("pg");
 
-const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
+const cloudinary = require("cloudinary").v2;
 const nodemailer = require("nodemailer");
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
@@ -716,23 +714,24 @@ app.get(
   },
 );
 
-// ==========================================
-// ЗАВАНТАЖЕННЯ ЗОБРАЖЕНЬ
+/// ==========================================
+// ЗАВАНТАЖЕННЯ ЗОБРАЖЕНЬ (Cloudinary)
 // ==========================================
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-  filename: (req, file, cb) => {
-    const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(file.originalname)}`;
-    cb(null, uniqueName);
-  },
+const multer = require("multer");
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
+
+// Зберігаємо файл в пам'яті (не на диск)
+const storage = multer.memoryStorage();
 
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
   fileFilter: (req, file, cb) => {
     const allowed = ["image/jpeg", "image/png", "image/webp"];
     if (allowed.includes(file.mimetype)) {
@@ -743,14 +742,36 @@ const upload = multer({
   },
 });
 
-if (!fs.existsSync("uploads")) fs.mkdirSync("uploads");
-app.use("/uploads", express.static("uploads"));
+// Роут завантаження
+app.post(
+  "/api/upload",
+  authMiddleware,
+  upload.single("image"),
+  async (req, res) => {
+    try {
+      if (!req.file)
+        return res.status(400).json({ error: "Файл не завантажено" });
 
-app.post("/api/upload", authMiddleware, upload.single("image"), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: "Файл не завантажено" });
-  const imageUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
-  res.json({ url: imageUrl, filename: req.file.filename });
-});
+      // Завантажуємо в Cloudinary
+      const result = await new Promise((resolve, reject) => {
+        cloudinary.uploader
+          .upload_stream(
+            { folder: "kalpo-shop", resource_type: "image" },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            },
+          )
+          .end(req.file.buffer);
+      });
+
+      res.json({ url: result.secure_url, publicId: result.public_id });
+    } catch (error) {
+      console.error("UPLOAD ERROR:", error);
+      res.status(500).json({ error: "Помилка завантаження зображення" });
+    }
+  },
+);
 
 // ==========================================
 // СТАРТ

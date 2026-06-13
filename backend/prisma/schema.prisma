@@ -35,9 +35,7 @@ model User {
   orders        Order[]
   passwordResetTokens PasswordResetToken[]
 
-  // Поля для функціоналу відновлення паролю (додаємо сюди)
-  resetToken        String?   @unique
-  resetTokenExpires DateTime?
+
 }
 
 model RefreshToken {
