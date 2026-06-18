@@ -1,13 +1,11 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 import api from "../api/api";
 import { useAuth } from "../context/AuthContext";
 import "../styles/kalpo-home.css";
 
 export default function LoginPage() {
-  const navigate = useNavigate();
   const { login } = useAuth();
-
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState("");
@@ -26,7 +24,6 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      // Відправляємо дані на бекенд
       const response = await api.post("/auth/login", {
         email: formData.email,
         password: formData.password,
@@ -34,20 +31,41 @@ export default function LoginPage() {
 
       const data = response.data;
 
-      // Зберігаємо через AuthContext
-      login({
-        accessToken: data.accessToken || data.token,
-        refreshToken: data.refreshToken,
-        user: data.user,
-      });
+      // ✅ Підтримка нового формату відповіді від бекенду
+      // Ярослав повертає accessToken + refreshToken
+      // Старий формат повертав просто token
+      const accessToken = data.accessToken || data.token;
+      const refreshToken = data.refreshToken;
 
-      setMessage("Вхід виконано успішно!");
-      setTimeout(() => navigate("/profile"), 800);
+      // Зберігаємо refreshToken окремо для автоматичного оновлення сесії
+      if (refreshToken) {
+        localStorage.setItem("refreshToken", refreshToken);
+      }
+
+      // Зберігаємо через AuthContext (він записує token і silpo-user)
+      login(
+        data.user || { email: formData.email, name: "Користувач" },
+        accessToken
+      );
+
+      setMessage("Вхід виконано успішно! Перенаправлення...");
+
+      setTimeout(() => {
+        window.location.href = "/profile";
+      }, 1000);
     } catch (err) {
+      console.error(err);
+
       if (err.response) {
-        setError(err.response.data?.error || "Невірний email або пароль.");
+        setError(
+          err.response.data?.error ||
+            err.response.data?.message ||
+            "Невірний email або пароль."
+        );
       } else {
-        setError("Не вдалося підключитися до сервера.");
+        setError(
+          "Не вдалося підключитися до сервера. Перевірте, чи працює бекенд."
+        );
       }
     } finally {
       setIsSubmitting(false);
@@ -91,7 +109,7 @@ export default function LoginPage() {
                   style={{ paddingRight: "42px" }}
                 />
                 <span
-                  onClick={() => setShowPassword((p) => !p)}
+                  onClick={() => setShowPassword((prev) => !prev)}
                   style={{
                     position: "absolute",
                     right: "12px",
@@ -116,6 +134,7 @@ export default function LoginPage() {
           </p>
           {message && (
             <p
+              className="auth-modal-success"
               style={{ color: "green", marginTop: "10px", fontWeight: "bold" }}
             >
               {message}
@@ -130,7 +149,8 @@ export default function LoginPage() {
             </p>
           )}
           <p className="auth-modal-bottom">
-            Ще не маєш акаунта? <Link to="/register">Зареєструватися</Link>
+            Ще не маєш акаунта?{" "}
+            <Link to="/register">Зареєструватися</Link>
           </p>
           <button type="button" className="auth-modal-help">
             Допомога

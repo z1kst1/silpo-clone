@@ -6,65 +6,93 @@ import "../styles/ProfilePage.css";
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const { user: authUser, logout, updateUser } = useAuth();
+  const { logout, updateUser } = useAuth();
 
-  const [user, setUser] = useState({
-    firstName: "",
-    lastName: "",
-    middleName: "",
-    email: "",
-    phone: "",
-    birthDate: "",
-    gender: "Не вказано",
-    avatar: "",
-    address: "",
+  const getSavedUser = () => {
+    try {
+      const saved = localStorage.getItem("silpo-user");
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const [user, setUser] = useState(() => {
+    const saved = getSavedUser();
+    return {
+      firstName: saved?.firstName || saved?.name || "Користувач",
+      lastName: saved?.lastName || "",
+      middleName: saved?.middleName || "",
+      email: saved?.email || "",
+      phone: saved?.phone || "",
+      birthDate: saved?.birthDate || "",
+      gender: saved?.gender || "Не вказано",
+      avatar: saved?.avatar || "",
+      address: saved?.address || "",
+    };
   });
+
   const [editData, setEditData] = useState({});
   const [activeView, setActiveView] = useState("dashboard");
+  const [activeModal, setActiveModal] = useState(null);
+  const [saveError, setSaveError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [orders, setOrders] = useState([]);
-  const [ordersLoading, setOrdersLoading] = useState(false);
-  const [passwordData, setPasswordData] = useState({
-    current: "",
-    newPwd: "",
-    confirm: "",
-  });
-  const [passwordError, setPasswordError] = useState("");
-  const [passwordSuccess, setPasswordSuccess] = useState(false);
+  const [ordersLoading, setOrdersLoading] = useState(true);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    if (!localStorage.getItem("token")) {
-      navigate("/login");
-      return;
-    }
-
     const fetchProfile = async () => {
+      if (!localStorage.getItem("token")) {
+        navigate("/login");
+        return;
+      }
       try {
         const response = await api.get("/auth/me");
         const userData = response.data;
         setUser({
-          firstName: userData.firstName || "",
+          firstName: userData.firstName || userData.name || "Користувач",
           lastName: userData.lastName || "",
           middleName: userData.middleName || "",
           email: userData.email || "",
           phone: userData.phone || "",
-          birthDate: userData.birthDate ? userData.birthDate.slice(0, 10) : "",
+          birthDate: userData.birthDate || "",
           gender: userData.gender || "Не вказано",
           avatar: userData.avatar || "",
           address: userData.address || "",
         });
+        localStorage.setItem("silpo-user", JSON.stringify(userData));
       } catch (error) {
         console.error("Помилка завантаження профілю:", error);
       }
     };
 
+    const fetchOrders = async () => {
+      try {
+        const response = await api.get("/orders/my");
+        setOrders(response.data || []);
+      } catch {
+        setOrders([]);
+      } finally {
+        setOrdersLoading(false);
+      }
+    };
+
     fetchProfile();
+    fetchOrders();
   }, [navigate]);
 
-  const openEdit = (viewName) => {
+  const handleLogout = () => logout();
+
+  const openEdit = (modalName) => {
     setEditData({ ...user });
-    setActiveView(viewName);
+    setSaveError("");
+    setActiveModal(modalName);
+  };
+
+  const closeModal = () => {
+    setActiveModal(null);
+    setSaveError("");
   };
 
   const handleEditChange = (e) => {
@@ -82,44 +110,20 @@ export default function ProfilePage() {
     }
   };
 
-  // Збереження в БД через API
   const handleSaveDetails = async () => {
-    setIsSaving(true);
+    setSaveError("");
     try {
-      // Конвертуємо дд.мм.рррр → ISO для БД
-      let birthDate = null;
-      if (editData.birthDate) {
-        const parts = editData.birthDate.split(".");
-        if (parts.length === 3) {
-          birthDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
-        }
-      }
-
-      const response = await api.put("/profile", {
-        firstName: editData.firstName,
-        lastName: editData.lastName,
-        phone: editData.phone,
-        gender: editData.gender,
-        birthDate,
-      });
-
-      const updated = response.data;
-      setUser((prev) => ({
-        ...prev,
-        ...editData,
-        birthDate: updated.birthDate
-          ? updated.birthDate.slice(0, 10)
-          : editData.birthDate,
-      }));
-
-      // Оновлюємо AuthContext
-      updateUser({ firstName: updated.firstName, lastName: updated.lastName });
-      setActiveView("myData");
+      await api.put("/profile", editData);
+      setUser(editData);
+      const savedUser = JSON.parse(localStorage.getItem("silpo-user") || "{}");
+      localStorage.setItem(
+        "silpo-user",
+        JSON.stringify({ ...savedUser, ...editData }),
+      );
+      closeModal();
     } catch (error) {
       console.error("Помилка збереження:", error);
-      alert("Не вдалося зберегти зміни");
-    } finally {
-      setIsSaving(false);
+      setSaveError("Не вдалося зберегти дані. Спробуйте ще раз.");
     }
   };
 
@@ -130,7 +134,15 @@ export default function ProfilePage() {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setUser((prev) => ({ ...prev, avatar: reader.result }));
+        const base64String = reader.result;
+        setUser((prev) => ({ ...prev, avatar: base64String }));
+        const savedUser = JSON.parse(
+          localStorage.getItem("silpo-user") || "{}",
+        );
+        localStorage.setItem(
+          "silpo-user",
+          JSON.stringify({ ...savedUser, avatar: base64String }),
+        );
       };
       reader.readAsDataURL(file);
     }
@@ -140,39 +152,30 @@ export default function ProfilePage() {
   const handleRemoveAvatar = (e) => {
     e.stopPropagation();
     setUser((prev) => ({ ...prev, avatar: "" }));
-  };
-
-  const fetchOrders = async () => {
-    setOrdersLoading(true);
-    try {
-      const res = await api.get("/orders/my");
-      setOrders(res.data);
-    } catch {
-      console.error("Не вдалося завантажити замовлення");
-    } finally {
-      setOrdersLoading(false);
-    }
+    const savedUser = JSON.parse(localStorage.getItem("silpo-user") || "{}");
+    localStorage.setItem(
+      "silpo-user",
+      JSON.stringify({ ...savedUser, avatar: "" }),
+    );
   };
 
   const handleViewChange = (view) => {
     setActiveView(view);
-    if (view === "orders") fetchOrders();
   };
 
   const fullName =
     [user.lastName, user.firstName, user.middleName]
       .filter(Boolean)
-      .join(" ") ||
-    user.firstName ||
-    "Користувач";
+      .join(" ") || user.firstName;
 
   return (
     <div className="profile-container">
+      {/* САЙДБАР */}
       <aside className="profile-sidebar">
         <div className="sidebar-menu">
           <button
             className={`menu-item ${activeView === "dashboard" ? "active" : ""}`}
-            onClick={() => setActiveView("dashboard")}
+            onClick={() => handleViewChange("dashboard")}
           >
             <img
               src="/images/figma/icons/profile.svg"
@@ -240,7 +243,7 @@ export default function ProfilePage() {
             />{" "}
             Допомога
           </button>
-          <button className="menu-item logout-button" onClick={logout}>
+          <button className="menu-item logout-button" onClick={handleLogout}>
             <img
               src="/images/figma/icons/log-out.svg"
               alt=""
@@ -252,8 +255,10 @@ export default function ProfilePage() {
         </div>
       </aside>
 
+      {/* ОСНОВНИЙ КОНТЕНТ */}
       <main className="profile-main">
         <div className="profile-main-inner">
+          {/* ДАШБОРД */}
           {activeView === "dashboard" && (
             <div className="fade-in-container">
               <div className="profile-header">
@@ -286,13 +291,13 @@ export default function ProfilePage() {
                     )}
                   </div>
                   <div className="user-details">
-                    <h2>Вітаємо, {user.firstName || "Користувач"}!</h2>
+                    <h2>Вітаємо, {user.firstName}!</h2>
                     <p className="user-email">{user.email}</p>
                   </div>
                 </div>
               </div>
-
               <div className="cards-grid">
+                {/* МОЇ ДАНІ */}
                 <div className="info-card">
                   <div className="card-header">
                     <div className="header-icon-wrapper">
@@ -311,7 +316,7 @@ export default function ProfilePage() {
                   <div className="card-body">
                     <div className="data-row">
                       <span>Ім'я</span>
-                      <strong>{user.firstName || "—"}</strong>
+                      <strong>{user.firstName}</strong>
                     </div>
                     <div className="data-row">
                       <span>Email</span>
@@ -326,10 +331,39 @@ export default function ProfilePage() {
                     className="card-footer-link"
                     onClick={() => setActiveView("myData")}
                   >
-                    Переглянути всі дані ❯
+                    Переглянути всі дані <span>❯</span>
                   </button>
                 </div>
-
+                {/* АДРЕСИ */}
+                <div className="info-card">
+                  <div className="card-header">
+                    <div className="header-icon-wrapper">
+                      <img
+                        src="/images/figma/icons/map-pin.svg"
+                        alt=""
+                        width="20"
+                        height="20"
+                      />
+                    </div>
+                    <div className="header-text-group">
+                      <h3>Адреси</h3>
+                      <p>Ваші адреси доставки</p>
+                    </div>
+                  </div>
+                  <div className="card-body">
+                    <div className="data-row">
+                      <span>Основна адреса</span>
+                      <strong>{user.address || "Не вказано"}</strong>
+                    </div>
+                  </div>
+                  <button
+                    className="card-footer-link"
+                    onClick={() => setActiveView("addresses")}
+                  >
+                    Переглянути адреси <span>❯</span>
+                  </button>
+                </div>
+                {/* ІСТОРІЯ ПОКУПОК */}
                 <div className="info-card">
                   <div className="card-header">
                     <div className="header-icon-wrapper">
@@ -345,16 +379,46 @@ export default function ProfilePage() {
                       <p>Ваші замовлення та покупки</p>
                     </div>
                   </div>
-                  <div className="card-body">
-                    <p style={{ color: "#888", fontSize: "13px" }}>
-                      Замовлень поки немає
-                    </p>
+                  <div className="card-body purchase-list">
+                    {ordersLoading ? (
+                      <div style={{ color: "#888", fontSize: "13px" }}>
+                        Завантаження...
+                      </div>
+                    ) : orders.length === 0 ? (
+                      <div style={{ color: "#888", fontSize: "13px" }}>
+                        Замовлень ще немає
+                      </div>
+                    ) : (
+                      orders.slice(0, 2).map((order) => (
+                        <div className="purchase-item" key={order.id}>
+                          <div className="purchase-meta">
+                            <span className="purchase-id">
+                              Замовлення №{order.id}
+                            </span>
+                            <span className="purchase-date">
+                              {order.createdAt
+                                ? new Date(order.createdAt).toLocaleDateString(
+                                    "uk-UA",
+                                  )
+                                : ""}
+                            </span>
+                          </div>
+                          <span className="purchase-price">
+                            {Number(order.total || 0).toFixed(2)} ₴{" "}
+                            <span>❯</span>
+                          </span>
+                        </div>
+                      ))
+                    )}
                   </div>
-                  <button className="card-footer-link">
-                    Переглянути всі замовлення ❯
+                  <button
+                    className="card-footer-link"
+                    onClick={() => setActiveView("orders")}
+                  >
+                    Переглянути всі замовлення <span>❯</span>
                   </button>
                 </div>
-
+                {/* БЕЗПЕКА */}
                 <div className="info-card">
                   <div className="card-header">
                     <div className="header-icon-wrapper">
@@ -367,29 +431,36 @@ export default function ProfilePage() {
                     </div>
                     <div className="header-text-group">
                       <h3>Безпека</h3>
-                      <p>Налаштування безпеки</p>
+                      <p>Налаштування безпеки облікового запису</p>
                     </div>
                   </div>
-                  <div className="card-body">
-                    <button className="security-row-action">
-                      Змінити пароль ❯
+                  <div className="card-body security-body">
+                    <button
+                      className="security-row-action"
+                      onClick={() => setActiveView("security")}
+                    >
+                      <span>Змінити пароль</span>
+                      <span>❯</span>
                     </button>
                   </div>
-                  <button className="card-footer-link">
-                    Налаштування безпеки ❯
+                  <button
+                    className="card-footer-link"
+                    onClick={() => setActiveView("security")}
+                  >
+                    Налаштування безпеки <span>❯</span>
                   </button>
                 </div>
               </div>
             </div>
           )}
 
+          {/* МОЇ ДАНІ */}
           {activeView === "myData" && (
             <div className="details-view">
               <div className="details-header-text">
                 <h2>Мої дані</h2>
                 <p>Особиста інформація та контакти</p>
               </div>
-
               <div className="details-avatar-container">
                 <div
                   className="details-avatar"
@@ -439,7 +510,6 @@ export default function ProfilePage() {
                   />
                 </div>
               </div>
-
               <div className="details-cards-wrapper">
                 <div className="details-block">
                   <div className="details-block-header">
@@ -497,7 +567,6 @@ export default function ProfilePage() {
                     </div>
                   </div>
                 </div>
-
                 <div className="details-block">
                   <div className="details-block-header">
                     <div className="details-icon-solid">
@@ -526,13 +595,55 @@ export default function ProfilePage() {
                           {user.phone || "Не вказано"}
                         </strong>
                       </div>
-                      <span className="details-action">✏️</span>
+                      <span className="details-action arrow">❯</span>
                     </div>
-                    <div className="details-list-item">
+                    <div
+                      className="details-list-item"
+                      onClick={() => openEdit("editEmail")}
+                    >
                       <div className="details-item-content">
-                        <span className="details-label">Email</span>
+                        <span className="details-label">Електронна пошта</span>
                         <strong className="details-value">{user.email}</strong>
                       </div>
+                      <span className="details-action arrow">❯</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="details-block stats-block">
+                  <div className="stats-block-header">
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#8E1616"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <line x1="18" y1="20" x2="18" y2="10" />
+                      <line x1="12" y1="20" x2="12" y2="4" />
+                      <line x1="6" y1="20" x2="6" y2="14" />
+                    </svg>
+                    <span>Ваша статистика</span>
+                  </div>
+                  <div className="stats-grid">
+                    <div className="stats-item">
+                      <strong>{orders.length}</strong>
+                      <span>Замовлень</span>
+                    </div>
+                    <div className="stats-item">
+                      <strong>
+                        {orders
+                          .reduce((sum, o) => sum + Number(o.total || 0), 0)
+                          .toFixed(2)}{" "}
+                        грн
+                      </strong>
+                      <span>Всього витрачено</span>
+                    </div>
+                    <div className="stats-item">
+                      <strong>1 місяць</strong>
+                      <span>З нами</span>
                     </div>
                   </div>
                 </div>
@@ -540,247 +651,319 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {/* ФОРМИ РЕДАГУВАННЯ */}
-          {["editName", "editBirthDate", "editGender", "editPhone"].includes(
-            activeView,
-          ) && (
-            <div className="edit-form-view">
+          {/* БЕЗПЕКА */}
+          {activeView === "security" && (
+            <div className="details-view">
               <button
                 className="back-link-btn"
-                onClick={() => setActiveView("myData")}
+                onClick={() => setActiveView("dashboard")}
               >
                 ❮ Назад
               </button>
-              <h2 className="edit-form-title">
-                {
-                  {
-                    editName: "Прізвище, ім'я",
-                    editBirthDate: "Дата народження",
-                    editGender: "Стать",
-                    editPhone: "Телефон",
-                  }[activeView]
-                }
-              </h2>
-              <div className="edit-form-inputs">
-                {activeView === "editName" && (
-                  <>
-                    <input
-                      type="text"
-                      name="lastName"
-                      placeholder="Прізвище"
-                      value={editData.lastName || ""}
-                      onChange={handleEditChange}
-                      className="edit-input-field"
-                    />
-                    <input
-                      type="text"
-                      name="firstName"
-                      placeholder="Ім'я"
-                      value={editData.firstName || ""}
-                      onChange={handleEditChange}
-                      className="edit-input-field"
-                    />
-                    <input
-                      type="text"
-                      name="middleName"
-                      placeholder="По батькові"
-                      value={editData.middleName || ""}
-                      onChange={handleEditChange}
-                      className="edit-input-field"
-                    />
-                  </>
-                )}
-                {activeView === "editBirthDate" && (
-                  <input
-                    type="text"
-                    name="birthDate"
-                    placeholder="дд.мм.рррр"
-                    value={editData.birthDate || ""}
-                    onChange={handleEditChange}
-                    className="edit-input-field"
-                  />
-                )}
-                {activeView === "editGender" && (
-                  <select
-                    name="gender"
-                    value={editData.gender || "Не вказано"}
-                    onChange={handleEditChange}
-                    className="edit-input-field"
-                  >
-                    <option value="Не вказано">Не вказано</option>
-                    <option value="Чоловіча">Чоловіча</option>
-                    <option value="Жіноча">Жіноча</option>
-                  </select>
-                )}
-                {activeView === "editPhone" && (
-                  <input
-                    type="tel"
-                    name="phone"
-                    placeholder="+380..."
-                    value={editData.phone || ""}
-                    onChange={handleEditChange}
-                    className="edit-input-field"
-                  />
-                )}
+              <div className="details-header-text">
+                <h2>Безпека</h2>
+                <p>Налаштування безпеки облікового запису</p>
               </div>
-              <div className="edit-form-buttons">
-                <button
-                  className="btn-cancel"
-                  onClick={() => setActiveView("myData")}
-                >
-                  Скасувати
-                </button>
+              <div className="details-block">
+                <p style={{ color: "#666", marginBottom: "24px" }}>
+                  Щоб змінити пароль, надішлемо лист на твій email.
+                </p>
                 <button
                   className="btn-save"
-                  onClick={handleSaveDetails}
-                  disabled={isSaving}
+                  style={{
+                    backgroundColor: "#8E1616",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "12px",
+                    padding: "12px 24px",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                  }}
+                  onClick={() => {
+                    api
+                      .post("/auth/forgot-password", { email: user.email })
+                      .then(() =>
+                        alert(
+                          "Лист для зміни паролю надіслано на " + user.email,
+                        ),
+                      )
+                      .catch(() => alert("Помилка. Спробуй ще раз."));
+                  }}
                 >
-                  {isSaving ? "Збереження..." : "Зберегти"}
+                  Надіслати лист для зміни паролю
                 </button>
               </div>
             </div>
           )}
 
-          {/* ===== БЕЗПЕКА ===== */}
-          {activeView === "security" && (
-            <div className="section-block">
-              <h2 className="section-title">Безпека</h2>
-              <p style={{ color: "#666", marginBottom: "24px" }}>
-                Щоб змінити пароль, скористайся відновленням через email.
-              </p>
-              <button
-                className="btn-save"
-                onClick={() => {
-                  api
-                    .post("/auth/forgot-password", { email: user.email })
-                    .then(() =>
-                      alert("Лист для зміни паролю надіслано на " + user.email),
-                    )
-                    .catch(() => alert("Помилка. Спробуй ще раз."));
-                }}
-              >
-                Надіслати лист для зміни паролю
-              </button>
-            </div>
-          )}
-
-          {/* ===== АДРЕСИ ===== */}
+          {/* АДРЕСИ */}
           {activeView === "addresses" && (
-            <div className="section-block">
-              <h2 className="section-title">Адреса доставки</h2>
-              <p style={{ color: "#666", marginBottom: "16px" }}>
-                Ця адреса буде відображатися в хедері сайту.
-              </p>
-              <input
-                type="text"
-                className="edit-input-field"
-                placeholder="Місто, вулиця, номер будинку"
-                value={user.address || ""}
-                onChange={(e) =>
-                  setUser((prev) => ({ ...prev, address: e.target.value }))
-                }
-                style={{ marginBottom: "16px" }}
-              />
+            <div className="details-view">
               <button
-                className="btn-save"
-                onClick={async () => {
-                  setIsSaving(true);
-                  try {
-                    const res = await api.put("/profile", {
-                      address: user.address,
-                    });
-                    updateUser({ address: res.data.address });
-                    alert("Адресу збережено!");
-                  } catch {
-                    alert("Помилка збереження адреси");
-                  } finally {
-                    setIsSaving(false);
-                  }
-                }}
-                disabled={isSaving}
+                className="back-link-btn"
+                onClick={() => setActiveView("dashboard")}
               >
-                {isSaving ? "Збереження..." : "Зберегти адресу"}
+                ❮ Назад
               </button>
+              <div className="details-header-text">
+                <h2>Адреса доставки</h2>
+                <p>Ця адреса відображається в хедері сайту</p>
+              </div>
+              <div className="details-block">
+                <input
+                  type="text"
+                  placeholder="Місто, вулиця, номер будинку"
+                  value={user.address || ""}
+                  onChange={(e) =>
+                    setUser((prev) => ({ ...prev, address: e.target.value }))
+                  }
+                  style={{
+                    width: "100%",
+                    padding: "12px 16px",
+                    borderRadius: "12px",
+                    border: "1px solid #e5e5e5",
+                    fontSize: "14px",
+                    marginBottom: "16px",
+                    boxSizing: "border-box",
+                  }}
+                />
+                <button
+                  style={{
+                    backgroundColor: "#8E1616",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "12px",
+                    padding: "12px 24px",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                  }}
+                  disabled={isSaving}
+                  onClick={async () => {
+                    setIsSaving(true);
+                    try {
+                      const res = await api.put("/profile", {
+                        address: user.address,
+                      });
+                      if (updateUser) updateUser({ address: res.data.address });
+                      const savedUser = JSON.parse(
+                        localStorage.getItem("silpo-user") || "{}",
+                      );
+                      localStorage.setItem(
+                        "silpo-user",
+                        JSON.stringify({
+                          ...savedUser,
+                          address: res.data.address,
+                        }),
+                      );
+                      alert("Адресу збережено!");
+                    } catch {
+                      alert("Помилка збереження адреси");
+                    } finally {
+                      setIsSaving(false);
+                    }
+                  }}
+                >
+                  {isSaving ? "Збереження..." : "Зберегти адресу"}
+                </button>
+              </div>
             </div>
           )}
 
-          {/* ===== ІСТОРІЯ ПОКУПОК ===== */}
+          {/* ІСТОРІЯ ПОКУПОК */}
           {activeView === "orders" && (
-            <div className="section-block">
-              <h2 className="section-title">Історія покупок</h2>
+            <div className="details-view">
+              <button
+                className="back-link-btn"
+                onClick={() => setActiveView("dashboard")}
+              >
+                ❮ Назад
+              </button>
+              <div className="details-header-text">
+                <h2>Історія замовлень</h2>
+                <p>Всі ваші покупки</p>
+              </div>
               {ordersLoading ? (
-                <p style={{ color: "#888" }}>Завантаження...</p>
+                <div
+                  style={{
+                    textAlign: "center",
+                    padding: "40px",
+                    color: "#888",
+                  }}
+                >
+                  Завантаження замовлень...
+                </div>
               ) : orders.length === 0 ? (
-                <p style={{ color: "#888" }}>У вас ще немає замовлень.</p>
+                <div style={{ textAlign: "center", padding: "60px 24px" }}>
+                  <div style={{ fontSize: "48px", marginBottom: "16px" }}>
+                    🛒
+                  </div>
+                  <h3
+                    style={{
+                      fontSize: "18px",
+                      fontWeight: "700",
+                      margin: "0 0 8px 0",
+                      color: "#202124",
+                    }}
+                  >
+                    Замовлень ще немає
+                  </h3>
+                  <p
+                    style={{
+                      color: "#888",
+                      fontSize: "14px",
+                      margin: "0 0 24px 0",
+                    }}
+                  >
+                    Зробіть перше замовлення в нашому каталозі
+                  </p>
+                  <button
+                    onClick={() => (window.location.href = "/catalog")}
+                    style={{
+                      backgroundColor: "#8E1616",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "12px",
+                      padding: "12px 24px",
+                      fontWeight: "600",
+                      cursor: "pointer",
+                      fontSize: "14px",
+                    }}
+                  >
+                    До каталогу
+                  </button>
+                </div>
               ) : (
                 <div
                   style={{
                     display: "flex",
                     flexDirection: "column",
-                    gap: "16px",
+                    gap: "12px",
                   }}
                 >
                   {orders.map((order) => (
                     <div
                       key={order.id}
                       style={{
-                        border: "1px solid #e5e5e5",
-                        borderRadius: "12px",
-                        padding: "16px 20px",
+                        backgroundColor: "#fafafa",
+                        borderRadius: "16px",
+                        padding: "20px 24px",
+                        border: "1px solid #f0f0f0",
                       }}
                     >
                       <div
                         style={{
                           display: "flex",
                           justifyContent: "space-between",
-                          marginBottom: "8px",
+                          alignItems: "flex-start",
+                          marginBottom: "12px",
                         }}
                       >
-                        <span style={{ fontWeight: "700" }}>
-                          Замовлення #{order.id}
-                        </span>
-                        <span
+                        <div>
+                          <div
+                            style={{
+                              fontWeight: "700",
+                              fontSize: "15px",
+                              color: "#202124",
+                              marginBottom: "4px",
+                            }}
+                          >
+                            Замовлення #{order.id}
+                          </div>
+                          <div style={{ fontSize: "13px", color: "#888" }}>
+                            {order.createdAt
+                              ? new Date(order.createdAt).toLocaleDateString(
+                                  "uk-UA",
+                                  {
+                                    day: "numeric",
+                                    month: "long",
+                                    year: "numeric",
+                                  },
+                                )
+                              : ""}
+                          </div>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <div
+                            style={{
+                              fontWeight: "700",
+                              fontSize: "16px",
+                              color: "#202124",
+                            }}
+                          >
+                            {Number(order.total || 0).toFixed(2)} ₴
+                          </div>
+                          <div
+                            style={{
+                              fontSize: "12px",
+                              marginTop: "4px",
+                              padding: "2px 8px",
+                              borderRadius: "6px",
+                              backgroundColor:
+                                order.status === "completed"
+                                  ? "#f0fdf4"
+                                  : "#fff7ed",
+                              color:
+                                order.status === "completed"
+                                  ? "#16a34a"
+                                  : "#ea580c",
+                              fontWeight: "600",
+                            }}
+                          >
+                            {order.status === "completed"
+                              ? "Виконано"
+                              : order.status === "cancelled"
+                                ? "Скасовано"
+                                : "В обробці"}
+                          </div>
+                        </div>
+                      </div>
+                      {order.items && order.items.length > 0 && (
+                        <div
                           style={{
-                            fontSize: "13px",
-                            color:
-                              order.status === "completed"
-                                ? "#2e7d32"
-                                : "#8E1616",
-                            fontWeight: "600",
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "6px",
                           }}
                         >
-                          {order.status === "pending" && "Очікує"}
-                          {order.status === "processing" && "Обробляється"}
-                          {order.status === "completed" && "Виконано"}
-                          {order.status === "cancelled" && "Скасовано"}
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "13px",
-                          color: "#666",
-                          marginBottom: "8px",
-                        }}
-                      >
-                        {new Date(order.createdAt).toLocaleDateString("uk-UA")}{" "}
-                        · {order.address}
-                      </div>
-                      <div style={{ fontSize: "13px", color: "#333" }}>
-                        {order.items.map((item) => (
-                          <span key={item.id}>
-                            {item.name} ×{item.quantity};{" "}
-                          </span>
-                        ))}
-                      </div>
-                      <div
-                        style={{
-                          marginTop: "8px",
-                          fontWeight: "700",
-                          color: "#8E1616",
-                        }}
-                      >
-                        {order.total.toFixed(2)} грн
-                      </div>
+                          {order.items.map((item, idx) => (
+                            <div
+                              key={idx}
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                fontSize: "13px",
+                                color: "#555",
+                              }}
+                            >
+                              <span>
+                                {item.name || `Товар #${item.productId}`} ×{" "}
+                                {item.quantity}
+                              </span>
+                              <span style={{ fontWeight: "600" }}>
+                                {(Number(item.price) * item.quantity).toFixed(
+                                  2,
+                                )}{" "}
+                                ₴
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {order.address && (
+                        <div
+                          style={{
+                            marginTop: "12px",
+                            fontSize: "12px",
+                            color: "#888",
+                            borderTop: "1px solid #f0f0f0",
+                            paddingTop: "12px",
+                          }}
+                        >
+                          📍 {order.address}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -789,6 +972,133 @@ export default function ProfilePage() {
           )}
         </div>
       </main>
+
+      {/* МОДАЛЬНІ ВІКНА */}
+      {activeModal && (
+        <div className="modal-overlay" onClick={closeModal}>
+          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-back-btn" onClick={closeModal}>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+              Назад
+            </button>
+
+            {activeModal === "editName" && (
+              <>
+                <h2 className="modal-title">Прізвище, ім'я</h2>
+                <div className="modal-inputs">
+                  <input
+                    type="text"
+                    name="lastName"
+                    placeholder="Прізвище"
+                    value={editData.lastName || ""}
+                    onChange={handleEditChange}
+                    className="modal-input"
+                  />
+                  <input
+                    type="text"
+                    name="firstName"
+                    placeholder="Ім'я"
+                    value={editData.firstName || ""}
+                    onChange={handleEditChange}
+                    className="modal-input"
+                  />
+                  <input
+                    type="text"
+                    name="middleName"
+                    placeholder="По батькові"
+                    value={editData.middleName || ""}
+                    onChange={handleEditChange}
+                    className="modal-input"
+                  />
+                </div>
+              </>
+            )}
+            {activeModal === "editBirthDate" && (
+              <>
+                <h2 className="modal-title">Дата народження</h2>
+                <div className="modal-inputs">
+                  <input
+                    type="text"
+                    name="birthDate"
+                    placeholder="дд.мм.рррр"
+                    value={editData.birthDate || ""}
+                    onChange={handleEditChange}
+                    className="modal-input"
+                  />
+                </div>
+              </>
+            )}
+            {activeModal === "editGender" && (
+              <>
+                <h2 className="modal-title">Стать</h2>
+                <div className="modal-inputs">
+                  <select
+                    name="gender"
+                    value={editData.gender || "Не вказано"}
+                    onChange={handleEditChange}
+                    className="modal-input"
+                  >
+                    <option value="Не вказано">Не вказано</option>
+                    <option value="Чоловіча">Чоловіча</option>
+                    <option value="Жіноча">Жіноча</option>
+                  </select>
+                </div>
+              </>
+            )}
+            {activeModal === "editPhone" && (
+              <>
+                <h2 className="modal-title">Телефон</h2>
+                <div className="modal-inputs">
+                  <input
+                    type="tel"
+                    name="phone"
+                    placeholder="+380..."
+                    value={editData.phone || ""}
+                    onChange={handleEditChange}
+                    className="modal-input"
+                  />
+                </div>
+              </>
+            )}
+            {activeModal === "editEmail" && (
+              <>
+                <h2 className="modal-title">Електронна пошта</h2>
+                <div className="modal-inputs">
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="example@gmail.com"
+                    value={editData.email || ""}
+                    onChange={handleEditChange}
+                    className="modal-input"
+                  />
+                </div>
+              </>
+            )}
+
+            {saveError && <p className="modal-error">{saveError}</p>}
+            <div className="modal-buttons">
+              <button className="modal-btn-cancel" onClick={closeModal}>
+                Скасувати
+              </button>
+              <button className="modal-btn-save" onClick={handleSaveDetails}>
+                Зберегти
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

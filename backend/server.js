@@ -9,9 +9,8 @@ const { PrismaClient } = require("@prisma/client");
 const { PrismaPg } = require("@prisma/adapter-pg");
 const { Pool } = require("pg");
 
-const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
+const cloudinary = require("cloudinary").v2;
+const nodemailer = require("nodemailer");
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
@@ -201,13 +200,115 @@ app.post("/api/auth/logout", async (req, res) => {
 });
 
 // ==========================================
-// FORGOT PASSWORD (заглушка)
+// FORGOT PASSWORD (реальна відправка email)
 // ==========================================
+
+const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST,
+  port: Number(process.env.EMAIL_PORT),
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
 app.post("/api/auth/forgot-password", async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: "Email обов'язковий" });
-  res.json({ message: "Якщо такий email існує, ми надішлемо інструкції" });
+
+  try {
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    // Не розкриваємо чи існує email — відповідь однакова
+    if (!user) {
+      return res.json({
+        message: "Якщо такий email існує, ми надішлемо інструкції",
+      });
+    }
+
+    // Видаляємо старі токени цього юзера
+    await prisma.passwordResetToken.deleteMany({ where: { userId: user.id } });
+
+    // Генеруємо новий токен
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 година
+
+    // Зберігаємо в БД
+    await prisma.passwordResetToken.create({
+      data: { token: resetToken, userId: user.id, expiresAt },
+    });
+
+    // Відправляємо email
+    await transporter.sendMail({
+      from: `"Kalpo Shop" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Відновлення паролю — Kalpo",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
+          <h2 style="color: #8E1616;">Відновлення паролю</h2>
+          <p>Ви отримали цей лист тому що хтось запросив скидання паролю для вашого акаунту.</p>
+          <p>Натисніть кнопку нижче щоб встановити новий пароль:</p>
+          <a href="http://localhost:5173/reset-password?token=${resetToken}"
+             style="display: inline-block; padding: 12px 24px; background: #8E1616; color: white; text-decoration: none; border-radius: 8px; margin: 16px 0;">
+            Скинути пароль
+          </a>
+          <p style="color: #999; font-size: 13px;">Посилання дійсне 1 годину. Якщо ви не запитували скидання — просто ігноруйте цей лист.</p>
+        </div>
+      `,
+    });
+
+    res.json({ message: "Якщо такий email існує, ми надішлемо інструкції" });
+  } catch (error) {
+    console.error("FORGOT PASSWORD ERROR:", error);
+    res.status(500).json({ error: "Помилка відправки email" });
+  }
+});
+
+// ==========================================
+// RESET PASSWORD
+// ==========================================
+
+app.post("/api/auth/reset-password", async (req, res) => {
+  const { token, password } = req.body;
+
+  if (!token || !password) {
+    return res.status(400).json({ error: "Токен та пароль обов'язкові" });
+  }
+
+  if (password.length < 6) {
+    return res.status(400).json({ error: "Пароль мінімум 6 символів" });
+  }
+
+  try {
+    // Шукаємо токен в БД
+    const record = await prisma.passwordResetToken.findUnique({
+      where: { token },
+    });
+
+    if (!record) {
+      return res.status(400).json({ error: "Невалідний токен" });
+    }
+
+    if (record.expiresAt < new Date()) {
+      await prisma.passwordResetToken.delete({ where: { token } });
+      return res.status(400).json({ error: "Токен протермінований" });
+    }
+
+    // Оновлюємо пароль
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await prisma.user.update({
+      where: { id: record.userId },
+      data: { password: hashedPassword },
+    });
+
+    // Видаляємо використаний токен
+    await prisma.passwordResetToken.delete({ where: { token } });
+
+    res.json({ message: "Пароль успішно змінено" });
+  } catch (error) {
+    console.error("RESET PASSWORD ERROR:", error);
+    res.status(500).json({ error: "Помилка зміни паролю" });
+  }
 });
 
 // ==========================================
@@ -613,23 +714,24 @@ app.get(
   },
 );
 
-// ==========================================
-// ЗАВАНТАЖЕННЯ ЗОБРАЖЕНЬ
+/// ==========================================
+// ЗАВАНТАЖЕННЯ ЗОБРАЖЕНЬ (Cloudinary)
 // ==========================================
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-  filename: (req, file, cb) => {
-    const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(file.originalname)}`;
-    cb(null, uniqueName);
-  },
+const multer = require("multer");
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
+
+// Зберігаємо файл в пам'яті (не на диск)
+const storage = multer.memoryStorage();
 
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
   fileFilter: (req, file, cb) => {
     const allowed = ["image/jpeg", "image/png", "image/webp"];
     if (allowed.includes(file.mimetype)) {
@@ -640,14 +742,36 @@ const upload = multer({
   },
 });
 
-if (!fs.existsSync("uploads")) fs.mkdirSync("uploads");
-app.use("/uploads", express.static("uploads"));
+// Роут завантаження
+app.post(
+  "/api/upload",
+  authMiddleware,
+  upload.single("image"),
+  async (req, res) => {
+    try {
+      if (!req.file)
+        return res.status(400).json({ error: "Файл не завантажено" });
 
-app.post("/api/upload", authMiddleware, upload.single("image"), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: "Файл не завантажено" });
-  const imageUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
-  res.json({ url: imageUrl, filename: req.file.filename });
-});
+      // Завантажуємо в Cloudinary
+      const result = await new Promise((resolve, reject) => {
+        cloudinary.uploader
+          .upload_stream(
+            { folder: "kalpo-shop", resource_type: "image" },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            },
+          )
+          .end(req.file.buffer);
+      });
+
+      res.json({ url: result.secure_url, publicId: result.public_id });
+    } catch (error) {
+      console.error("UPLOAD ERROR:", error);
+      res.status(500).json({ error: "Помилка завантаження зображення" });
+    }
+  },
+);
 
 // ==========================================
 // СТАРТ

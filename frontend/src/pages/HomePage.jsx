@@ -3,7 +3,6 @@ import { Link } from "react-router";
 import ProductCard from "../components/ProductCard";
 import "../styles/kalpo-home.css";
 
-/* ================= ДАНІ ================= */
 const promoCards = [
   { id: 1, image: "/images/figma/cards/offers-card.png", alt: "Мої пропозиції" },
   { id: 2, image: "/images/figma/cards/sales-card.png", alt: "Всі акції" },
@@ -51,7 +50,6 @@ const mockRecipes = [
   { id: 11, title: "Запечена редиска із соусом", image: "/images/figma/recipes/baked-radish.jpg" }
 ];
 
-/* Встановили правильні шляхи до папки /figma/baskets/ */
 const mockBaskets = [
   { id: 301, title: "Святковий бокс Light", price: 1249.00, weight: "шт", image: "/images/figma/baskets/box-light.jpg", buttonText: "Предзамовити" },
   { id: 302, title: "Святковий бокс Classic", price: 1899.00, weight: "шт", image: "/images/figma/baskets/box-classic.jpg", buttonText: "Предзамовити" },
@@ -63,16 +61,14 @@ const mockBaskets = [
   { id: 308, title: "Святковий бокс Premium", price: 4999.00, weight: "шт", image: "/images/figma/baskets/box-premium.jpg", buttonText: "Предзамовити" }
 ];
 
-/* ================= КОМПОНЕНТ РЕЦЕПТУ ================= */
 function RecipeCard({ recipe }) {
   return (
-    <div style={{ flex: "0 0 160px", height: "270px", borderRadius: "16px", position: "relative", overflow: "hidden", cursor: "pointer", boxShadow: "0 4px 12px rgba(0,0,0,0.05)", flexShrink: 0 }}>
+    <div style={{ height: "270px", borderRadius: "16px", position: "relative", overflow: "hidden", cursor: "pointer", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
       <img src={recipe.image} alt={recipe.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
     </div>
   );
 }
 
-/* ================= ГОЛОВНА СТОРІНКА ================= */
 export default function HomePage() {
   const promoRef = useRef(null);
   const deliveryRef = useRef(null);
@@ -109,23 +105,21 @@ export default function HomePage() {
 
   return (
     <div className="kalpo-home-wrapper" style={{ backgroundColor: "#f4ead5", minHeight: "100vh", paddingBottom: "40px" }}>
-      <div className="kalpo-home-content" style={{ display: "flex", flexDirection: "column", gap: "24px", paddingTop: "8px" }}>
+      <div className="kalpo-home-content" style={{ display: "flex", flexDirection: "column", gap: "32px", paddingTop: "16px" }}>
 
-        {/* 1. БАНЕР ТА ПРОМО КАРТКИ */}
-        <section className="kalpo-hero" style={{ display: "flex", gap: "12px", width: "100%", height: "220px", boxSizing: "border-box" }}>
-          <div className="kalpo-hero__banner" style={{ flex: 1, position: 'relative', borderRadius: '20px', overflow: 'hidden', height: "100%", backgroundColor: "#7ec34c" }}>
-            <img src="/images/figma/hero-banner.png" alt="Тільки онлайн" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} />
+        <section className="kalpo-hero" style={{ display: "grid", gridTemplateColumns: "1fr 420px", gap: "16px", width: "100%", marginBottom: "24px", boxSizing: "border-box" }}>
+          <div className="kalpo-hero__banner" style={{ position: 'relative', borderRadius: '24px', overflow: 'hidden', display: "block", height: "100%", backgroundColor: "transparent", border: "none", outline: "none" }}>
+            <img src="/images/figma/hero-banner.png" alt="Тільки онлайн" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', borderRadius: '24px', transform: 'scale(1.01)' }} />
           </div>
-          <div className="kalpo-hero__cards" style={{ flex: "0 0 420px", display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr', gap: '8px', height: "100%" }}>
+          <div className="kalpo-hero__cards" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr', gap: '16px' }}>
             {promoCards.map((card) => (
-              <button key={card.id} type="button" style={{ padding: 0, border: 'none', backgroundColor: 'transparent', cursor: 'pointer', width: '100%', height: '100%', borderRadius: '16px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <img src={card.image} alt={card.alt} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-              </button>
+              <Link to="/catalog" key={card.id} style={{ display: 'block', width: '100%', height: '100%', borderRadius: '24px', overflow: 'hidden', backgroundColor: 'transparent', textDecoration: 'none' }}>
+                <img src={card.image} alt={card.alt} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', borderRadius: '24px', transform: 'scale(1.01)' }} />
+              </Link>
             ))}
           </div>
         </section>
 
-        {/* 2. АКЦІЇ */}
         <section className="kalpo-section-block" style={{ background: "#ffffff", borderRadius: "20px", padding: "16px", position: "relative" }}>
           <div className="kalpo-section__head" style={{ marginBottom: "12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div className="kalpo-section__head-left" style={{ display: "flex", alignItems: "center", gap: "12px" }}>
@@ -140,12 +134,11 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-          <div ref={promoRef} onScroll={() => handleScroll(promoRef, "promo")} style={{ display: "flex", gap: "12px", width: "100%", overflowX: "auto", scrollbarWidth: "none" }}>
-            {mockPromoProducts.map((product) => (<div key={product.id} style={{ flex: "0 0 calc((100% - 60px) / 6)", minWidth: "180px" }}><ProductCard product={product} /></div>))}
+          <div ref={promoRef} onScroll={() => handleScroll(promoRef, "promo")} style={{ display: "grid", gridAutoFlow: "column", gridAutoColumns: "max(180px, calc((100% - 60px) / 6))", gap: "12px", width: "100%", overflowX: "auto", scrollbarWidth: "none" }}>
+            {mockPromoProducts.map((product) => (<div key={product.id}><ProductCard product={product} /></div>))}
           </div>
         </section>
 
-        {/* 3. ВСЕДОСТАВКА */}
         <section className="kalpo-section-block" style={{ background: "#ffffff", borderRadius: "20px", padding: "16px", position: "relative" }}>
           <div className="kalpo-section__head" style={{ marginBottom: "12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div className="kalpo-section__head-left" style={{ display: "flex", alignItems: "center", gap: "12px" }}>
@@ -162,13 +155,12 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-          <div ref={deliveryRef} onScroll={() => handleScroll(deliveryRef, "delivery")} style={{ display: "flex", gap: "12px", width: "100%", overflowX: "auto", scrollbarWidth: "none" }}>
-            {mockDeliveryProducts.map((product) => (<div key={product.id} style={{ flex: "0 0 calc((100% - 60px) / 6)", minWidth: "180px" }}><ProductCard product={product} /></div>))}
+          <div ref={deliveryRef} onScroll={() => handleScroll(deliveryRef, "delivery")} style={{ display: "grid", gridAutoFlow: "column", gridAutoColumns: "max(180px, calc((100% - 60px) / 6))", gap: "12px", width: "100%", overflowX: "auto", scrollbarWidth: "none" }}>
+            {mockDeliveryProducts.map((product) => (<div key={product.id}><ProductCard product={product} /></div>))}
           </div>
         </section>
 
-        {/* 4. РЕЦЕПТИ */}
-        <section className="kalpo-section-recipes" style={{ position: "relative" }}>
+        <section className="kalpo-section-recipes" style={{ position: "relative", padding: "0 16px" }}>
           <div className="kalpo-section__head" style={{ marginBottom: "16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div className="kalpo-section__head-left" style={{ display: "flex", alignItems: "center", gap: "12px" }}>
               <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "#8b181b", color: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -185,8 +177,8 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div ref={recipesRef} onScroll={() => handleScroll(recipesRef, "recipes")} style={{ display: "flex", gap: "16px", width: "100%", overflowX: "auto", scrollbarWidth: "none" }}>
-            <Link to="/recipes" style={{ flex: "0 0 160px", height: "270px", borderRadius: "16px", overflow: "hidden", display: "block", flexShrink: 0 }}>
+          <div ref={recipesRef} onScroll={() => handleScroll(recipesRef, "recipes")} style={{ display: "grid", gridAutoFlow: "column", gridAutoColumns: "160px", gap: "16px", width: "100%", overflowX: "auto", scrollbarWidth: "none" }}>
+            <Link to="/recipes" style={{ height: "270px", borderRadius: "16px", overflow: "hidden", display: "block" }}>
               <img src="/images/figma/recipes/recipes-promo.jpg" alt="Рецепти оселились тут" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
             </Link>
             {mockRecipes.map((recipe) => (
@@ -195,9 +187,8 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* 5. ВЕЛИКОДНІ КОШИКИ */}
         <section className="kalpo-section-baskets" style={{ background: "#fff9c4", borderRadius: "24px", paddingTop: "20px", position: "relative", overflow: "hidden" }}>
-          <div className="kalpo-section__head" style={{ marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 24px", zIndex: 2, position: "relative" }}>
+          <div className="kalpo-section__head" style={{ marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 16px", zIndex: 2, position: "relative" }}>
             <div className="kalpo-section__head-left" style={{ display: "flex", alignItems: "center", gap: "12px" }}>
               <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "#fff", color: "#333", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 12 20 22 4 22 4 12"></polyline><rect x="2" y="7" width="20" height="5"></rect><line x1="12" y1="22" x2="12" y2="7"></line><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path></svg>
@@ -205,17 +196,18 @@ export default function HomePage() {
               <div><h2 style={{ margin: 0, fontSize: "18px", color: "#333" }}>Великодні кошики</h2><p style={{ margin: 0, fontSize: "12px", color: "#666" }}>Предзамовлення на святковості відкрито!</p></div>
             </div>
             <div className="kalpo-section__head-right" style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-               <div style={{ display: "flex", gap: "6px" }}>
+              <Link to="/catalog" className="kalpo-section__link" style={{ fontSize: "13px", color: "#000", textDecoration: "none", fontWeight: "500" }}>Дивитись всі</Link>
+              <div style={{ display: "flex", gap: "6px" }}>
                 <button onClick={() => scrollCarousel(basketsRef, 'left')} style={{ width: "28px", height: "28px", borderRadius: "6px", border: "none", background: "rgba(255,255,255,0.8)", color: scrollState.baskets.left ? "#000" : "#c2c2c2", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}>❮</button>
                 <button onClick={() => scrollCarousel(basketsRef, 'right')} style={{ width: "28px", height: "28px", borderRadius: "6px", border: "none", background: "rgba(255,255,255,0.8)", color: scrollState.baskets.right ? "#000" : "#c2c2c2", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}>❯</button>
               </div>
             </div>
           </div>
 
-          <div style={{ background: "#ffffff", borderTopLeftRadius: "32px", borderTopRightRadius: "32px", padding: "24px 16px", position: "relative", zIndex: 2 }}>
-            <div ref={basketsRef} onScroll={() => handleScroll(basketsRef, "baskets")} style={{ display: "flex", gap: "12px", width: "100%", overflowX: "auto", scrollbarWidth: "none" }}>
+          <div style={{ background: "#ffffff", borderTopLeftRadius: "32px", borderTopRightRadius: "32px", padding: "24px 0", position: "relative", zIndex: 2 }}>
+            <div ref={basketsRef} onScroll={() => handleScroll(basketsRef, "baskets")} style={{ display: "grid", gridAutoFlow: "column", gridAutoColumns: "max(180px, calc((100% - 60px) / 6))", gap: "12px", width: "100%", overflowX: "auto", scrollbarWidth: "none" }}>
               {mockBaskets.map((product) => (
-                <div key={product.id} style={{ flex: "0 0 calc((100% - 60px) / 6)", minWidth: "180px" }}>
+                <div key={product.id}>
                   <ProductCard product={product} />
                 </div>
               ))}

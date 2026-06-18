@@ -14,6 +14,7 @@ export default function RegisterPage() {
     password: "",
     confirmPassword: "",
   });
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [message, setMessage] = useState("");
@@ -44,28 +45,48 @@ export default function RegisterPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await api.post("/auth/register", {
+      const payload = {
         firstName: formData.name,
         lastName: "",
         email: formData.email,
         password: formData.password,
-      });
+      };
 
+      const response = await api.post("/auth/register", payload);
       const data = response.data;
 
-      login({
-        accessToken: data.accessToken || data.token,
-        refreshToken: data.refreshToken,
-        user: data.user,
-      });
+      // ✅ Підтримка нового формату відповіді від бекенду
+      // Ярослав повертає accessToken + refreshToken
+      // Старий формат повертав просто token
+      const accessToken = data.accessToken || data.token;
+      const refreshToken = data.refreshToken;
+
+      // Зберігаємо refreshToken для автоматичного оновлення сесії
+      if (refreshToken) {
+        localStorage.setItem("refreshToken", refreshToken);
+      }
+
+      // Зберігаємо через AuthContext
+      login(
+        data.user || { email: formData.email, firstName: formData.name, name: formData.name },
+        accessToken
+      );
 
       setMessage("Реєстрація пройшла успішно!");
-      setTimeout(() => navigate("/profile"), 800);
+
+      setTimeout(() => {
+        navigate("/profile");
+      }, 1500);
     } catch (err) {
+      console.error(err);
       if (err.response) {
-        setError(err.response.data?.error || "Помилка при реєстрації.");
+        setError(
+          err.response.data?.error ||
+            err.response.data?.message ||
+            "Помилка при реєстрації."
+        );
       } else {
-        setError("Не вдалося підключитися до сервера.");
+        setError("Не вдалося підключитися до сервера або виникла помилка.");
       }
     } finally {
       setIsSubmitting(false);
@@ -79,9 +100,11 @@ export default function RegisterPage() {
           <Link to="/" className="auth-modal-close">
             ×
           </Link>
+
           <div className="auth-modal-logo">
             <img src="/images/figma/logo/logo.svg" alt="Kalpo" />
           </div>
+
           <h1 className="auth-modal-title">Реєстрація</h1>
 
           <form className="auth-modal-form" onSubmit={handleSubmit}>
@@ -96,6 +119,7 @@ export default function RegisterPage() {
                 required
               />
             </label>
+
             <label>
               Email
               <input
@@ -107,6 +131,7 @@ export default function RegisterPage() {
                 required
               />
             </label>
+
             <label>
               Пароль
               <div style={{ position: "relative", width: "100%" }}>
@@ -120,7 +145,7 @@ export default function RegisterPage() {
                   style={{ paddingRight: "42px" }}
                 />
                 <span
-                  onClick={() => setShowPassword((p) => !p)}
+                  onClick={() => setShowPassword((prev) => !prev)}
                   style={{
                     position: "absolute",
                     right: "12px",
@@ -134,6 +159,7 @@ export default function RegisterPage() {
                 </span>
               </div>
             </label>
+
             <label>
               Підтвердження пароля
               <div style={{ position: "relative", width: "100%" }}>
@@ -147,7 +173,7 @@ export default function RegisterPage() {
                   style={{ paddingRight: "42px" }}
                 />
                 <span
-                  onClick={() => setShowConfirmPassword((p) => !p)}
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
                   style={{
                     position: "absolute",
                     right: "12px",
@@ -161,6 +187,7 @@ export default function RegisterPage() {
                 </span>
               </div>
             </label>
+
             <button type="submit" disabled={isSubmitting || !isFormFilled}>
               {isSubmitting ? "Завантаження..." : "Зареєструватися"}
             </button>
@@ -170,16 +197,13 @@ export default function RegisterPage() {
             <p style={{ color: "green", marginTop: "10px" }}>{message}</p>
           )}
           {error && (
-            <p
-              className="auth-modal-error"
-              style={{ color: "red", marginTop: "10px" }}
-            >
-              {error}
-            </p>
+            <p style={{ color: "red", marginTop: "10px" }}>{error}</p>
           )}
+
           <p className="auth-modal-bottom">
             Вже маєш акаунт? <Link to="/login">Увійти</Link>
           </p>
+
           <button type="button" className="auth-modal-help">
             Допомога
           </button>
