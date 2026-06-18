@@ -4,10 +4,13 @@ const express = require("express");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const crypto = require("crypto");
 const { PrismaClient } = require("@prisma/client");
 const { PrismaPg } = require("@prisma/adapter-pg");
 const { Pool } = require("pg");
+
+const cloudinary = require("cloudinary").v2;
+const nodemailer = require("nodemailer");
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
@@ -15,11 +18,69 @@ const prisma = new PrismaClient({ adapter });
 
 const app = express();
 app.use(cors({ origin: true, credentials: true }));
+
+app.post(
+  "/api/payments/webhook",
+  express.raw({ type: "application/json" }),
+  async (req, res) => {
+    const sig = req.headers["stripe-signature"];
+    let event;
+
+    try {
+      event = stripe.webhooks.constructEvent(
+        req.body,
+        sig,
+        process.env.STRIPE_WEBHOOK_SECRET,
+      );
+    } catch (err) {
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    if (event.type === "checkout.session.completed") {
+      const session = event.data.object;
+
+      // Отримуємо items з сесії
+      const lineItems = await stripe.checkout.sessions.listLineItems(
+        session.id,
+      );
+
+      // Знаходимо юзера по email
+      const user = await prisma.user.findUnique({
+        where: { email: session.customer_details.email },
+      });
+
+      if (user) {
+        await prisma.order.create({
+          data: {
+            userId: user.id,
+            total: session.amount_total / 100,
+            address: "Stripe order",
+            paymentMethod: "stripe",
+            status: "confirmed",
+            items: {
+              create: lineItems.data.map((item) => ({
+                productId: 1, // fallback
+                name: item.description,
+                price: item.price.unit_amount / 100,
+                quantity: item.quantity,
+              })),
+            },
+          },
+        });
+      }
+    }
+
+    res.json({ received: true });
+  },
+);
+
 app.use(express.json());
 
 const JWT_SECRET = process.env.JWT_SECRET;
+const REFRESH_SECRET =
+  process.env.REFRESH_SECRET || process.env.JWT_SECRET + "_refresh";
 const JWT_EXPIRES_IN = "15m";
-const REFRESH_EXPIRES_DAYS = 7;
+const REFRESH_EXPIRES_IN = "7d";
 
 const cartRoutes = require("./routes/cart");
 const authMiddleware = require("./middleware/authMiddleware");
@@ -50,12 +111,10 @@ function generateAccessToken(user) {
   );
 }
 
-async function generateRefreshToken(userId) {
-  const token = crypto.randomBytes(64).toString("hex");
-  const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + REFRESH_EXPIRES_DAYS);
-  await prisma.refreshToken.create({ data: { token, userId, expiresAt } });
-  return token;
+function generateRefreshToken(user) {
+  return jwt.sign({ userId: user.id, email: user.email }, REFRESH_SECRET, {
+    expiresIn: REFRESH_EXPIRES_IN,
+  });
 }
 
 function formatUser(user) {
@@ -67,6 +126,7 @@ function formatUser(user) {
     phone: user.phone || null,
     birthDate: user.birthDate || null,
     gender: user.gender || null,
+    address: user.address || null,
     isAdmin: user.isAdmin,
   };
 }
@@ -97,7 +157,7 @@ app.post("/api/auth/register", async (req, res) => {
     });
 
     const accessToken = generateAccessToken(user);
-    const refreshToken = await generateRefreshToken(user.id);
+    const refreshToken = generateRefreshToken(user);
 
     res.status(201).json({
       message: "Реєстрація успішна",
@@ -131,7 +191,7 @@ app.post("/api/auth/login", async (req, res) => {
       return res.status(401).json({ error: "Невірний пароль" });
 
     const accessToken = generateAccessToken(user);
-    const refreshToken = await generateRefreshToken(user.id);
+    const refreshToken = generateRefreshToken(user);
 
     res.json({
       message: "Успішний вхід",
@@ -155,23 +215,23 @@ app.post("/api/auth/refresh", async (req, res) => {
     if (!refreshToken)
       return res.status(400).json({ error: "Refresh token відсутній" });
 
-    const tokenRecord = await prisma.refreshToken.findUnique({
-      where: { token: refreshToken },
-      include: { user: true },
-    });
-
-    if (!tokenRecord)
-      return res.status(401).json({ error: "Невалідний refresh token" });
-
-    if (tokenRecord.expiresAt < new Date()) {
-      await prisma.refreshToken.delete({ where: { token: refreshToken } });
-      return res.status(401).json({ error: "Refresh token протермінований" });
+    let payload;
+    try {
+      payload = jwt.verify(refreshToken, REFRESH_SECRET);
+    } catch {
+      return res
+        .status(401)
+        .json({ error: "Невалідний або протермінований refresh token" });
     }
 
-    await prisma.refreshToken.delete({ where: { token: refreshToken } });
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+    });
+    if (!user)
+      return res.status(401).json({ error: "Користувача не знайдено" });
 
-    const newAccessToken = generateAccessToken(tokenRecord.user);
-    const newRefreshToken = await generateRefreshToken(tokenRecord.user.id);
+    const newAccessToken = generateAccessToken(user);
+    const newRefreshToken = generateRefreshToken(user);
 
     res.json({ accessToken: newAccessToken, refreshToken: newRefreshToken });
   } catch (error) {
@@ -185,25 +245,121 @@ app.post("/api/auth/refresh", async (req, res) => {
 // ==========================================
 
 app.post("/api/auth/logout", async (req, res) => {
-  try {
-    const { refreshToken } = req.body;
-    if (refreshToken) {
-      await prisma.refreshToken.deleteMany({ where: { token: refreshToken } });
-    }
-    res.json({ message: "Вихід виконано" });
-  } catch (error) {
-    res.status(500).json({ error: "Помилка виходу" });
-  }
+  // JWT refresh токени не зберігаються в БД,
+  // тому logout просто повідомляє клієнту видалити токени
+  res.json({ message: "Вихід виконано" });
 });
 
 // ==========================================
-// FORGOT PASSWORD (заглушка)
+// FORGOT PASSWORD (реальна відправка email)
 // ==========================================
+
+const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST,
+  port: Number(process.env.EMAIL_PORT),
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
 app.post("/api/auth/forgot-password", async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: "Email обов'язковий" });
-  res.json({ message: "Якщо такий email існує, ми надішлемо інструкції" });
+
+  try {
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    // Не розкриваємо чи існує email — відповідь однакова
+    if (!user) {
+      return res.json({
+        message: "Якщо такий email існує, ми надішлемо інструкції",
+      });
+    }
+
+    // Видаляємо старі токени цього юзера
+    await prisma.passwordResetToken.deleteMany({ where: { userId: user.id } });
+
+    // Генеруємо новий токен
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 година
+
+    // Зберігаємо в БД
+    await prisma.passwordResetToken.create({
+      data: { token: resetToken, userId: user.id, expiresAt },
+    });
+
+    // Відправляємо email
+    await transporter.sendMail({
+      from: `"Kalpo Shop" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Відновлення паролю — Kalpo",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
+          <h2 style="color: #8E1616;">Відновлення паролю</h2>
+          <p>Ви отримали цей лист тому що хтось запросив скидання паролю для вашого акаунту.</p>
+          <p>Натисніть кнопку нижче щоб встановити новий пароль:</p>
+          <a href="http://localhost:5173/reset-password?token=${resetToken}"
+             style="display: inline-block; padding: 12px 24px; background: #8E1616; color: white; text-decoration: none; border-radius: 8px; margin: 16px 0;">
+            Скинути пароль
+          </a>
+          <p style="color: #999; font-size: 13px;">Посилання дійсне 1 годину. Якщо ви не запитували скидання — просто ігноруйте цей лист.</p>
+        </div>
+      `,
+    });
+
+    res.json({ message: "Якщо такий email існує, ми надішлемо інструкції" });
+  } catch (error) {
+    console.error("FORGOT PASSWORD ERROR:", error);
+    res.status(500).json({ error: "Помилка відправки email" });
+  }
+});
+
+// ==========================================
+// RESET PASSWORD
+// ==========================================
+
+app.post("/api/auth/reset-password", async (req, res) => {
+  const { token, password } = req.body;
+
+  if (!token || !password) {
+    return res.status(400).json({ error: "Токен та пароль обов'язкові" });
+  }
+
+  if (password.length < 6) {
+    return res.status(400).json({ error: "Пароль мінімум 6 символів" });
+  }
+
+  try {
+    // Шукаємо токен в БД
+    const record = await prisma.passwordResetToken.findUnique({
+      where: { token },
+    });
+
+    if (!record) {
+      return res.status(400).json({ error: "Невалідний токен" });
+    }
+
+    if (record.expiresAt < new Date()) {
+      await prisma.passwordResetToken.delete({ where: { token } });
+      return res.status(400).json({ error: "Токен протермінований" });
+    }
+
+    // Оновлюємо пароль
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await prisma.user.update({
+      where: { id: record.userId },
+      data: { password: hashedPassword },
+    });
+
+    // Видаляємо використаний токен
+    await prisma.passwordResetToken.delete({ where: { token } });
+
+    res.json({ message: "Пароль успішно змінено" });
+  } catch (error) {
+    console.error("RESET PASSWORD ERROR:", error);
+    res.status(500).json({ error: "Помилка зміни паролю" });
+  }
 });
 
 // ==========================================
@@ -229,7 +385,7 @@ app.get("/api/auth/me", authMiddleware, getProfile);
 
 app.put("/api/profile", authMiddleware, async (req, res) => {
   try {
-    const { firstName, lastName, phone, birthDate, gender } = req.body;
+    const { firstName, lastName, phone, birthDate, gender, address } = req.body;
     const updatedUser = await prisma.user.update({
       where: { id: req.user.userId },
       data: {
@@ -237,6 +393,7 @@ app.put("/api/profile", authMiddleware, async (req, res) => {
         lastName,
         phone,
         gender,
+        address: address ?? undefined,
         birthDate: birthDate ? new Date(birthDate) : null,
       },
     });
@@ -248,20 +405,51 @@ app.put("/api/profile", authMiddleware, async (req, res) => {
 });
 
 // ==========================================
-// ТОВАРИ — публічні (GET)
+// ТОВАРИ — публічні (GET) з пагінацією та сортуванням
 // ==========================================
 
 app.get("/api/products", async (req, res) => {
   try {
-    const { category, search } = req.query;
+    const {
+      category,
+      search,
+      page = 1,
+      limit = 20,
+      sortBy = "createdAt",
+      order = "desc",
+    } = req.query;
+
     const where = {};
     if (category) where.category = category;
     if (search) where.name = { contains: search, mode: "insensitive" };
-    const products = await prisma.product.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
+
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const validSortFields = ["createdAt", "price", "rating", "name"];
+    const validOrders = ["asc", "desc"];
+
+    const orderBy = {
+      [validSortFields.includes(sortBy) ? sortBy : "createdAt"]:
+        validOrders.includes(order) ? order : "desc",
+    };
+
+    const [products, total] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        orderBy,
+        skip,
+        take: Number(limit),
+      }),
+      prisma.product.count({ where }),
+    ]);
+
+    res.json({
+      products,
+      total,
+      page: Number(page),
+      limit: Number(limit),
+      totalPages: Math.ceil(total / Number(limit)),
     });
-    res.json(products);
   } catch (error) {
     console.error("GET PRODUCTS ERROR:", error);
     res.status(500).json({ error: "Помилка отримання товарів" });
@@ -288,8 +476,6 @@ app.get("/api/products/:id", async (req, res) => {
 
 // ==========================================
 // ТОВАРИ — тільки адмін (POST/PUT/DELETE)
-// authMiddleware перевіряє токен
-// adminMiddleware перевіряє isAdmin
 // ==========================================
 
 app.post("/api/products", authMiddleware, adminMiddleware, async (req, res) => {
@@ -358,7 +544,6 @@ app.delete(
 // ВІДГУКИ
 // ==========================================
 
-// Отримати відгуки для товару
 app.get("/api/products/:id/reviews", async (req, res) => {
   try {
     const reviews = await prisma.review.findMany({
@@ -372,7 +557,6 @@ app.get("/api/products/:id/reviews", async (req, res) => {
   }
 });
 
-// Додати відгук (тільки авторизований)
 app.post("/api/products/:id/reviews", authMiddleware, async (req, res) => {
   try {
     const { rating, comment } = req.body;
@@ -382,7 +566,6 @@ app.post("/api/products/:id/reviews", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "Рейтинг має бути від 1 до 5" });
     }
 
-    // Перевіряємо чи не залишав вже відгук
     const existing = await prisma.review.findFirst({
       where: { userId: req.user.userId, productId },
     });
@@ -401,7 +584,6 @@ app.post("/api/products/:id/reviews", authMiddleware, async (req, res) => {
       include: { user: { select: { firstName: true, lastName: true } } },
     });
 
-    // Оновлюємо середній рейтинг товару
     const allReviews = await prisma.review.findMany({ where: { productId } });
     const avgRating =
       allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
@@ -417,7 +599,6 @@ app.post("/api/products/:id/reviews", authMiddleware, async (req, res) => {
   }
 });
 
-// Видалити відгук (адмін або автор)
 app.delete("/api/reviews/:id", authMiddleware, async (req, res) => {
   try {
     const review = await prisma.review.findUnique({
@@ -439,10 +620,9 @@ app.delete("/api/reviews/:id", authMiddleware, async (req, res) => {
 });
 
 // ==========================================
-// ЗАМОВЛЕННЯ — в базі даних
+// ЗАМОВЛЕННЯ
 // ==========================================
 
-// Створити замовлення
 app.post("/api/orders", authMiddleware, async (req, res) => {
   try {
     const { items, total, address, paymentMethod, comment } = req.body;
@@ -477,7 +657,6 @@ app.post("/api/orders", authMiddleware, async (req, res) => {
   }
 });
 
-// Мої замовлення
 app.get("/api/orders/my", authMiddleware, async (req, res) => {
   try {
     const orders = await prisma.order.findMany({
@@ -492,7 +671,6 @@ app.get("/api/orders/my", authMiddleware, async (req, res) => {
   }
 });
 
-// Отримати одне замовлення
 app.get("/api/orders/:id", authMiddleware, async (req, res) => {
   try {
     const order = await prisma.order.findUnique({
@@ -503,7 +681,6 @@ app.get("/api/orders/:id", authMiddleware, async (req, res) => {
     if (!order)
       return res.status(404).json({ error: "Замовлення не знайдено" });
 
-    // Тільки власник або адмін
     if (order.userId !== req.user.userId && !req.user.isAdmin) {
       return res.status(403).json({ error: "Немає доступу" });
     }
@@ -514,7 +691,6 @@ app.get("/api/orders/:id", authMiddleware, async (req, res) => {
   }
 });
 
-// Всі замовлення (тільки адмін)
 app.get("/api/orders", authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const orders = await prisma.order.findMany({
@@ -530,7 +706,6 @@ app.get("/api/orders", authMiddleware, adminMiddleware, async (req, res) => {
   }
 });
 
-// Оновити статус замовлення (тільки адмін)
 app.patch(
   "/api/orders/:id/status",
   authMiddleware,
@@ -587,6 +762,126 @@ app.get(
       res.json(users);
     } catch (error) {
       res.status(500).json({ error: "Помилка отримання юзерів" });
+    }
+  },
+);
+
+/// ==========================================
+// ЗАВАНТАЖЕННЯ ЗОБРАЖЕНЬ (Cloudinary)
+// ==========================================
+
+const multer = require("multer");
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// Зберігаємо файл в пам'яті (не на диск)
+const storage = multer.memoryStorage();
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (req, file, cb) => {
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
+    if (allowed.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Тільки JPG, PNG, WEBP"));
+    }
+  },
+});
+
+// Роут завантаження
+app.post(
+  "/api/upload",
+  authMiddleware,
+  upload.single("image"),
+  async (req, res) => {
+    try {
+      if (!req.file)
+        return res.status(400).json({ error: "Файл не завантажено" });
+
+      // Завантажуємо в Cloudinary
+      const result = await new Promise((resolve, reject) => {
+        cloudinary.uploader
+          .upload_stream(
+            { folder: "kalpo-shop", resource_type: "image" },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            },
+          )
+          .end(req.file.buffer);
+      });
+
+      res.json({ url: result.secure_url, publicId: result.public_id });
+    } catch (error) {
+      console.error("UPLOAD ERROR:", error);
+      res.status(500).json({ error: "Помилка завантаження зображення" });
+    }
+  },
+);
+
+// ==========================================
+// STRIPE ПЛАТЕЖІ
+// ==========================================
+
+// Створити платіжну сесію
+app.post("/api/payments/create-session", authMiddleware, async (req, res) => {
+  try {
+    const { items, orderId } = req.body;
+
+    if (!items || items.length === 0) {
+      return res.status(400).json({ error: "Кошик порожній" });
+    }
+
+    const lineItems = items.map((item) => ({
+      price_data: {
+        currency: "uah",
+        product_data: {
+          name: item.name,
+          images: item.image ? [item.image] : [],
+        },
+        unit_amount: Math.round(item.price * 100), // Stripe використовує копійки
+      },
+      quantity: item.quantity,
+    }));
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: lineItems,
+      mode: "payment",
+      success_url: `http://localhost:5173/order-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `http://localhost:5173/cart`,
+      metadata: { orderId: orderId ? String(orderId) : "" },
+    });
+
+    res.json({ url: session.url, sessionId: session.id });
+  } catch (error) {
+    console.error("STRIPE ERROR:", error);
+    res.status(500).json({ error: "Помилка створення платежу" });
+  }
+});
+
+// Перевірити статус платежу
+app.get(
+  "/api/payments/session/:sessionId",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const session = await stripe.checkout.sessions.retrieve(
+        req.params.sessionId,
+      );
+      res.json({
+        status: session.payment_status,
+        customerEmail: session.customer_details?.email,
+      });
+    } catch (error) {
+      console.error("STRIPE SESSION ERROR:", error);
+      res.status(500).json({ error: "Помилка отримання сесії" });
     }
   },
 );
