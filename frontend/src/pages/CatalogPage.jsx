@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, Link } from "react-router";
 import ProductCard from "../components/ProductCard";
 import useProducts from "../hooks/useProducts";
@@ -24,7 +24,6 @@ const filterSectionsList = [
   "Спосіб приготування страви", "Вид страви", "Торгова марка",
 ];
 
-// ✅ Маппінг сортування для бекенду
 const SORT_OPTIONS = [
   { value: "default",    label: "За замовчуванням", sortBy: undefined,  order: undefined },
   { value: "price_asc",  label: "Ціна: від дешевих", sortBy: "price",   order: "asc" },
@@ -54,11 +53,17 @@ export default function CatalogPage() {
   const [openFilterSections, setOpenFilterSections] = useState([]);
   const [localSearch, setLocalSearch] = useState(searchParams.get("search") || "");
 
+  // ✅ Фільтр за ціною (ТЗ 4.4 — "фільтрація за ціною")
+  const [minPrice, setMinPrice] = useState(searchParams.get("minPrice") || "");
+  const [maxPrice, setMaxPrice] = useState(searchParams.get("maxPrice") || "");
+  const [appliedMinPrice, setAppliedMinPrice] = useState(searchParams.get("minPrice") || "");
+  const [appliedMaxPrice, setAppliedMaxPrice] = useState(searchParams.get("maxPrice") || "");
+
   const searchQuery = searchParams.get("search") || "";
   const currentSort = SORT_OPTIONS.find((o) => o.value === sortValue);
 
-  // ✅ Серверна пагінація і фільтрація через useProducts
-  const { products, loading, total, totalPages } = useProducts({
+  // Серверна пагінація і фільтрація через useProducts
+  const { products: rawProducts, loading, total: rawTotal, totalPages: rawTotalPages } = useProducts({
     page: currentPage,
     limit: 24,
     category: selectedCategory !== "Всі" ? selectedCategory : undefined,
@@ -67,7 +72,22 @@ export default function CatalogPage() {
     order: currentSort?.order,
   });
 
-  // Скидаємо сторінку при зміні фільтрів
+  // ✅ Фільтрація за ціною на клієнті — додатковий шар над серверними даними,
+  // оскільки бекенд поки не приймає minPrice/maxPrice параметри
+  const products = useMemo(() => {
+    if (!appliedMinPrice && !appliedMaxPrice) return rawProducts;
+    return rawProducts.filter((p) => {
+      const price = Number(p.price);
+      const min = appliedMinPrice ? Number(appliedMinPrice) : -Infinity;
+      const max = appliedMaxPrice ? Number(appliedMaxPrice) : Infinity;
+      return price >= min && price <= max;
+    });
+  }, [rawProducts, appliedMinPrice, appliedMaxPrice]);
+
+  const isPriceFilterActive = appliedMinPrice || appliedMaxPrice;
+  const total = isPriceFilterActive ? products.length : rawTotal;
+  const totalPages = isPriceFilterActive ? 1 : rawTotalPages;
+
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, selectedCategory, sortValue]);
@@ -104,6 +124,27 @@ export default function CatalogPage() {
     setCurrentPage(1);
   }
 
+  // ✅ Застосувати фільтр за ціною
+  function applyPriceFilter() {
+    setAppliedMinPrice(minPrice);
+    setAppliedMaxPrice(maxPrice);
+    const params = new URLSearchParams(searchParams);
+    if (minPrice) params.set("minPrice", minPrice); else params.delete("minPrice");
+    if (maxPrice) params.set("maxPrice", maxPrice); else params.delete("maxPrice");
+    setSearchParams(params);
+  }
+
+  function clearPriceFilter() {
+    setMinPrice("");
+    setMaxPrice("");
+    setAppliedMinPrice("");
+    setAppliedMaxPrice("");
+    const params = new URLSearchParams(searchParams);
+    params.delete("minPrice");
+    params.delete("maxPrice");
+    setSearchParams(params);
+  }
+
   function handlePageChange(page) {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -138,6 +179,49 @@ export default function CatalogPage() {
               <button onClick={() => setIsFilterOpen(false)} style={{ background: "none", border: "none", fontSize: "20px", cursor: "pointer" }}>✕</button>
             </div>
             <div style={{ flex: 1, overflowY: "auto" }}>
+
+              {/* ✅ ФІЛЬТР ЗА ЦІНОЮ — нагорі списку, найважливіший */}
+              <div style={{ borderBottom: "1px solid #f0f0f0", padding: "20px 24px" }}>
+                <div style={{ fontSize: "14px", fontWeight: "700", marginBottom: "16px", color: "#202124" }}>
+                  Ціна, грн
+                </div>
+                <div style={{ display: "flex", gap: "12px", marginBottom: "12px" }}>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="Від"
+                    value={minPrice}
+                    onChange={(e) => setMinPrice(e.target.value)}
+                    style={{ flex: 1, padding: "10px 12px", borderRadius: "10px", border: "1px solid #ddd", fontSize: "14px", outline: "none", boxSizing: "border-box" }}
+                  />
+                  <span style={{ color: "#999", alignSelf: "center" }}>—</span>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="До"
+                    value={maxPrice}
+                    onChange={(e) => setMaxPrice(e.target.value)}
+                    style={{ flex: 1, padding: "10px 12px", borderRadius: "10px", border: "1px solid #ddd", fontSize: "14px", outline: "none", boxSizing: "border-box" }}
+                  />
+                </div>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button
+                    onClick={applyPriceFilter}
+                    style={{ flex: 1, padding: "10px", backgroundColor: "#8b181b", color: "#fff", border: "none", borderRadius: "10px", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}
+                  >
+                    Застосувати
+                  </button>
+                  {isPriceFilterActive && (
+                    <button
+                      onClick={clearPriceFilter}
+                      style={{ padding: "10px 14px", backgroundColor: "#f5f5f5", color: "#666", border: "none", borderRadius: "10px", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}
+                    >
+                      Скинути
+                    </button>
+                  )}
+                </div>
+              </div>
+
               {filterSectionsList.map((section) => {
                 const isOpen = openFilterSections.includes(section);
                 return (
@@ -222,6 +306,12 @@ export default function CatalogPage() {
                 <line x1="17" y1="16" x2="23" y2="16"></line>
               </svg>
               Фільтри
+              {/* ✅ Бейдж показує що фільтр за ціною активний */}
+              {isPriceFilterActive && (
+                <span style={{ backgroundColor: "#8b181b", color: "#fff", borderRadius: "10px", padding: "2px 8px", fontSize: "11px", fontWeight: "700" }}>
+                  1
+                </span>
+              )}
             </div>
 
             <div style={{ position: "relative" }}>
@@ -243,6 +333,16 @@ export default function CatalogPage() {
             </div>
           </div>
 
+          {/* ✅ АКТИВНИЙ ФІЛЬТР ЦІНИ — видимий чіп з можливістю скинути */}
+          {isPriceFilterActive && (
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "#fff", border: "1px solid #8b181b", borderRadius: "20px", padding: "6px 12px", fontSize: "13px", color: "#8b181b", fontWeight: "600" }}>
+                Ціна: {appliedMinPrice || "0"} — {appliedMaxPrice || "∞"} грн
+                <button onClick={clearPriceFilter} style={{ background: "none", border: "none", cursor: "pointer", color: "#8b181b", fontSize: "14px", padding: 0, lineHeight: 1 }}>✕</button>
+              </span>
+            </div>
+          )}
+
           {/* ЛІЧИЛЬНИК */}
           <p style={{ fontSize: "13px", color: "#666", marginBottom: "20px" }}>
             Знайдено: <strong>{total}</strong> товарів
@@ -258,8 +358,8 @@ export default function CatalogPage() {
             <div style={{ textAlign: "center", padding: "80px 0" }}>
               <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔍</div>
               <h2 style={{ fontSize: "20px", marginBottom: "12px", color: "#333" }}>Товарів не знайдено</h2>
-              <p style={{ color: "#666", marginBottom: "24px" }}>Спробуйте змінити пошуковий запит або категорію</p>
-              <button onClick={() => { setSelectedCategory("Всі"); clearSearch(); }} style={{ backgroundColor: "#8b181b", color: "#fff", border: "none", borderRadius: "12px", padding: "12px 24px", fontWeight: "600", cursor: "pointer" }}>
+              <p style={{ color: "#666", marginBottom: "24px" }}>Спробуйте змінити пошуковий запит, категорію або діапазон ціни</p>
+              <button onClick={() => { setSelectedCategory("Всі"); clearSearch(); clearPriceFilter(); }} style={{ backgroundColor: "#8b181b", color: "#fff", border: "none", borderRadius: "12px", padding: "12px 24px", fontWeight: "600", cursor: "pointer" }}>
                 Показати всі товари
               </button>
             </div>
@@ -271,7 +371,7 @@ export default function CatalogPage() {
                 ))}
               </div>
 
-              {/* ✅ ПАГІНАЦІЯ — сторінки від бекенду */}
+              {/* ПАГІНАЦІЯ — вимикається при активному фільтрі ціни, бо там фільтрація відбувається по поточній сторінці */}
               {totalPages > 1 && (
                 <div style={{ display: "flex", justifyContent: "center", gap: "8px", alignItems: "center" }}>
                   <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} style={{ width: "36px", height: "36px", borderRadius: "8px", border: "1px solid #ddd", backgroundColor: currentPage === 1 ? "#f5f5f5" : "#fff", color: currentPage === 1 ? "#ccc" : "#333", cursor: currentPage === 1 ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>❮</button>

@@ -720,3 +720,241 @@
 .fade-in-container {
   animation: fadeIn 0.2s ease;
 }
+
+/* ============================================
+   МОДАЛЬНЕ ВІКНО РЕДАГУВАННЯ
+   ============================================ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.15s ease;
+}
+
+.modal-box {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 32px 36px 36px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  animation: slideUp 0.2s ease;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.modal-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: #8E1616;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 12px;
+  width: fit-content;
+}
+
+.modal-back-btn:hover {
+  opacity: 0.75;
+}
+
+.modal-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 24px 0;
+}
+
+.modal-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.modal-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 15px;
+  color: #1a1a1a;
+  outline: none;
+  font-family: inherit;
+  background: #fff;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.modal-input:focus {
+  border-color: #8E1616;
+}
+
+.modal-input::placeholder {
+  color: #aaa;
+}
+
+.modal-error {
+  color: #c0392b;
+  font-size: 13px;
+  margin: -16px 0 16px;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.modal-btn-cancel {
+  flex: 1;
+  padding: 13px 0;
+  background: transparent;
+  border: 2px solid #8E1616;
+  color: #8E1616;
+  border-radius: 30px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-family: inherit;
+}
+
+.modal-btn-cancel:hover {
+  background: rgba(142, 22, 22, 0.06);
+}
+
+.modal-btn-save {
+  flex: 1;
+  padding: 13px 0;
+  background: #8E1616;
+  border: 2px solid #8E1616;
+  color: #fff;
+  border-radius: 30px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-family: inherit;
+}
+
+.modal-btn-save:hover {
+  background: #7a1212;
+}
+
+/* ============================================
+   ОЛІВЕЦЬ В РЯДКАХ КОНТАКТІВ
+   ============================================ */
+.details-action.pencil-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============================================
+   БЛОК "ВАША ЗНИЖКА"
+   ============================================ */
+.details-block.discount-block {
+  background: #F9E8E0;
+  border: none;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 24px 20px;
+}
+
+.discount-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.discount-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #555;
+  margin: 0;
+}
+
+.discount-value {
+  font-size: 36px;
+  font-weight: 800;
+  color: #8E1616;
+  margin: 4px 0;
+  line-height: 1;
+}
+
+.discount-tier {
+  font-size: 13px;
+  color: #888;
+  margin: 0;
+}
+
+.discount-leaves {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+/* ============================================
+   БЛОК "ВАША СТАТИСТИКА"
+   ============================================ */
+.details-block.stats-block {
+  padding: 20px;
+}
+
+.stats-block-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 16px;
+}
+
+.stats-grid {
+  display: flex;
+  gap: 0;
+  justify-content: space-between;
+}
+
+.stats-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.stats-item:not(:last-child) {
+  padding-right: 12px;
+  border-right: 1px solid #f0f0f0;
+  margin-right: 12px;
+}
+
+.stats-item strong {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.stats-item span {
+  font-size: 12px;
+  color: #888;
+}

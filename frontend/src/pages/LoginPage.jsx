@@ -31,10 +31,21 @@ export default function LoginPage() {
 
       const data = response.data;
 
-      // Зберігаємо через AuthContext (він сам записує в localStorage)
+      // ✅ Підтримка нового формату відповіді від бекенду
+      // Ярослав повертає accessToken + refreshToken
+      // Старий формат повертав просто token
+      const accessToken = data.accessToken || data.token;
+      const refreshToken = data.refreshToken;
+
+      // Зберігаємо refreshToken окремо для автоматичного оновлення сесії
+      if (refreshToken) {
+        localStorage.setItem("refreshToken", refreshToken);
+      }
+
+      // Зберігаємо через AuthContext (він записує token і silpo-user)
       login(
         data.user || { email: formData.email, name: "Користувач" },
-        data.token
+        accessToken
       );
 
       setMessage("Вхід виконано успішно! Перенаправлення...");

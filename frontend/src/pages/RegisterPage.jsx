@@ -6,7 +6,7 @@ import "../styles/kalpo-home.css";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const { login } = useAuth(); // ✅ Використовуємо AuthContext
+  const { login } = useAuth();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -55,11 +55,21 @@ export default function RegisterPage() {
       const response = await api.post("/auth/register", payload);
       const data = response.data;
 
-      // ✅ Зберігаємо через AuthContext — він сам записує в localStorage
-      // і оновлює Header одразу без перезавантаження
+      // ✅ Підтримка нового формату відповіді від бекенду
+      // Ярослав повертає accessToken + refreshToken
+      // Старий формат повертав просто token
+      const accessToken = data.accessToken || data.token;
+      const refreshToken = data.refreshToken;
+
+      // Зберігаємо refreshToken для автоматичного оновлення сесії
+      if (refreshToken) {
+        localStorage.setItem("refreshToken", refreshToken);
+      }
+
+      // Зберігаємо через AuthContext
       login(
         data.user || { email: formData.email, firstName: formData.name, name: formData.name },
-        data.token
+        accessToken
       );
 
       setMessage("Реєстрація пройшла успішно!");

@@ -32,6 +32,7 @@ export default function ProfilePage() {
 
   const [editData, setEditData] = useState({});
   const [activeView, setActiveView] = useState("dashboard");
+  const [activeModal, setActiveModal] = useState(null); // "editName" | "editBirthDate" | "editGender" | "editPhone" | "editEmail" | null
   const [saveError, setSaveError] = useState("");
 
   // ✅ Стан для замовлень
@@ -93,10 +94,15 @@ export default function ProfilePage() {
     logout();
   };
 
-  const openEdit = (viewName) => {
+  const openEdit = (modalName) => {
     setEditData({ ...user });
     setSaveError("");
-    setActiveView(viewName);
+    setActiveModal(modalName);
+  };
+
+  const closeModal = () => {
+    setActiveModal(null);
+    setSaveError("");
   };
 
   const handleEditChange = (e) => {
@@ -134,7 +140,7 @@ export default function ProfilePage() {
         JSON.stringify({ ...savedUser, ...editData, name: editData.firstName })
       );
 
-      setActiveView("myData");
+      closeModal();
     } catch (error) {
       console.error("Помилка збереження:", error);
       setSaveError("Не вдалося зберегти дані. Спробуйте ще раз.");
@@ -669,14 +675,7 @@ export default function ProfilePage() {
                 <div className="details-block">
                   <div className="details-block-header">
                     <div className="details-icon-solid">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="white"
-                        strokeWidth="2"
-                      >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                         <polyline points="14 2 14 8 20 8" />
                         <line x1="16" y1="13" x2="8" y2="13" />
@@ -688,42 +687,75 @@ export default function ProfilePage() {
                   </div>
 
                   <div className="details-list">
-                    <div
-                      className="details-list-item"
-                      onClick={() => openEdit("editPhone")}
-                    >
+                    <div className="details-list-item" onClick={() => openEdit("editPhone")}>
                       <div className="details-item-content">
                         <span className="details-label">Телефон</span>
-                        <strong className="details-value">
-                          {user.phone || "Не вказано"}
-                        </strong>
+                        <strong className="details-value">{user.phone || "Не вказано"}</strong>
                       </div>
-                      <span className="details-action">
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="#8E1616"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
+                      <span className="details-action pencil-icon">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8E1616" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M12 20h9"></path>
                           <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
                         </svg>
                       </span>
                     </div>
 
-                    <div
-                      className="details-list-item"
-                      onClick={() => openEdit("editEmail")}
-                    >
+                    <div className="details-list-item" onClick={() => openEdit("editEmail")}>
                       <div className="details-item-content">
                         <span className="details-label">Електронна пошта</span>
                         <strong className="details-value">{user.email}</strong>
                       </div>
-                      <span className="details-action">+</span>
+                      <span className="details-action pencil-icon">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8E1616" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 20h9"></path>
+                          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* БЛОК 3: ВАША ЗНИЖКА */}
+                <div className="details-block discount-block">
+                  <div className="discount-content">
+                    <p className="discount-label">Ваша знижка</p>
+                    <p className="discount-value">-7%</p>
+                    <p className="discount-tier">Новий покупець</p>
+                  </div>
+                  <div className="discount-leaves" aria-hidden="true">
+                    <svg width="110" height="100" viewBox="0 0 110 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <ellipse cx="80" cy="55" rx="38" ry="22" rx="38" ry="22" fill="#E8B4A0" fillOpacity="0.35" transform="rotate(-30 80 55)" />
+                      <ellipse cx="68" cy="72" rx="28" ry="14" fill="#D4866A" fillOpacity="0.25" transform="rotate(-50 68 72)" />
+                      <ellipse cx="90" cy="38" rx="22" ry="11" fill="#C87858" fillOpacity="0.2" transform="rotate(-10 90 38)" />
+                      <line x1="80" y1="30" x2="65" y2="78" stroke="#C87858" strokeOpacity="0.3" strokeWidth="1.5" strokeLinecap="round"/>
+                      <line x1="80" y1="30" x2="90" y2="72" stroke="#C87858" strokeOpacity="0.2" strokeWidth="1" strokeLinecap="round"/>
+                    </svg>
+                  </div>
+                </div>
+
+                {/* БЛОК 4: ВАША СТАТИСТИКА */}
+                <div className="details-block stats-block">
+                  <div className="stats-block-header">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8E1616" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+                      <line x1="6" y1="20" x2="6" y2="14"/>
+                    </svg>
+                    <span>Ваша статистика</span>
+                  </div>
+                  <div className="stats-grid">
+                    <div className="stats-item">
+                      <strong>{orders.length}</strong>
+                      <span>Замовлень</span>
+                    </div>
+                    <div className="stats-item">
+                      <strong>
+                        {orders.reduce((sum, o) => sum + Number(o.totalPrice || 0), 0).toFixed(2)} грн
+                      </strong>
+                      <span>Всього витрачено</span>
+                    </div>
+                    <div className="stats-item">
+                      <strong>1 місяць</strong>
+                      <span>З нами</span>
                     </div>
                   </div>
                 </div>
@@ -732,169 +764,6 @@ export default function ProfilePage() {
             </div>
           )}
 
-
-          {/* ЕКРАНИ РЕДАГУВАННЯ */}
-          {activeView === "editName" && (
-            <div className="edit-form-view">
-              <button
-                className="back-link-btn"
-                onClick={() => setActiveView("myData")}
-              >
-                ❮ Назад
-              </button>
-              <h2 className="edit-form-title">Прізвище, ім'я</h2>
-              <div className="edit-form-inputs">
-                <input
-                  type="text"
-                  name="lastName"
-                  placeholder="Прізвище"
-                  value={editData.lastName || ""}
-                  onChange={handleEditChange}
-                  className="edit-input-field"
-                />
-                <input
-                  type="text"
-                  name="firstName"
-                  placeholder="Ім'я"
-                  value={editData.firstName || ""}
-                  onChange={handleEditChange}
-                  className="edit-input-field"
-                />
-                <input
-                  type="text"
-                  name="middleName"
-                  placeholder="По батькові"
-                  value={editData.middleName || ""}
-                  onChange={handleEditChange}
-                  className="edit-input-field"
-                />
-              </div>
-              {saveError && (
-                <p style={{ color: "red", marginTop: "8px" }}>{saveError}</p>
-              )}
-              <div className="edit-form-buttons">
-                <button
-                  className="btn-cancel"
-                  onClick={() => setActiveView("myData")}
-                >
-                  Скасувати
-                </button>
-                <button className="btn-save" onClick={handleSaveDetails}>
-                  Зберегти
-                </button>
-              </div>
-            </div>
-          )}
-
-          {activeView === "editBirthDate" && (
-            <div className="edit-form-view">
-              <button
-                className="back-link-btn"
-                onClick={() => setActiveView("myData")}
-              >
-                ❮ Назад
-              </button>
-              <h2 className="edit-form-title">Дата народження</h2>
-              <div className="edit-form-inputs">
-                <input
-                  type="text"
-                  name="birthDate"
-                  placeholder="дд.мм.рррр"
-                  value={editData.birthDate || ""}
-                  onChange={handleEditChange}
-                  className="edit-input-field"
-                />
-              </div>
-              {saveError && (
-                <p style={{ color: "red", marginTop: "8px" }}>{saveError}</p>
-              )}
-              <div className="edit-form-buttons">
-                <button
-                  className="btn-cancel"
-                  onClick={() => setActiveView("myData")}
-                >
-                  Скасувати
-                </button>
-                <button className="btn-save" onClick={handleSaveDetails}>
-                  Зберегти
-                </button>
-              </div>
-            </div>
-          )}
-
-          {activeView === "editGender" && (
-            <div className="edit-form-view">
-              <button
-                className="back-link-btn"
-                onClick={() => setActiveView("myData")}
-              >
-                ❮ Назад
-              </button>
-              <h2 className="edit-form-title">Стать</h2>
-              <div className="edit-form-inputs">
-                <select
-                  name="gender"
-                  value={editData.gender || "Не вказано"}
-                  onChange={handleEditChange}
-                  className="edit-input-field"
-                >
-                  <option value="Не вказано">Не вказано</option>
-                  <option value="Чоловіча">Чоловіча</option>
-                  <option value="Жіноча">Жіноча</option>
-                </select>
-              </div>
-              {saveError && (
-                <p style={{ color: "red", marginTop: "8px" }}>{saveError}</p>
-              )}
-              <div className="edit-form-buttons">
-                <button
-                  className="btn-cancel"
-                  onClick={() => setActiveView("myData")}
-                >
-                  Скасувати
-                </button>
-                <button className="btn-save" onClick={handleSaveDetails}>
-                  Зберегти
-                </button>
-              </div>
-            </div>
-          )}
-
-          {activeView === "editPhone" && (
-            <div className="edit-form-view">
-              <button
-                className="back-link-btn"
-                onClick={() => setActiveView("myData")}
-              >
-                ❮ Назад
-              </button>
-              <h2 className="edit-form-title">Телефон</h2>
-              <div className="edit-form-inputs">
-                <input
-                  type="tel"
-                  name="phone"
-                  placeholder="+380..."
-                  value={editData.phone || ""}
-                  onChange={handleEditChange}
-                  className="edit-input-field"
-                />
-              </div>
-              {saveError && (
-                <p style={{ color: "red", marginTop: "8px" }}>{saveError}</p>
-              )}
-              <div className="edit-form-buttons">
-                <button
-                  className="btn-cancel"
-                  onClick={() => setActiveView("myData")}
-                >
-                  Скасувати
-                </button>
-                <button className="btn-save" onClick={handleSaveDetails}>
-                  Зберегти
-                </button>
-              </div>
-            </div>
-          )}
 
           {/* ЕКРАН ЗАМОВЛЕНЬ */}
           {activeView === "orders" && (
@@ -981,44 +850,94 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {activeView === "editEmail" && (
-            <div className="edit-form-view">
-              <button
-                className="back-link-btn"
-                onClick={() => setActiveView("myData")}
-              >
-                ❮ Назад
-              </button>
-              <h2 className="edit-form-title">Електронна пошта</h2>
-              <div className="edit-form-inputs">
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="example@gmail.com"
-                  value={editData.email || ""}
-                  onChange={handleEditChange}
-                  className="edit-input-field"
-                />
-              </div>
-              {saveError && (
-                <p style={{ color: "red", marginTop: "8px" }}>{saveError}</p>
-              )}
-              <div className="edit-form-buttons">
-                <button
-                  className="btn-cancel"
-                  onClick={() => setActiveView("myData")}
-                >
-                  Скасувати
-                </button>
-                <button className="btn-save" onClick={handleSaveDetails}>
-                  Зберегти
-                </button>
-              </div>
-            </div>
-          )}
-
         </div>
       </main>
+
+      {/* ======== МОДАЛЬНЕ ВІКНО РЕДАГУВАННЯ ======== */}
+      {activeModal && (
+        <div className="modal-overlay" onClick={closeModal}>
+          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+
+            <button className="modal-back-btn" onClick={closeModal}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+              Назад
+            </button>
+
+            {/* ПРІЗВИЩЕ, ІМ'Я */}
+            {activeModal === "editName" && (
+              <>
+                <h2 className="modal-title">Прізвище, ім'я</h2>
+                <div className="modal-inputs">
+                  <input type="text" name="lastName" placeholder="Прізвище"
+                    value={editData.lastName || ""} onChange={handleEditChange} className="modal-input" />
+                  <input type="text" name="firstName" placeholder="Ім'я"
+                    value={editData.firstName || ""} onChange={handleEditChange} className="modal-input" />
+                  <input type="text" name="middleName" placeholder="По батькові"
+                    value={editData.middleName || ""} onChange={handleEditChange} className="modal-input" />
+                </div>
+              </>
+            )}
+
+            {/* ДАТА НАРОДЖЕННЯ */}
+            {activeModal === "editBirthDate" && (
+              <>
+                <h2 className="modal-title">Дата народження</h2>
+                <div className="modal-inputs">
+                  <input type="text" name="birthDate" placeholder="дд.мм.рррр"
+                    value={editData.birthDate || ""} onChange={handleEditChange} className="modal-input" />
+                </div>
+              </>
+            )}
+
+            {/* СТАТЬ */}
+            {activeModal === "editGender" && (
+              <>
+                <h2 className="modal-title">Стать</h2>
+                <div className="modal-inputs">
+                  <select name="gender" value={editData.gender || "Не вказано"}
+                    onChange={handleEditChange} className="modal-input">
+                    <option value="Не вказано">Не вказано</option>
+                    <option value="Чоловіча">Чоловіча</option>
+                    <option value="Жіноча">Жіноча</option>
+                  </select>
+                </div>
+              </>
+            )}
+
+            {/* ТЕЛЕФОН */}
+            {activeModal === "editPhone" && (
+              <>
+                <h2 className="modal-title">Телефон</h2>
+                <div className="modal-inputs">
+                  <input type="tel" name="phone" placeholder="+380..."
+                    value={editData.phone || ""} onChange={handleEditChange} className="modal-input" />
+                </div>
+              </>
+            )}
+
+            {/* ЕЛЕКТРОННА ПОШТА */}
+            {activeModal === "editEmail" && (
+              <>
+                <h2 className="modal-title">Електронна пошта</h2>
+                <div className="modal-inputs">
+                  <input type="email" name="email" placeholder="example@gmail.com"
+                    value={editData.email || ""} onChange={handleEditChange} className="modal-input" />
+                </div>
+              </>
+            )}
+
+            {saveError && <p className="modal-error">{saveError}</p>}
+
+            <div className="modal-buttons">
+              <button className="modal-btn-cancel" onClick={closeModal}>Скасувати</button>
+              <button className="modal-btn-save" onClick={handleSaveDetails}>Зберегти</button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

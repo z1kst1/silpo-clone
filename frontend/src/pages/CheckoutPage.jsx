@@ -45,18 +45,19 @@ export default function CheckoutPage() {
     setIsSubmitting(true);
 
     try {
-      // POST /api/orders — колега має реалізувати цей endpoint
+      // ✅ Поля приведені у відповідність до схеми Prisma Ярослава:
+      // Order { total, address, status, paymentMethod, comment, items: OrderItem[] }
+      // customerName/Phone/Email не зберігаються окремо — бекенд бере їх
+      // з User через userId (токен авторизації), тому тут не передаємо.
       const orderData = {
         items: cartItems.map((item) => ({
           productId: item.id,
+          name: item.name || item.title,
           quantity: item.quantity,
-          price: item.price,
+          price: Number(item.price),
         })),
-        totalPrice: total,
-        deliveryAddress: form.address,
-        customerName: `${form.firstName} ${form.lastName}`.trim(),
-        customerPhone: form.phone,
-        customerEmail: form.email,
+        total: total,
+        address: form.address,
         comment: form.comment,
         paymentMethod: form.paymentMethod,
       };

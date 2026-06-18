@@ -4,6 +4,7 @@ import ProductCard from "../components/ProductCard";
 import { useCart } from "../context/CartContext";
 import useProducts from "../hooks/useProducts";
 import ReviewsSection from "../components/ReviewsSection";
+import { getProductById } from "../api/products";
 
 export default function ProductPage() {
   const { id } = useParams();
@@ -59,7 +60,31 @@ export default function ProductPage() {
   }
 
   if (loading) {
-    return <div style={{ padding: "40px", textAlign: "center" }}><h2>Завантаження товару...</h2></div>;
+    return (
+      <div style={{ backgroundColor: "#F5E6BE", minHeight: "100vh", fontFamily: "system-ui, -apple-system, sans-serif" }}>
+        <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }`}</style>
+        <div style={{ maxWidth: "1440px", margin: "0 auto", padding: "16px 40px" }}>
+          <div style={{ display: "flex", gap: "24px", marginBottom: "40px", alignItems: "flex-start" }}>
+            {/* Скелетон галереї зображень */}
+            <div style={{ flex: 1, display: "flex", gap: "16px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                {[1, 2, 3].map((i) => (
+                  <div key={i} style={{ width: "72px", height: "72px", borderRadius: "12px", backgroundColor: "#fff", opacity: 0.6, animation: "pulse 1.5s infinite" }} />
+                ))}
+              </div>
+              <div style={{ flex: 1, height: "420px", borderRadius: "20px", backgroundColor: "#fff", opacity: 0.6, animation: "pulse 1.5s infinite" }} />
+            </div>
+            {/* Скелетон інформації про товар */}
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "16px" }}>
+              <div style={{ height: "28px", width: "70%", backgroundColor: "#fff", borderRadius: "8px", opacity: 0.6, animation: "pulse 1.5s infinite" }} />
+              <div style={{ height: "20px", width: "40%", backgroundColor: "#fff", borderRadius: "8px", opacity: 0.6, animation: "pulse 1.5s infinite" }} />
+              <div style={{ height: "48px", width: "30%", backgroundColor: "#fff", borderRadius: "8px", opacity: 0.6, animation: "pulse 1.5s infinite" }} />
+              <div style={{ height: "52px", width: "100%", maxWidth: "280px", backgroundColor: "#fff", borderRadius: "16px", opacity: 0.6, animation: "pulse 1.5s infinite", marginTop: "12px" }} />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!product) {
