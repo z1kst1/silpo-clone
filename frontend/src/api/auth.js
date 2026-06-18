@@ -1,47 +1,20 @@
+import api from "./api";
+
+// ✅ Переписано через наш налаштований axios (api.js) замість сирого fetch.
+// Це дає: явний BASE_URL з .env (як вимагав ментор), однакову поведінку
+// в Docker і при npm run dev, узгоджену обробку помилок з рештою застосунку.
+
 export async function loginUser(payload) {
-  const response = await fetch("/api/auth/login", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-
-  if (!response.ok) {
-    throw new Error("Не вдалося увійти в акаунт");
-  }
-
-  return response.json();
+  const response = await api.post("/auth/login", payload);
+  return response.data;
 }
 
 export async function registerUser(payload) {
-  const response = await fetch("/api/auth/register", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-
-  if (!response.ok) {
-    throw new Error("Не вдалося створити акаунт");
-  }
-
-  return response.json();
+  const response = await api.post("/auth/register", payload);
+  return response.data;
 }
 
 export async function forgotPassword(payload) {
-  const response = await fetch("/api/auth/forgot-password", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-
-  if (!response.ok) {
-    throw new Error("Не вдалося виконати відновлення паролю");
-  }
-
-  return response.json();
+  const response = await api.post("/auth/forgot-password", payload);
+  return response.data;
 }
