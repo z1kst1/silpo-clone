@@ -17,10 +17,20 @@ export default function ProfilePage() {
     birthDate: "",
     gender: "Не вказано",
     avatar: "",
+    address: "",
   });
   const [editData, setEditData] = useState({});
   const [activeView, setActiveView] = useState("dashboard");
   const [isSaving, setIsSaving] = useState(false);
+  const [orders, setOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    current: "",
+    newPwd: "",
+    confirm: "",
+  });
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -42,6 +52,7 @@ export default function ProfilePage() {
           birthDate: userData.birthDate ? userData.birthDate.slice(0, 10) : "",
           gender: userData.gender || "Не вказано",
           avatar: userData.avatar || "",
+          address: userData.address || "",
         });
       } catch (error) {
         console.error("Помилка завантаження профілю:", error);
@@ -131,6 +142,23 @@ export default function ProfilePage() {
     setUser((prev) => ({ ...prev, avatar: "" }));
   };
 
+  const fetchOrders = async () => {
+    setOrdersLoading(true);
+    try {
+      const res = await api.get("/orders/my");
+      setOrders(res.data);
+    } catch {
+      console.error("Не вдалося завантажити замовлення");
+    } finally {
+      setOrdersLoading(false);
+    }
+  };
+
+  const handleViewChange = (view) => {
+    setActiveView(view);
+    if (view === "orders") fetchOrders();
+  };
+
   const fullName =
     [user.lastName, user.firstName, user.middleName]
       .filter(Boolean)
@@ -155,8 +183,8 @@ export default function ProfilePage() {
             Профіль
           </button>
           <button
-            className={`menu-item ${activeView !== "dashboard" ? "active" : ""}`}
-            onClick={() => setActiveView("myData")}
+            className={`menu-item ${["myData", "editName", "editBirthDate", "editGender", "editPhone"].includes(activeView) ? "active" : ""}`}
+            onClick={() => handleViewChange("myData")}
           >
             <img
               src="/images/figma/icons/user.svg"
@@ -166,7 +194,10 @@ export default function ProfilePage() {
             />{" "}
             Мої дані
           </button>
-          <button className="menu-item">
+          <button
+            className={`menu-item ${activeView === "security" ? "active" : ""}`}
+            onClick={() => handleViewChange("security")}
+          >
             <img
               src="/images/figma/icons/shield.svg"
               alt=""
@@ -175,7 +206,10 @@ export default function ProfilePage() {
             />{" "}
             Безпека
           </button>
-          <button className="menu-item">
+          <button
+            className={`menu-item ${activeView === "addresses" ? "active" : ""}`}
+            onClick={() => handleViewChange("addresses")}
+          >
             <img
               src="/images/figma/icons/map-pin.svg"
               alt=""
@@ -184,7 +218,10 @@ export default function ProfilePage() {
             />{" "}
             Адреси
           </button>
-          <button className="menu-item">
+          <button
+            className={`menu-item ${activeView === "orders" ? "active" : ""}`}
+            onClick={() => handleViewChange("orders")}
+          >
             <img
               src="/images/figma/icons/shopping-bag.svg"
               alt=""
@@ -601,6 +638,153 @@ export default function ProfilePage() {
                   {isSaving ? "Збереження..." : "Зберегти"}
                 </button>
               </div>
+            </div>
+          )}
+
+          {/* ===== БЕЗПЕКА ===== */}
+          {activeView === "security" && (
+            <div className="section-block">
+              <h2 className="section-title">Безпека</h2>
+              <p style={{ color: "#666", marginBottom: "24px" }}>
+                Щоб змінити пароль, скористайся відновленням через email.
+              </p>
+              <button
+                className="btn-save"
+                onClick={() => {
+                  api
+                    .post("/auth/forgot-password", { email: user.email })
+                    .then(() =>
+                      alert("Лист для зміни паролю надіслано на " + user.email),
+                    )
+                    .catch(() => alert("Помилка. Спробуй ще раз."));
+                }}
+              >
+                Надіслати лист для зміни паролю
+              </button>
+            </div>
+          )}
+
+          {/* ===== АДРЕСИ ===== */}
+          {activeView === "addresses" && (
+            <div className="section-block">
+              <h2 className="section-title">Адреса доставки</h2>
+              <p style={{ color: "#666", marginBottom: "16px" }}>
+                Ця адреса буде відображатися в хедері сайту.
+              </p>
+              <input
+                type="text"
+                className="edit-input-field"
+                placeholder="Місто, вулиця, номер будинку"
+                value={user.address || ""}
+                onChange={(e) =>
+                  setUser((prev) => ({ ...prev, address: e.target.value }))
+                }
+                style={{ marginBottom: "16px" }}
+              />
+              <button
+                className="btn-save"
+                onClick={async () => {
+                  setIsSaving(true);
+                  try {
+                    const res = await api.put("/profile", {
+                      address: user.address,
+                    });
+                    updateUser({ address: res.data.address });
+                    alert("Адресу збережено!");
+                  } catch {
+                    alert("Помилка збереження адреси");
+                  } finally {
+                    setIsSaving(false);
+                  }
+                }}
+                disabled={isSaving}
+              >
+                {isSaving ? "Збереження..." : "Зберегти адресу"}
+              </button>
+            </div>
+          )}
+
+          {/* ===== ІСТОРІЯ ПОКУПОК ===== */}
+          {activeView === "orders" && (
+            <div className="section-block">
+              <h2 className="section-title">Історія покупок</h2>
+              {ordersLoading ? (
+                <p style={{ color: "#888" }}>Завантаження...</p>
+              ) : orders.length === 0 ? (
+                <p style={{ color: "#888" }}>У вас ще немає замовлень.</p>
+              ) : (
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "16px",
+                  }}
+                >
+                  {orders.map((order) => (
+                    <div
+                      key={order.id}
+                      style={{
+                        border: "1px solid #e5e5e5",
+                        borderRadius: "12px",
+                        padding: "16px 20px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          marginBottom: "8px",
+                        }}
+                      >
+                        <span style={{ fontWeight: "700" }}>
+                          Замовлення #{order.id}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: "13px",
+                            color:
+                              order.status === "completed"
+                                ? "#2e7d32"
+                                : "#8E1616",
+                            fontWeight: "600",
+                          }}
+                        >
+                          {order.status === "pending" && "Очікує"}
+                          {order.status === "processing" && "Обробляється"}
+                          {order.status === "completed" && "Виконано"}
+                          {order.status === "cancelled" && "Скасовано"}
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "13px",
+                          color: "#666",
+                          marginBottom: "8px",
+                        }}
+                      >
+                        {new Date(order.createdAt).toLocaleDateString("uk-UA")}{" "}
+                        · {order.address}
+                      </div>
+                      <div style={{ fontSize: "13px", color: "#333" }}>
+                        {order.items.map((item) => (
+                          <span key={item.id}>
+                            {item.name} ×{item.quantity};{" "}
+                          </span>
+                        ))}
+                      </div>
+                      <div
+                        style={{
+                          marginTop: "8px",
+                          fontWeight: "700",
+                          color: "#8E1616",
+                        }}
+                      >
+                        {order.total.toFixed(2)} грн
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
