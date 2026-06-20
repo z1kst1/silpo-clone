@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { useCart } from "../context/CartContext";
 import api from "../api/api";
+import { createCheckoutSession } from "../api/stripe";
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
@@ -47,8 +48,6 @@ export default function CheckoutPage() {
     try {
       // ✅ Поля приведені у відповідність до схеми Prisma Ярослава:
       // Order { total, address, status, paymentMethod, comment, items: OrderItem[] }
-      // customerName/Phone/Email не зберігаються окремо — бекенд бере їх
-      // з User через userId (токен авторизації), тому тут не передаємо.
       const orderData = {
         items: cartItems.map((item) => ({
           productId: item.id,
@@ -62,12 +61,32 @@ export default function CheckoutPage() {
         paymentMethod: form.paymentMethod,
       };
 
+      // ✅ Якщо обрана "Картка онлайн" — створюємо замовлення зі статусом
+      // "очікує оплати" і одразу перенаправляємо на Stripe Checkout.
+      // Якщо готівка/термінал — як раніше, відразу підтверджуємо замовлення.
+      if (form.paymentMethod === "card") {
+        const order = await api.post("/orders", orderData);
+        const orderId = order.data.id;
+
+        const session = await createCheckoutSession({
+          orderId,
+          items: cartItems.map((item) => ({
+            name: item.name || item.title,
+            price: Number(item.price),
+            quantity: item.quantity,
+          })),
+        });
+
+        // Stripe Checkout сам редіректить на свою сторінку оплати.
+        // Картку приймає лише ВІН (тестова картка 4242 4242 4242 4242),
+        // дані картки ніколи не проходять через наш сервер.
+        window.location.href = session.url;
+        return;
+      }
+
+      // Готівка / термінал при отриманні — без оплати онлайн
       await api.post("/orders", orderData);
-
-      // Очищаємо кошик після успішного замовлення
       await clearCart();
-
-      // Перенаправляємо на сторінку успіху
       navigate("/order-success");
     } catch (err) {
       console.error("Помилка оформлення:", err);
@@ -208,6 +227,18 @@ export default function CheckoutPage() {
                     </label>
                   ))}
                 </div>
+
+                {/* ✅ Підказка про тестову оплату Stripe — щоб на демонстрації
+                    було зрозуміло звідки взяти номер картки */}
+                {form.paymentMethod === "card" && (
+                  <div style={{ marginTop: "16px", padding: "14px 16px", backgroundColor: "#eff6ff", borderRadius: "12px", border: "1px solid #bfdbfe" }}>
+                    <p style={{ fontSize: "13px", color: "#1e40af", margin: 0, lineHeight: "1.5" }}>
+                      💳 Оплата через Stripe (тестовий режим). Для перевірки введіть
+                      номер картки <strong>4242 4242 4242 4242</strong>, будь-яку
+                      майбутню дату та будь-який CVC.
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* КОМЕНТАР */}
@@ -277,7 +308,9 @@ export default function CheckoutPage() {
                   disabled={isSubmitting}
                   style={{ width: "100%", backgroundColor: isSubmitting ? "#9ca3af" : "#10b981", color: "#fff", border: "none", borderRadius: "16px", padding: "16px", fontSize: "16px", fontWeight: "700", cursor: isSubmitting ? "not-allowed" : "pointer" }}
                 >
-                  {isSubmitting ? "Оформляємо..." : "Підтвердити замовлення"}
+                  {isSubmitting
+                    ? (form.paymentMethod === "card" ? "Перенаправлення на оплату..." : "Оформляємо...")
+                    : (form.paymentMethod === "card" ? "Перейти до оплати" : "Підтвердити замовлення")}
                 </button>
 
                 <p style={{ fontSize: "12px", color: "#888", textAlign: "center", marginTop: "12px", lineHeight: "1.4" }}>
