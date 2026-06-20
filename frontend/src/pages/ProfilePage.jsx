@@ -540,224 +540,237 @@ export default function ProfilePage() {
           {activeView === "myData" && (
             <div className="details-view">
 
+              {/* ШАПКА */}
               <div className="details-header-text">
                 <h2>Мої дані</h2>
                 <p>Особиста інформація та контакти</p>
               </div>
 
-              {/* АВАТАР */}
+              {/* АВАТАР ПО ЦЕНТРУ */}
               <div className="details-avatar-container">
                 <div
                   className="details-avatar"
                   onClick={handleAvatarClick}
                   style={{ cursor: "pointer", padding: 0 }}
-                  title={
-                    user.avatar
-                      ? "Натисніть, щоб змінити фото"
-                      : "Натисніть, щоб додати фото"
-                  }
+                  title={user.avatar ? "Натисніть, щоб змінити фото" : "Натисніть, щоб додати фото"}
                 >
                   {user.avatar ? (
-                    <img
-                      src={user.avatar}
-                      alt="Avatar"
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        borderRadius: "50%",
-                        objectFit: "cover",
-                      }}
-                    />
+                    <img src={user.avatar} alt="Avatar"
+                      style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
                   ) : (
-                    <svg
-                      width="36"
-                      height="36"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="#666"
-                      strokeWidth="2"
-                    >
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2">
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                       <circle cx="12" cy="7" r="4" />
                     </svg>
                   )}
-
                   {user.avatar ? (
-                    <button
-                      className="avatar-action-btn remove"
-                      onClick={handleRemoveAvatar}
-                      title="Видалити фото"
-                    >
-                      ×
-                    </button>
+                    <button className="avatar-action-btn remove" onClick={handleRemoveAvatar} title="Видалити фото">×</button>
                   ) : (
-                    <button className="avatar-action-btn add" title="Додати фото">
-                      +
-                    </button>
+                    <button className="avatar-action-btn add" title="Додати фото">+</button>
                   )}
-
-                  <input
-                    type="file"
-                    accept="image/*"
-                    ref={fileInputRef}
-                    onChange={handleFileChange}
-                    style={{ display: "none" }}
-                  />
+                  <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileChange} style={{ display: "none" }} />
                 </div>
               </div>
 
+              {/* ДВОКОЛОНКОВИЙ ГРІД */}
               <div className="details-cards-wrapper">
 
-                {/* БЛОК 1: ПЕРСОНАЛЬНА ІНФОРМАЦІЯ */}
-                <div className="details-block">
-                  <div className="details-block-header">
-                    <div className="details-icon-solid">
-                      <svg
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="white"
-                        strokeWidth="2"
-                      >
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                        <circle cx="12" cy="7" r="4" />
-                      </svg>
-                    </div>
-                    <h3>Персональна інформація</h3>
-                  </div>
+                {/* ЛІВА КОЛОНКА */}
+                <div className="details-col-left">
 
-                  <div className="details-list">
-                    <div
-                      className="details-list-item"
-                      onClick={() => openEdit("editName")}
-                    >
-                      <div className="details-item-content">
-                        <span className="details-label">Прізвище, ім'я</span>
-                        <strong className="details-value">{fullName}</strong>
-                      </div>
-                      <span className="details-action arrow">❯</span>
-                    </div>
-
-                    <div
-                      className="details-list-item"
-                      onClick={() => openEdit("editBirthDate")}
-                    >
-                      <div className="details-item-content">
-                        <span className="details-label">Дата народження</span>
-                        {user.birthDate ? (
-                          <strong className="details-value">
-                            {user.birthDate}
-                          </strong>
-                        ) : null}
-                      </div>
-                      <span
-                        className={`details-action ${user.birthDate ? "arrow" : ""}`}
-                      >
-                        {user.birthDate ? "❯" : "+"}
-                      </span>
-                    </div>
-
-                    <div
-                      className="details-list-item"
-                      onClick={() => openEdit("editGender")}
-                    >
-                      <div className="details-item-content">
-                        <span className="details-label">Стать</span>
-                        <strong className="details-value">{user.gender}</strong>
-                      </div>
-                      <span className="details-action arrow">❯</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* БЛОК 2: КОНТАКТИ */}
-                <div className="details-block">
-                  <div className="details-block-header">
-                    <div className="details-icon-solid">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                        <polyline points="14 2 14 8 20 8" />
-                        <line x1="16" y1="13" x2="8" y2="13" />
-                        <line x1="16" y1="17" x2="8" y2="17" />
-                        <polyline points="10 9 9 9 8 9" />
-                      </svg>
-                    </div>
-                    <h3>Контакти</h3>
-                  </div>
-
-                  <div className="details-list">
-                    <div className="details-list-item" onClick={() => openEdit("editPhone")}>
-                      <div className="details-item-content">
-                        <span className="details-label">Телефон</span>
-                        <strong className="details-value">{user.phone || "Не вказано"}</strong>
-                      </div>
-                      <span className="details-action pencil-icon">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8E1616" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M12 20h9"></path>
-                          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                  {/* БЛОК 1: ПЕРСОНАЛЬНА ІНФОРМАЦІЯ */}
+                  <div className="details-block">
+                    <div className="details-block-header">
+                      <div className="details-icon-solid">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                          <circle cx="12" cy="7" r="4" />
                         </svg>
-                      </span>
-                    </div>
-
-                    <div className="details-list-item" onClick={() => openEdit("editEmail")}>
-                      <div className="details-item-content">
-                        <span className="details-label">Електронна пошта</span>
-                        <strong className="details-value">{user.email}</strong>
                       </div>
-                      <span className="details-action pencil-icon">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8E1616" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M12 20h9"></path>
-                          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                      <h3>Персональна інформація</h3>
+                    </div>
+
+                    <div className="details-list">
+                      <div className="details-list-item" onClick={() => openEdit("editName")}>
+                        <div className="details-item-content">
+                          <span className="details-label">Прізвище, ім'я</span>
+                          <strong className="details-value">{fullName}</strong>
+                        </div>
+                        <span className="details-action pencil-icon">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8E1616" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                          </svg>
+                        </span>
+                      </div>
+
+                      <div className="details-list-item" onClick={() => openEdit("editBirthDate")}>
+                        <div className="details-item-content">
+                          <span className="details-label">Дата народження</span>
+                          {user.birthDate && <strong className="details-value">{user.birthDate}</strong>}
+                        </div>
+                        <span className={`details-action ${user.birthDate ? "pencil-icon" : ""}`}>
+                          {user.birthDate ? (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8E1616" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                            </svg>
+                          ) : "+"}
+                        </span>
+                      </div>
+
+                      <div className="details-list-item" onClick={() => openEdit("editGender")}>
+                        <div className="details-item-content">
+                          <span className="details-label">Стать</span>
+                          <strong className="details-value">{user.gender}</strong>
+                        </div>
+                        <span className="details-action pencil-icon">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8E1616" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                          </svg>
+                        </span>
+                      </div>
+
+                      <div className="details-list-item" onClick={() => openEdit("editCity")}>
+                        <div className="details-item-content">
+                          <span className="details-label">Місто</span>
+                          <strong className="details-value">{user.city || "Не вказано"}</strong>
+                        </div>
+                        <span className="details-action pencil-icon">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8E1616" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                          </svg>
+                        </span>
+                      </div>
+
+                      <div className="details-list-item no-hover">
+                        <div className="details-item-content">
+                          <span className="details-label">Мова</span>
+                          <strong className="details-value">Українська</strong>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* БЛОК "МОЇ ІНТЕРЕСИ" */}
+                  <div className="details-block interests-block">
+                    <div className="details-block-header">
+                      <div className="details-icon-solid interests-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                         </svg>
-                      </span>
+                      </div>
+                      <h3>Мої інтереси</h3>
+                    </div>
+                    <div className="interests-list">
+                      {[
+                        { label: "Здорове харчування", img: "/images/figma/icons/categories/healthy.svg",  emoji: "🍎" },
+                        { label: "Еко продукти",       img: "/images/figma/icons/categories/eco.svg",     emoji: "🌿" },
+                        { label: "Солодощі",           img: "/images/figma/icons/categories/sweets.svg",  emoji: "🧁" },
+                        { label: "Кава",               img: "/images/figma/icons/categories/coffee.svg",  emoji: "☕" },
+                        { label: "Товари для дому",    img: "/images/figma/icons/categories/home.svg",    emoji: "🏠" },
+                      ].map((item) => (
+                        <div className="interest-item" key={item.label}>
+                          <div className="interest-icon-circle">
+                            <img
+                              src={item.img}
+                              alt={item.label}
+                              onError={(e) => {
+                                e.target.style.display = "none";
+                                e.target.nextSibling.style.display = "block";
+                              }}
+                            />
+                            <span className="interest-emoji" style={{ display: "none" }}>{item.emoji}</span>
+                          </div>
+                          <span className="interest-label">{item.label}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
+
                 </div>
 
-                {/* БЛОК 3: ВАША ЗНИЖКА */}
-                <div className="details-block discount-block">
-                  <div className="discount-content">
-                    <p className="discount-label">Ваша знижка</p>
-                    <p className="discount-value">-7%</p>
-                    <p className="discount-tier">Новий покупець</p>
-                  </div>
-                  <div className="discount-leaves" aria-hidden="true">
-                    <svg width="110" height="100" viewBox="0 0 110 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <ellipse cx="80" cy="55" rx="38" ry="22" rx="38" ry="22" fill="#E8B4A0" fillOpacity="0.35" transform="rotate(-30 80 55)" />
-                      <ellipse cx="68" cy="72" rx="28" ry="14" fill="#D4866A" fillOpacity="0.25" transform="rotate(-50 68 72)" />
-                      <ellipse cx="90" cy="38" rx="22" ry="11" fill="#C87858" fillOpacity="0.2" transform="rotate(-10 90 38)" />
-                      <line x1="80" y1="30" x2="65" y2="78" stroke="#C87858" strokeOpacity="0.3" strokeWidth="1.5" strokeLinecap="round"/>
-                      <line x1="80" y1="30" x2="90" y2="72" stroke="#C87858" strokeOpacity="0.2" strokeWidth="1" strokeLinecap="round"/>
-                    </svg>
-                  </div>
-                </div>
+                {/* ПРАВА КОЛОНКА */}
+                <div className="details-col-right">
 
-                {/* БЛОК 4: ВАША СТАТИСТИКА */}
-                <div className="details-block stats-block">
-                  <div className="stats-block-header">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8E1616" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
-                      <line x1="6" y1="20" x2="6" y2="14"/>
-                    </svg>
-                    <span>Ваша статистика</span>
+                  {/* БЛОК 2: КОНТАКТИ */}
+                  <div className="details-block">
+                    <div className="details-block-header">
+                      <div className="details-icon-solid">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                          <polyline points="14 2 14 8 20 8" />
+                          <line x1="16" y1="13" x2="8" y2="13" />
+                          <line x1="16" y1="17" x2="8" y2="17" />
+                        </svg>
+                      </div>
+                      <h3>Контакти</h3>
+                    </div>
+
+                    <div className="details-list">
+                      <div className="details-list-item" onClick={() => openEdit("editPhone")}>
+                        <div className="details-item-content">
+                          <span className="details-label">Телефон</span>
+                          <strong className="details-value">{user.phone || "Не вказано"}</strong>
+                        </div>
+                        <span className="details-action pencil-icon">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8E1616" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                          </svg>
+                        </span>
+                      </div>
+
+                      <div className="details-list-item" onClick={() => openEdit("editEmail")}>
+                        <div className="details-item-content">
+                          <span className="details-label">Електронна пошта</span>
+                          <strong className="details-value">{user.email}</strong>
+                        </div>
+                        <span className="details-action pencil-icon">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8E1616" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                          </svg>
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="stats-grid">
-                    <div className="stats-item">
-                      <strong>{orders.length}</strong>
-                      <span>Замовлень</span>
+
+                  {/* БЛОК 3: ВАША ЗНИЖКА */}
+                  <div className="details-block discount-block">
+                    <div className="discount-content">
+                      <p className="discount-label">Ваша знижка</p>
+                      <p className="discount-value">-7%</p>
+                      <p className="discount-tier">Новий покупець</p>
                     </div>
-                    <div className="stats-item">
-                      <strong>
-                        {orders.reduce((sum, o) => sum + Number(o.totalPrice || 0), 0).toFixed(2)} грн
-                      </strong>
-                      <span>Всього витрачено</span>
+                    <img
+                      className="discount-leaves"
+                      src="/images/figma/discount-leaves.png"
+                      alt=""
+                    />
+                  </div>
+
+                  {/* БЛОК 4: ВАША СТАТИСТИКА */}
+                  <div className="details-block stats-block">
+                    <div className="stats-block-header">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8E1616" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+                        <line x1="6" y1="20" x2="6" y2="14"/>
+                      </svg>
+                      <span>Ваша статистика</span>
                     </div>
-                    <div className="stats-item">
-                      <strong>1 місяць</strong>
-                      <span>З нами</span>
+                    <div className="stats-grid">
+                      <div className="stats-item">
+                        <strong>{orders.length}</strong>
+                        <span>Замовлень</span>
+                      </div>
+                      <div className="stats-item">
+                        <strong>{orders.reduce((sum, o) => sum + Number(o.totalPrice || 0), 0).toFixed(2)} грн</strong>
+                        <span>Всього витрачено</span>
+                      </div>
+                      <div className="stats-item">
+                        <strong>1 місяць</strong>
+                        <span>З нами</span>
+                      </div>
                     </div>
                   </div>
+
                 </div>
 
               </div>
@@ -913,6 +926,17 @@ export default function ProfilePage() {
                 <div className="modal-inputs">
                   <input type="tel" name="phone" placeholder="+380..."
                     value={editData.phone || ""} onChange={handleEditChange} className="modal-input" />
+                </div>
+              </>
+            )}
+
+            {/* МІСТО */}
+            {activeModal === "editCity" && (
+              <>
+                <h2 className="modal-title">Місто</h2>
+                <div className="modal-inputs">
+                  <input type="text" name="city" placeholder="Ваше місто"
+                    value={editData.city || ""} onChange={handleEditChange} className="modal-input" />
                 </div>
               </>
             )}
