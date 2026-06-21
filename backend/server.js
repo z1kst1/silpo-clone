@@ -11,6 +11,7 @@ const { Pool } = require("pg");
 
 const cloudinary = require("cloudinary").v2;
 const nodemailer = require("nodemailer");
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
@@ -18,11 +19,53 @@ const prisma = new PrismaClient({ adapter });
 
 const app = express();
 app.use(cors({ origin: true, credentials: true }));
+
+// Stripe webhook ПОВИНЕН йти ДО express.json(),
+// бо Stripe вимагає сирий (raw) body для перевірки підпису
+app.post(
+  "/api/payments/webhook",
+  express.raw({ type: "application/json" }),
+  async (req, res) => {
+    const sig = req.headers["stripe-signature"];
+    let event;
+
+    try {
+      event = stripe.webhooks.constructEvent(
+        req.body,
+        sig,
+        process.env.STRIPE_WEBHOOK_SECRET,
+      );
+    } catch (err) {
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    if (event.type === "checkout.session.completed") {
+      const session = event.data.object;
+      const orderId = session.metadata?.orderId;
+
+      if (orderId) {
+        await prisma.order
+          .update({
+            where: { id: Number(orderId) },
+            data: { status: "paid" },
+          })
+          .catch((err) =>
+            console.error("WEBHOOK: не вдалося оновити замовлення", err),
+          );
+      }
+    }
+
+    res.json({ received: true });
+  },
+);
+
 app.use(express.json());
 
 const JWT_SECRET = process.env.JWT_SECRET;
+const REFRESH_SECRET =
+  process.env.REFRESH_SECRET || process.env.JWT_SECRET + "_refresh";
 const JWT_EXPIRES_IN = "15m";
-const REFRESH_EXPIRES_DAYS = 7;
+const REFRESH_EXPIRES_IN = "7d";
 
 const cartRoutes = require("./routes/cart");
 const authMiddleware = require("./middleware/authMiddleware");
@@ -53,12 +96,10 @@ function generateAccessToken(user) {
   );
 }
 
-async function generateRefreshToken(userId) {
-  const token = crypto.randomBytes(64).toString("hex");
-  const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + REFRESH_EXPIRES_DAYS);
-  await prisma.refreshToken.create({ data: { token, userId, expiresAt } });
-  return token;
+function generateRefreshToken(user) {
+  return jwt.sign({ userId: user.id, email: user.email }, REFRESH_SECRET, {
+    expiresIn: REFRESH_EXPIRES_IN,
+  });
 }
 
 function formatUser(user) {
@@ -70,6 +111,7 @@ function formatUser(user) {
     phone: user.phone || null,
     birthDate: user.birthDate || null,
     gender: user.gender || null,
+    address: user.address || null,
     isAdmin: user.isAdmin,
   };
 }
@@ -100,7 +142,7 @@ app.post("/api/auth/register", async (req, res) => {
     });
 
     const accessToken = generateAccessToken(user);
-    const refreshToken = await generateRefreshToken(user.id);
+    const refreshToken = generateRefreshToken(user);
 
     res.status(201).json({
       message: "Реєстрація успішна",
@@ -134,7 +176,7 @@ app.post("/api/auth/login", async (req, res) => {
       return res.status(401).json({ error: "Невірний пароль" });
 
     const accessToken = generateAccessToken(user);
-    const refreshToken = await generateRefreshToken(user.id);
+    const refreshToken = generateRefreshToken(user);
 
     res.json({
       message: "Успішний вхід",
@@ -149,7 +191,7 @@ app.post("/api/auth/login", async (req, res) => {
 });
 
 // ==========================================
-// REFRESH TOKEN
+// REFRESH TOKEN (JWT, без зберігання в БД)
 // ==========================================
 
 app.post("/api/auth/refresh", async (req, res) => {
@@ -158,23 +200,23 @@ app.post("/api/auth/refresh", async (req, res) => {
     if (!refreshToken)
       return res.status(400).json({ error: "Refresh token відсутній" });
 
-    const tokenRecord = await prisma.refreshToken.findUnique({
-      where: { token: refreshToken },
-      include: { user: true },
-    });
-
-    if (!tokenRecord)
-      return res.status(401).json({ error: "Невалідний refresh token" });
-
-    if (tokenRecord.expiresAt < new Date()) {
-      await prisma.refreshToken.delete({ where: { token: refreshToken } });
-      return res.status(401).json({ error: "Refresh token протермінований" });
+    let payload;
+    try {
+      payload = jwt.verify(refreshToken, REFRESH_SECRET);
+    } catch {
+      return res
+        .status(401)
+        .json({ error: "Невалідний або протермінований refresh token" });
     }
 
-    await prisma.refreshToken.delete({ where: { token: refreshToken } });
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+    });
+    if (!user)
+      return res.status(401).json({ error: "Користувача не знайдено" });
 
-    const newAccessToken = generateAccessToken(tokenRecord.user);
-    const newRefreshToken = await generateRefreshToken(tokenRecord.user.id);
+    const newAccessToken = generateAccessToken(user);
+    const newRefreshToken = generateRefreshToken(user);
 
     res.json({ accessToken: newAccessToken, refreshToken: newRefreshToken });
   } catch (error) {
@@ -188,15 +230,9 @@ app.post("/api/auth/refresh", async (req, res) => {
 // ==========================================
 
 app.post("/api/auth/logout", async (req, res) => {
-  try {
-    const { refreshToken } = req.body;
-    if (refreshToken) {
-      await prisma.refreshToken.deleteMany({ where: { token: refreshToken } });
-    }
-    res.json({ message: "Вихід виконано" });
-  } catch (error) {
-    res.status(500).json({ error: "Помилка виходу" });
-  }
+  // JWT refresh токени не зберігаються в БД,
+  // тому logout просто повідомляє клієнту видалити токени
+  res.json({ message: "Вихід виконано" });
 });
 
 // ==========================================
@@ -219,26 +255,21 @@ app.post("/api/auth/forgot-password", async (req, res) => {
   try {
     const user = await prisma.user.findUnique({ where: { email } });
 
-    // Не розкриваємо чи існує email — відповідь однакова
     if (!user) {
       return res.json({
         message: "Якщо такий email існує, ми надішлемо інструкції",
       });
     }
 
-    // Видаляємо старі токени цього юзера
     await prisma.passwordResetToken.deleteMany({ where: { userId: user.id } });
 
-    // Генеруємо новий токен
     const resetToken = crypto.randomBytes(32).toString("hex");
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 година
 
-    // Зберігаємо в БД
     await prisma.passwordResetToken.create({
       data: { token: resetToken, userId: user.id, expiresAt },
     });
 
-    // Відправляємо email
     await transporter.sendMail({
       from: `"Kalpo Shop" <${process.env.EMAIL_USER}>`,
       to: email,
@@ -280,7 +311,6 @@ app.post("/api/auth/reset-password", async (req, res) => {
   }
 
   try {
-    // Шукаємо токен в БД
     const record = await prisma.passwordResetToken.findUnique({
       where: { token },
     });
@@ -294,14 +324,12 @@ app.post("/api/auth/reset-password", async (req, res) => {
       return res.status(400).json({ error: "Токен протермінований" });
     }
 
-    // Оновлюємо пароль
     const hashedPassword = await bcrypt.hash(password, 10);
     await prisma.user.update({
       where: { id: record.userId },
       data: { password: hashedPassword },
     });
 
-    // Видаляємо використаний токен
     await prisma.passwordResetToken.delete({ where: { token } });
 
     res.json({ message: "Пароль успішно змінено" });
@@ -334,7 +362,7 @@ app.get("/api/auth/me", authMiddleware, getProfile);
 
 app.put("/api/profile", authMiddleware, async (req, res) => {
   try {
-    const { firstName, lastName, phone, birthDate, gender } = req.body;
+    const { firstName, lastName, phone, birthDate, gender, address } = req.body;
     const updatedUser = await prisma.user.update({
       where: { id: req.user.userId },
       data: {
@@ -342,6 +370,7 @@ app.put("/api/profile", authMiddleware, async (req, res) => {
         lastName,
         phone,
         gender,
+        address: address ?? undefined,
         birthDate: birthDate ? new Date(birthDate) : null,
       },
     });
@@ -726,7 +755,6 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Зберігаємо файл в пам'яті (не на диск)
 const storage = multer.memoryStorage();
 
 const upload = multer({
@@ -742,7 +770,6 @@ const upload = multer({
   },
 });
 
-// Роут завантаження
 app.post(
   "/api/upload",
   authMiddleware,
@@ -752,7 +779,6 @@ app.post(
       if (!req.file)
         return res.status(400).json({ error: "Файл не завантажено" });
 
-      // Завантажуємо в Cloudinary
       const result = await new Promise((resolve, reject) => {
         cloudinary.uploader
           .upload_stream(
@@ -772,6 +798,69 @@ app.post(
     }
   },
 );
+
+// ==========================================
+// STRIPE ПЛАТЕЖІ
+// ==========================================
+
+app.post(
+  "/api/payments/create-checkout-session",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const { orderId, items } = req.body;
+
+      if (!items || items.length === 0) {
+        return res.status(400).json({ error: "Кошик порожній" });
+      }
+
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ["card"],
+        mode: "payment",
+        line_items: items.map((item) => ({
+          price_data: {
+            currency: "uah",
+            product_data: { name: item.name },
+            unit_amount: Math.round(item.price * 100), // копійки
+          },
+          quantity: item.quantity,
+        })),
+        success_url: `${process.env.FRONTEND_URL}/order-success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${process.env.FRONTEND_URL}/checkout`,
+        metadata: { orderId: orderId ? String(orderId) : "" },
+      });
+
+      res.json({ url: session.url });
+    } catch (error) {
+      console.error("STRIPE CREATE SESSION ERROR:", error);
+      res.status(500).json({ error: "Не вдалося створити сесію оплати" });
+    }
+  },
+);
+
+app.get("/api/payments/verify-session", authMiddleware, async (req, res) => {
+  try {
+    const { session_id } = req.query;
+    if (!session_id) {
+      return res.status(400).json({ error: "session_id відсутній" });
+    }
+
+    const session = await stripe.checkout.sessions.retrieve(session_id);
+    const paid = session.payment_status === "paid";
+
+    if (paid && session.metadata?.orderId) {
+      await prisma.order.update({
+        where: { id: Number(session.metadata.orderId) },
+        data: { status: "paid" },
+      });
+    }
+
+    res.json({ paid, orderId: session.metadata?.orderId || null });
+  } catch (error) {
+    console.error("STRIPE VERIFY SESSION ERROR:", error);
+    res.status(500).json({ error: "Не вдалося перевірити оплату" });
+  }
+});
 
 // ==========================================
 // СТАРТ
