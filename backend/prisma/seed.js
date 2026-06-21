@@ -1,0 +1,138 @@
+require('dotenv').config();
+const { PrismaClient } = require('@prisma/client');
+const { PrismaPg } = require('@prisma/adapter-pg');
+const { Pool } = require('pg');
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
+
+const products = [
+  // М'ясо (6 товарів)
+  { name: "Філе куряче охолоджене", price: 89.90, category: "М'ясо", image: "/images/figma/products/chicken.png", description: "Свіже куряче філе без кісток.", rating: 4.5 },
+  { name: "Стейк яловичий охолоджений", price: 189.90, category: "М'ясо", image: "", description: "Соковитий яловичий стейк.", rating: 4.3 },
+  { name: "Свинина, шийка охолоджена", price: 139.90, category: "М'ясо", image: "", description: "М'яка свиняча шийка для запікання.", rating: 4.1 },
+  { name: "Фарш курячий охолоджений", price: 74.90, category: "М'ясо", image: "", description: "Свіжий курячий фарш.", rating: 4.0 },
+  { name: "Крила курячі охолоджені", price: 64.90, category: "М'ясо", image: "", description: "Соковиті курячі крила.", rating: 4.2 },
+  { name: "Яловичина, вирізка охолоджена", price: 219.90, category: "М'ясо", image: "", description: "Ніжна яловича вирізка.", rating: 4.6 },
+
+  // Свіжа риба (8 товарів)
+  { name: "Сьомга, стейк охолоджений", price: 94.90, category: "Свіжа риба", image: "/images/figma/products/fish/fish-1.jpg", description: "Свіжий стейк сьомги.", rating: 4.3 },
+  { name: "Сьомга (лосось) філе охолоджене", price: 109.90, category: "Свіжа риба", image: "/images/figma/products/fish/fish-2.jpg", description: "Ніжне філе сьомги без кісток.", rating: 3.9 },
+  { name: "Форель, стейк охолоджений", price: 98.89, category: "Свіжа риба", image: "/images/figma/products/fish/fish-3.jpg", description: "Стейк форелі преміум якості.", rating: 4.3 },
+  { name: "Форель, філе охолоджене", price: 109.90, category: "Свіжа риба", image: "/images/figma/products/fish/fish-4.jpg", description: "Свіже філе форелі.", rating: 3.9 },
+  { name: "Голець арктичний охолоджений", price: 109.90, category: "Свіжа риба", image: "/images/figma/products/fish/fish-5.jpg", description: "Арктичний голець.", rating: 4.1 },
+  { name: "Форель, філе в упаковці", price: 119.90, category: "Свіжа риба", image: "/images/figma/products/fish/fish-6.jpg", description: "Філе форелі у вакуумній упаковці.", rating: 3.4 },
+  { name: "Лосось шотландський, стейки", price: 259.90, category: "Свіжа риба", image: "/images/figma/products/fish/fish-7.jpg", description: "Преміальний лосось.", rating: 4.8 },
+  { name: "Лосось, хребти дефростовані", price: 16.90, category: "Свіжа риба", image: "/images/figma/products/fish/fish-8.jpg", description: "Хребти лосося для бульйонів.", rating: 3.4 },
+
+  // Фрукти, овочі (8 товарів)
+  { name: "Виноград білий без кісточки", price: 120.12, category: "Фрукти, овочі", image: "/images/figma/products/grapes.png", description: "Соковитий білий виноград.", rating: 4.4 },
+  { name: "Томати чері свіжі", price: 72.53, category: "Фрукти, овочі", image: "/images/figma/products/tomatoes.png", description: "Свіжі томати чері.", rating: 4.2 },
+  { name: "Банани свіжі", price: 45.90, category: "Фрукти, овочі", image: "", description: "Стиглі банани.", rating: 4.0 },
+  { name: "Яблука Голден свіжі", price: 38.90, category: "Фрукти, овочі", image: "", description: "Солодкі яблука сорту Голден.", rating: 4.1 },
+  { name: "Апельсини свіжі 1кг", price: 59.90, category: "Фрукти, овочі", image: "", description: "Соковиті апельсини.", rating: 4.3 },
+  { name: "Огірки свіжі", price: 34.90, category: "Фрукти, овочі", image: "", description: "Хрусткі свіжі огірки.", rating: 4.1 },
+  { name: "Перець болгарський червоний", price: 49.90, category: "Фрукти, овочі", image: "", description: "Соковитий болгарський перець.", rating: 4.2 },
+  { name: "Картопля молода 1кг", price: 28.90, category: "Фрукти, овочі", image: "", description: "Свіжа молода картопля.", rating: 4.0 },
+
+  // Молочка та яйця (7 товарів)
+  { name: "Молоко Галичина 2.5%", price: 42.90, category: "Молочка та яйця", image: "", description: "Пастеризоване молоко.", rating: 4.5 },
+  { name: "Яйця курячі С1, 10 шт", price: 64.90, category: "Молочка та яйця", image: "", description: "Свіжі курячі яйця.", rating: 4.3 },
+  { name: "Сметана 20% Президент", price: 38.90, category: "Молочка та яйця", image: "", description: "Густа сметана.", rating: 4.2 },
+  { name: "Кефір 1% Яготинський", price: 29.90, category: "Молочка та яйця", image: "", description: "Легкий кефір.", rating: 4.0 },
+  { name: "Масло вершкове 82.5% 200г", price: 89.90, category: "Молочка та яйця", image: "", description: "Натуральне вершкове масло.", rating: 4.6 },
+  { name: "Йогурт Activia натуральний", price: 34.90, category: "Молочка та яйця", image: "", description: "Корисний натуральний йогурт.", rating: 4.4 },
+  { name: "Вершки 33% для збивання", price: 54.90, category: "Молочка та яйця", image: "", description: "Жирні вершки для десертів.", rating: 4.5 },
+
+  // Сири (5 товарів)
+  { name: "Сир Гауда нарізка", price: 89.90, category: "Сири", image: "", description: "Ніжний сир Гауда.", rating: 4.3 },
+  { name: "Сир Моцарела куля", price: 74.90, category: "Сири", image: "", description: "Свіжа моцарела.", rating: 4.6 },
+  { name: "Сир Пармезан тертий 100г", price: 129.90, category: "Сири", image: "", description: "Тертий пармезан.", rating: 4.7 },
+  { name: "Сир Брі м'який 125г", price: 149.90, category: "Сири", image: "", description: "Вершковий сир Брі.", rating: 4.4 },
+  { name: "Сир Чеддер нарізка", price: 99.90, category: "Сири", image: "", description: "Пікантний сир Чеддер.", rating: 4.3 },
+
+  // Хліб та випічка (6 товарів)
+  { name: "Хліб Бородинський", price: 28.90, category: "Хліб та випічка", image: "", description: "Житній хліб.", rating: 4.5 },
+  { name: "Батон нарізний", price: 22.90, category: "Хліб та випічка", image: "", description: "М'який пшеничний батон.", rating: 4.2 },
+  { name: "Круасан масляний", price: 18.90, category: "Хліб та випічка", image: "", description: "Листковий круасан.", rating: 4.6 },
+  { name: "Булочки для бургера 4 шт", price: 34.90, category: "Хліб та випічка", image: "", description: "М'які булочки.", rating: 4.1 },
+  { name: "Хліб цільнозерновий", price: 32.90, category: "Хліб та випічка", image: "", description: "Корисний цільнозерновий хліб.", rating: 4.4 },
+  { name: "Лаваш тонкий вірменський", price: 24.90, category: "Хліб та випічка", image: "", description: "Тонкий лаваш.", rating: 4.2 },
+
+  // Ковбаси та делікатеси (6 товарів)
+  { name: "Ковбаса Докторська варена", price: 94.90, category: "Ковбаси та делікатеси", image: "", description: "Класична варена ковбаса.", rating: 4.2 },
+  { name: "Шинка свиняча копчена", price: 189.90, category: "Ковбаси та делікатеси", image: "", description: "Копчена свиняча шинка.", rating: 4.5 },
+  { name: "Салямі Мілано нарізка", price: 149.90, category: "Ковбаси та делікатеси", image: "", description: "Італійська салямі.", rating: 4.4 },
+  { name: "Сосиски Молочні 5 шт", price: 64.90, category: "Ковбаси та делікатеси", image: "", description: "Ніжні молочні сосиски.", rating: 4.0 },
+  { name: "Бекон копчений нарізка", price: 119.90, category: "Ковбаси та делікатеси", image: "", description: "Ароматний копчений бекон.", rating: 4.5 },
+  { name: "Паштет курячий 200г", price: 54.90, category: "Ковбаси та делікатеси", image: "", description: "Ніжний курячий паштет.", rating: 4.1 },
+
+  // Готові страви і кулінарія (6 товарів)
+  { name: "Піца Маргарита заморожена", price: 129.90, category: "Готові страви і кулінарія", image: "", description: "Класична піца.", rating: 4.1 },
+  { name: "Вареники з картоплею 500г", price: 74.90, category: "Готові страви і кулінарія", image: "", description: "Домашні вареники.", rating: 4.4 },
+  { name: "Котлети курячі заморожені", price: 89.90, category: "Готові страви і кулінарія", image: "", description: "Соковиті курячі котлети.", rating: 4.2 },
+  { name: "Суші-сет Філадельфія 8 шт", price: 189.90, category: "Готові страви і кулінарія", image: "", description: "Класичні роли Філадельфія.", rating: 4.6 },
+  { name: "Салат Олів'є 200г", price: 64.90, category: "Готові страви і кулінарія", image: "", description: "Класичний салат Олів'є.", rating: 4.0 },
+  { name: "Млинці з м'ясом заморожені", price: 79.90, category: "Готові страви і кулінарія", image: "", description: "Домашні млинці.", rating: 4.3 },
+
+  // Бакалія і консерви (6 товарів)
+  { name: "Рис круглозернистий 1кг", price: 44.90, category: "Бакалія і консерви", image: "", description: "Білий круглозернистий рис.", rating: 4.3 },
+  { name: "Макарони Пенне 500г", price: 29.90, category: "Бакалія і консерви", image: "", description: "Класичні макарони.", rating: 4.2 },
+  { name: "Тунець консервований в олії", price: 54.90, category: "Бакалія і консерви", image: "", description: "Ніжний тунець.", rating: 4.5 },
+  { name: "Квасоля червона консервована", price: 32.90, category: "Бакалія і консерви", image: "", description: "Готова червона квасоля.", rating: 4.0 },
+  { name: "Гречка ядриця 800г", price: 49.90, category: "Бакалія і консерви", image: "", description: "Смачна гречана крупа.", rating: 4.5 },
+  { name: "Олія соняшникова 1л", price: 59.90, category: "Бакалія і консерви", image: "", description: "Рафінована соняшникова олія.", rating: 4.2 },
+
+  // Соуси і спеції (5 товарів)
+  { name: "Кетчуп томатний Чумак", price: 38.90, category: "Соуси і спеції", image: "", description: "Класичний томатний кетчуп.", rating: 4.3 },
+  { name: "Майонез Торчин 67%", price: 44.90, category: "Соуси і спеції", image: "", description: "Густий майонез.", rating: 4.1 },
+  { name: "Соєвий соус Кіккоман 150мл", price: 69.90, category: "Соуси і спеції", image: "", description: "Японський соєвий соус.", rating: 4.7 },
+  { name: "Перець чорний мелений 50г", price: 24.90, category: "Соуси і спеції", image: "", description: "Ароматний чорний перець.", rating: 4.4 },
+  { name: "Гірчиця діжонська 200г", price: 49.90, category: "Соуси і спеції", image: "", description: "Французька діжонська гірчиця.", rating: 4.5 },
+
+  // Солодощі (6 товарів)
+  { name: "Шоколад Roshen молочний", price: 54.90, category: "Солодощі", image: "", description: "Ніжний молочний шоколад.", rating: 4.5 },
+  { name: "Цукерки Рошен асорті 200г", price: 89.90, category: "Солодощі", image: "", description: "Асорті цукерок.", rating: 4.3 },
+  { name: "Печиво Юбілейне 400г", price: 44.90, category: "Солодощі", image: "", description: "Класичне вівсяне печиво.", rating: 4.1 },
+  { name: "Мармелад фруктовий 300г", price: 39.90, category: "Солодощі", image: "", description: "Натуральний мармелад.", rating: 4.0 },
+  { name: "Вафлі Артек з горіховим кремом", price: 34.90, category: "Солодощі", image: "", description: "Хрусткі вафлі.", rating: 4.2 },
+  { name: "Халва соняшникова 300г", price: 49.90, category: "Солодощі", image: "", description: "Класична соняшникова халва.", rating: 4.3 },
+
+  // Здорове харчування (6 товарів)
+  { name: "Гранола з горіхами 400г", price: 89.90, category: "Здорове харчування", image: "", description: "Корисна гранола.", rating: 4.6 },
+  { name: "Мигдаль смажений 150г", price: 74.90, category: "Здорове харчування", image: "", description: "Хрусткий смажений мигдаль.", rating: 4.5 },
+  { name: "Йогурт грецький 0% 300г", price: 49.90, category: "Здорове харчування", image: "", description: "Натуральний грецький йогурт.", rating: 4.4 },
+  { name: "Протеїновий батончик шоколад", price: 64.90, category: "Здорове харчування", image: "", description: "Білковий батончик.", rating: 4.2 },
+  { name: "Насіння чіа 200г", price: 79.90, category: "Здорове харчування", image: "", description: "Суперфуд насіння чіа.", rating: 4.5 },
+  { name: "Авокадо свіже 1 шт", price: 54.90, category: "Здорове харчування", image: "", description: "Стигле авокадо.", rating: 4.3 },
+];
+
+async function main() {
+  console.log('🌱 Починаю seed...');
+
+  // Перевіряємо чи вже є товари
+  const existingCount = await prisma.product.count();
+  if (existingCount > 0) {
+    console.log(`⚠️  В БД вже є ${existingCount} товарів. Пропускаю seed.`);
+    console.log('   Якщо хочеш перезаповнити — спочатку запусти:');
+    console.log('   node seed.js --force');
+    
+    if (!process.argv.includes('--force')) {
+      return;
+    }
+    
+    console.log('🗑️  Очищую таблицю товарів...');
+    await prisma.product.deleteMany();
+  }
+
+  const result = await prisma.product.createMany({ data: products });
+  console.log(`✅ Додано ${result.count} товарів у ${[...new Set(products.map(p => p.category))].length} категоріях.`);
+}
+
+main()
+  .catch((e) => {
+    console.error('❌ Помилка seed:', e);
+    process.exit(1);
+  })
+  .finally(() => prisma.$disconnect());
