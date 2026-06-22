@@ -27,6 +27,14 @@ export default function RegisterPage() {
     formData.password &&
     formData.confirmPassword;
 
+  // ✅ Валідація формату email
+  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
+  // ✅ Мінімальна довжина паролю — 6 символів
+  const isPasswordLongEnough = formData.password.length >= 6;
+  const isPasswordMatch =
+    formData.confirmPassword.length === 0 ||
+    formData.password === formData.confirmPassword;
+
   function handleChange(event) {
     const { name, value } = event.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -36,6 +44,16 @@ export default function RegisterPage() {
     event.preventDefault();
     setMessage("");
     setError("");
+
+    if (!isEmailValid) {
+      setError("Введіть коректний email, наприклад example@gmail.com");
+      return;
+    }
+
+    if (!isPasswordLongEnough) {
+      setError("Пароль має містити щонайменше 6 символів.");
+      return;
+    }
 
     if (formData.password !== formData.confirmPassword) {
       setError("Паролі не співпадають.");
@@ -130,6 +148,11 @@ export default function RegisterPage() {
                 onChange={handleChange}
                 required
               />
+              {formData.email.length > 0 && !isEmailValid && (
+                <span style={{ color: "#dc2626", fontSize: "12px", marginTop: "4px", display: "block" }}>
+                  Некоректний формат email
+                </span>
+              )}
             </label>
 
             <label>
@@ -158,6 +181,11 @@ export default function RegisterPage() {
                   {showPassword ? "🙈" : "👁"}
                 </span>
               </div>
+              {formData.password.length > 0 && !isPasswordLongEnough && (
+                <span style={{ color: "#dc2626", fontSize: "12px", marginTop: "4px", display: "block" }}>
+                  Щонайменше 6 символів
+                </span>
+              )}
             </label>
 
             <label>
@@ -186,9 +214,14 @@ export default function RegisterPage() {
                   {showConfirmPassword ? "🙈" : "👁"}
                 </span>
               </div>
+              {!isPasswordMatch && (
+                <span style={{ color: "#dc2626", fontSize: "12px", marginTop: "4px", display: "block" }}>
+                  Паролі не співпадають
+                </span>
+              )}
             </label>
 
-            <button type="submit" disabled={isSubmitting || !isFormFilled}>
+            <button type="submit" disabled={isSubmitting || !isFormFilled || !isEmailValid || !isPasswordLongEnough || !isPasswordMatch}>
               {isSubmitting ? "Завантаження..." : "Зареєструватися"}
             </button>
           </form>
