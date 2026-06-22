@@ -3,6 +3,20 @@ import { useNavigate } from "react-router";
 import api from "../api/api";
 import { useAuth } from "../context/AuthContext";
 
+// ✅ Точно ті ж назви категорій що на CatalogPage — щоб фільтр по категорії
+// завжди знаходив товар. Раніше тут був вільний текстовий ввід, через що
+// адмін міг написати "риба" замість "Риба" і товар губився при фільтрації.
+const CATEGORY_OPTIONS = [
+  "Добрі промо",
+  "Риба",
+  "Сири",
+  "Готові страви і кулінарія",
+  "Власні марки",
+  "Здорове харчування",
+  "Бакалія і консерви",
+  "Заморожена продукція",
+];
+
 // Захист — тільки для ADMIN
 function useAdminCheck() {
   const navigate = useNavigate();
@@ -87,7 +101,12 @@ function ProductModal({ product, onClose, onSave }) {
           </div>
           <div>
             <label style={labelStyle}>Категорія</label>
-            <input type="text" name="category" value={form.category} onChange={handleChange} placeholder="Наприклад: Свіжа риба" style={inputStyle} />
+            <select name="category" value={form.category} onChange={handleChange} style={inputStyle}>
+              <option value="">— Оберіть категорію —</option>
+              {CATEGORY_OPTIONS.map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
           </div>
           <div>
             <label style={labelStyle}>URL зображення</label>
