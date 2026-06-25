@@ -1,11 +1,20 @@
 import api from "./api";
 
 // Отримати товари з пагінацією та фільтрацією
-export const getProducts = async ({ page = 1, limit = 20, category, search, sortBy, order } = {}) => {
+export const getProducts = async ({
+  page = 1,
+  limit = 20,
+  category,
+  subcategory,
+  search,
+  sortBy,
+  order,
+} = {}) => {
   const params = new URLSearchParams();
   params.append("page", page);
   params.append("limit", limit);
   if (category) params.append("category", category);
+  if (subcategory) params.append("subcategory", subcategory);
   if (search) params.append("search", search);
   if (sortBy) params.append("sortBy", sortBy);
   if (order) params.append("order", order);

@@ -389,6 +389,7 @@ app.get("/api/products", async (req, res) => {
   try {
     const {
       category,
+      subcategory,
       search,
       page = 1,
       limit = 20,
@@ -398,6 +399,7 @@ app.get("/api/products", async (req, res) => {
 
     const where = {};
     if (category) where.category = category;
+    if (subcategory) where.subcategory = subcategory;
     if (search) where.name = { contains: search, mode: "insensitive" };
 
     const skip = (Number(page) - 1) * Number(limit);
@@ -457,7 +459,7 @@ app.get("/api/products/:id", async (req, res) => {
 
 app.post("/api/products", authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const { name, description, price, category, image } = req.body;
+    const { name, description, price, category, subcategory, image } = req.body;
     if (!name || !price)
       return res.status(400).json({ error: "Назва та ціна обов'язкові" });
     const newProduct = await prisma.product.create({
@@ -466,6 +468,7 @@ app.post("/api/products", authMiddleware, adminMiddleware, async (req, res) => {
         description,
         price: Number(price),
         category,
+        subcategory,
         image,
         rating: 0,
       },
@@ -483,7 +486,8 @@ app.put(
   adminMiddleware,
   async (req, res) => {
     try {
-      const { name, description, price, category, image } = req.body;
+      const { name, description, price, category, subcategory, image } =
+        req.body;
       const updatedProduct = await prisma.product.update({
         where: { id: Number(req.params.id) },
         data: {
@@ -491,6 +495,7 @@ app.put(
           description,
           price: price ? Number(price) : undefined,
           category,
+          subcategory,
           image,
         },
       });
