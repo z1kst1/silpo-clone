@@ -2,14 +2,20 @@ import { useEffect, useState, useCallback } from "react";
 import { getProducts } from "../api/products";
 import defaultProducts from "../data/products";
 
-export default function useProducts({ page = 1, limit = 20, category, search, sortBy, order } = {}) {
+// ✅ Параметр enabled — дозволяє не робити запит, якщо товари зараз
+// не потрібні (наприклад Header/CartDrawer на сторінці категорій,
+// де ще немає жодного товару для показу). Раніше useProducts() викликався
+// без умов на КОЖНІЙ сторінці через Header — це і створювало зайві
+// запити, про які казав ментор.
+export default function useProducts({ page = 1, limit = 20, category, search, sortBy, order, enabled = true } = {}) {
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(enabled);
   const [error, setError] = useState(null);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
 
   const loadProducts = useCallback(async () => {
+    if (!enabled) return;
     setLoading(true);
     setError(null);
     try {
@@ -38,7 +44,7 @@ export default function useProducts({ page = 1, limit = 20, category, search, so
     } finally {
       setLoading(false);
     }
-  }, [page, limit, category, search, sortBy, order]);
+  }, [page, limit, category, search, sortBy, order, enabled]);
 
   useEffect(() => {
     loadProducts();

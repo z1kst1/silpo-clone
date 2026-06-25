@@ -5,7 +5,11 @@ import { useCart } from "../context/CartContext";
 import { Link } from "react-router";
 
 export default function CartDrawer({ isOpen, onClose }) {
-  const { products } = useProducts();
+  // ✅ Товари для блоку "Пропозиції для вас" вантажимо лише коли кошик
+  // реально відкритий. Раніше useProducts() викликався завжди, навіть
+  // коли кошик закритий і на сторінках де його взагалі не видно
+  // (наприклад /categories) — зайвий запит на кожній сторінці сайту.
+  const { products } = useProducts({ enabled: isOpen });
   const { cartItems, removeFromCart, increaseQuantity, decreaseQuantity, subtotal } = useCart();
   const [suggestions, setSuggestions] = useState([]);
 
