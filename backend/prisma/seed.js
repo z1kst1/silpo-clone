@@ -17,6 +17,8 @@ const products = [
     image: "/images/figma/products/chicken.png",
     description: "Свіже куряче філе без кісток.",
     rating: 4.5,
+    isPromo: true,
+    oldPrice: 109.9,
   },
   {
     name: "Стейк яловичий охолоджений",
@@ -147,6 +149,8 @@ const products = [
     image: "/images/figma/products/grapes.png",
     description: "Соковитий білий виноград.",
     rating: 4.4,
+    isPromo: true,
+    oldPrice: 154.0,
   },
   {
     name: "Томати чері свіжі",
@@ -156,6 +160,8 @@ const products = [
     image: "/images/figma/products/tomatoes.png",
     description: "Свіжі томати чері.",
     rating: 4.2,
+    isPromo: true,
+    oldPrice: 92.9,
   },
   {
     name: "Банани свіжі",
@@ -708,26 +714,89 @@ const products = [
   },
 ];
 
+const recipes = [
+  {
+    title: "Сирні бейгли",
+    image: "/images/figma/recipes/cheese-bagels.jpg",
+    description: "Хрусткі домашні бейгли з вершковим сиром.",
+  },
+  {
+    title: "Паста-салат з куркою",
+    image: "/images/figma/recipes/pasta-salad.jpg",
+    description: "Легкий салат з пастою і курячим філе.",
+  },
+  {
+    title: "Фалафель",
+    image: "/images/figma/recipes/falafel.jpg",
+    description: "Хрусткі шарики з нуту з ароматними спеціями.",
+  },
+  {
+    title: "Фісташкове тирамісу",
+    image: "/images/figma/recipes/pistachio-tiramisu.jpg",
+    description: "Італійський десерт з фісташковим присмаком.",
+  },
+  {
+    title: "Відкритий сендвіч з редискою та авокадо",
+    image: "/images/figma/recipes/radish-avocado-sandwich.jpg",
+    description: "Свіжий і корисний перекус на щодень.",
+  },
+  {
+    title: "Мічелада",
+    image: "/images/figma/recipes/michelada.jpg",
+    description: "Мексиканський пивний коктейль зі спеціями.",
+  },
+  {
+    title: "Вівчарський пиріг",
+    image: "/images/figma/recipes/shepherds-pie.jpg",
+    description: "Британська класика з картопляним пюре та м'ясом.",
+  },
+  {
+    title: "Паста з горілкою та лимоном",
+    image: "/images/figma/recipes/vodka-lemon-pasta.jpg",
+    description: "Вершкова паста з цитрусовими нотками.",
+  },
+  {
+    title: "Віденський шніцель",
+    image: "/images/figma/recipes/viennese-schnitzel.jpg",
+    description: "Хрустка класика австрійської кухні.",
+  },
+  {
+    title: "Пісний салат з капусти з фініковою заправкою",
+    image: "/images/figma/recipes/cabbage-date-salad.jpg",
+    description: "Легкий і солодкуватий овочевий салат.",
+  },
+  {
+    title: "Запечена редиска із соусом",
+    image: "/images/figma/recipes/baked-radish.jpg",
+    description: "Несподіваний гарнір з печеної редиски.",
+  },
+];
+
 async function main() {
   console.log("🌱 Починаю seed...");
-  // Перевіряємо, чи є вже товари в базі даних
+
   const existingCount = await prisma.product.count();
   if (existingCount > 0) {
     console.log(`⚠️  В БД вже є ${existingCount} товарів. Пропускаю seed.`);
     console.log("   Якщо хочеш перезаповнити — спочатку запусти:");
     console.log("   node seed.js --force");
+
     if (!process.argv.includes("--force")) {
       return;
     }
 
-    console.log("🗑️  Очищую таблицю товарів...");
+    console.log("🗑️  Очищую таблиці...");
     await prisma.product.deleteMany();
+    await prisma.recipe.deleteMany();
   }
 
   const result = await prisma.product.createMany({ data: products });
   console.log(
     `✅ Додано ${result.count} товарів у ${[...new Set(products.map((p) => p.category))].length} категоріях.`,
   );
+
+  const recipeResult = await prisma.recipe.createMany({ data: recipes });
+  console.log(`✅ Додано ${recipeResult.count} рецептів.`);
 }
 
 main()

@@ -10,6 +10,7 @@ const { PrismaPg } = require("@prisma/adapter-pg");
 const { Pool } = require("pg");
 
 const cloudinary = require("cloudinary").v2;
+const multer = require("multer");
 const nodemailer = require("nodemailer");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
@@ -85,7 +86,7 @@ function adminMiddleware(req, res, next) {
 }
 
 // ==========================================
-// HELPERS
+// HELPERS — генерація токенів
 // ==========================================
 
 function generateAccessToken(user) {
@@ -102,6 +103,12 @@ function generateRefreshToken(user) {
   });
 }
 
+// ==========================================
+// DTO — форматування відповідей API
+// Повертаємо тільки потрібні фронтенду поля,
+// ніколи не віддаємо пароль чи внутрішні службові поля.
+// ==========================================
+
 function formatUser(user) {
   return {
     id: user.id,
@@ -114,6 +121,94 @@ function formatUser(user) {
     address: user.address || null,
     isAdmin: user.isAdmin,
   };
+}
+
+function formatUserBrief(user) {
+  return {
+    id: user.id,
+    email: user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    isAdmin: user.isAdmin,
+    createdAt: user.createdAt,
+  };
+}
+
+function formatProduct(product) {
+  return {
+    id: product.id,
+    name: product.name,
+    description: product.description || null,
+    price: product.price,
+    oldPrice: product.oldPrice || null,
+    category: product.category,
+    subcategory: product.subcategory || null,
+    image: product.image || null,
+    images: (product.images || [])
+      .sort((a, b) => a.order - b.order)
+      .map((img) => img.url),
+    rating: product.rating,
+    isPromo: product.isPromo,
+  };
+}
+
+function formatReview(review) {
+  return {
+    id: review.id,
+    rating: review.rating,
+    comment: review.comment || null,
+    createdAt: review.createdAt,
+    user: review.user
+      ? { firstName: review.user.firstName, lastName: review.user.lastName }
+      : null,
+  };
+}
+
+function formatProductWithReviews(product) {
+  return {
+    ...formatProduct(product),
+    reviews: (product.reviews || []).map(formatReview),
+  };
+}
+
+function formatRecipe(recipe) {
+  return {
+    id: recipe.id,
+    title: recipe.title,
+    image: recipe.image || null,
+    description: recipe.description || null,
+  };
+}
+
+function formatOrderItem(item) {
+  return {
+    id: item.id,
+    productId: item.productId,
+    name: item.name,
+    price: item.price,
+    quantity: item.quantity,
+  };
+}
+
+function formatOrder(order) {
+  const dto = {
+    id: order.id,
+    total: order.total,
+    address: order.address,
+    status: order.status,
+    paymentMethod: order.paymentMethod,
+    comment: order.comment || null,
+    createdAt: order.createdAt,
+    items: (order.items || []).map(formatOrderItem),
+  };
+  if (order.user) {
+    dto.user = {
+      email: order.user.email,
+      firstName: order.user.firstName,
+      lastName: order.user.lastName,
+    };
+  }
+  return dto;
 }
 
 // ==========================================
@@ -133,7 +228,7 @@ app.post("/api/auth/register", async (req, res) => {
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser)
       return res
-        .status(400)
+        .status(409)
         .json({ error: "Користувач з таким email вже існує" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -169,11 +264,11 @@ app.post("/api/auth/login", async (req, res) => {
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user)
-      return res.status(404).json({ error: "Користувача не знайдено" });
+      return res.status(401).json({ error: "Невірний email або пароль" });
 
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword)
-      return res.status(401).json({ error: "Невірний пароль" });
+      return res.status(401).json({ error: "Невірний email або пароль" });
 
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
@@ -382,6 +477,40 @@ app.put("/api/profile", authMiddleware, async (req, res) => {
 });
 
 // ==========================================
+// КАТЕГОРІЇ — окремий роут (список + підкатегорії)
+// ==========================================
+
+app.get("/api/categories", async (req, res) => {
+  try {
+    const categories = await prisma.product.findMany({
+      select: { category: true },
+      distinct: ["category"],
+      orderBy: { category: "asc" },
+    });
+    res.json(categories.map((c) => c.category));
+  } catch (error) {
+    console.error("GET CATEGORIES ERROR:", error);
+    res.status(500).json({ error: "Помилка отримання категорій" });
+  }
+});
+
+app.get("/api/categories/:category/subcategories", async (req, res) => {
+  try {
+    const { category } = req.params;
+    const subcategories = await prisma.product.findMany({
+      where: { category, subcategory: { not: null } },
+      select: { subcategory: true },
+      distinct: ["subcategory"],
+      orderBy: { subcategory: "asc" },
+    });
+    res.json(subcategories.map((s) => s.subcategory));
+  } catch (error) {
+    console.error("GET SUBCATEGORIES ERROR:", error);
+    res.status(500).json({ error: "Помилка отримання підкатегорій" });
+  }
+});
+
+// ==========================================
 // ТОВАРИ — публічні (GET) з пагінацією та сортуванням
 // ==========================================
 
@@ -391,6 +520,7 @@ app.get("/api/products", async (req, res) => {
       category,
       subcategory,
       search,
+      isPromo,
       page = 1,
       limit = 20,
       sortBy = "createdAt",
@@ -401,6 +531,7 @@ app.get("/api/products", async (req, res) => {
     if (category) where.category = category;
     if (subcategory) where.subcategory = subcategory;
     if (search) where.name = { contains: search, mode: "insensitive" };
+    if (isPromo === "true") where.isPromo = true;
 
     const skip = (Number(page) - 1) * Number(limit);
 
@@ -418,12 +549,13 @@ app.get("/api/products", async (req, res) => {
         orderBy,
         skip,
         take: Number(limit),
+        include: { images: true },
       }),
       prisma.product.count({ where }),
     ]);
 
     res.json({
-      products,
+      products: products.map(formatProduct),
       total,
       page: Number(page),
       limit: Number(limit),
@@ -440,6 +572,7 @@ app.get("/api/products/:id", async (req, res) => {
     const product = await prisma.product.findUnique({
       where: { id: Number(req.params.id) },
       include: {
+        images: true,
         reviews: {
           include: { user: { select: { firstName: true, lastName: true } } },
           orderBy: { createdAt: "desc" },
@@ -447,7 +580,7 @@ app.get("/api/products/:id", async (req, res) => {
       },
     });
     if (!product) return res.status(404).json({ error: "Товар не знайдено" });
-    res.json(product);
+    res.json(formatProductWithReviews(product));
   } catch (error) {
     res.status(500).json({ error: "Помилка отримання товару" });
   }
@@ -459,9 +592,23 @@ app.get("/api/products/:id", async (req, res) => {
 
 app.post("/api/products", authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const { name, description, price, category, subcategory, image } = req.body;
+    const {
+      name,
+      description,
+      price,
+      category,
+      subcategory,
+      image,
+      images,
+      oldPrice,
+      isPromo,
+    } = req.body;
     if (!name || !price)
       return res.status(400).json({ error: "Назва та ціна обов'язкові" });
+
+    // image — перше фото з масиву, для сумісності зі старою схемою
+    const firstImage = image || images?.[0] || null;
+
     const newProduct = await prisma.product.create({
       data: {
         name,
@@ -469,11 +616,17 @@ app.post("/api/products", authMiddleware, adminMiddleware, async (req, res) => {
         price: Number(price),
         category,
         subcategory,
-        image,
+        image: firstImage,
+        oldPrice: oldPrice ? Number(oldPrice) : undefined,
+        isPromo: isPromo === true || isPromo === "true",
         rating: 0,
+        images: {
+          create: (images || []).map((url, index) => ({ url, order: index })),
+        },
       },
+      include: { images: true },
     });
-    res.status(201).json(newProduct);
+    res.status(201).json(formatProduct(newProduct));
   } catch (error) {
     console.error("CREATE PRODUCT ERROR:", error);
     res.status(500).json({ error: "Помилка створення товару" });
@@ -486,20 +639,49 @@ app.put(
   adminMiddleware,
   async (req, res) => {
     try {
-      const { name, description, price, category, subcategory, image } =
-        req.body;
+      const {
+        name,
+        description,
+        price,
+        category,
+        subcategory,
+        image,
+        images,
+        oldPrice,
+        isPromo,
+      } = req.body;
+
+      const firstImage = image || images?.[0] || null;
+
+      const updateData = {
+        name,
+        description,
+        price: price ? Number(price) : undefined,
+        category,
+        subcategory,
+        image: firstImage,
+        oldPrice: oldPrice !== undefined ? Number(oldPrice) : undefined,
+        isPromo:
+          isPromo !== undefined
+            ? isPromo === true || isPromo === "true"
+            : undefined,
+      };
+
+      // Оновлюємо фото тільки якщо images переданий у запиті —
+      // інакше старі фото лишаються без змін (часткове оновлення товару)
+      if (images !== undefined) {
+        updateData.images = {
+          deleteMany: {},
+          create: images.map((url, index) => ({ url, order: index })),
+        };
+      }
+
       const updatedProduct = await prisma.product.update({
         where: { id: Number(req.params.id) },
-        data: {
-          name,
-          description,
-          price: price ? Number(price) : undefined,
-          category,
-          subcategory,
-          image,
-        },
+        data: updateData,
+        include: { images: true },
       });
-      res.json(updatedProduct);
+      res.json(formatProduct(updatedProduct));
     } catch (error) {
       console.error("UPDATE PRODUCT ERROR:", error);
       res.status(500).json({ error: "Помилка оновлення товару" });
@@ -514,13 +696,29 @@ app.delete(
   async (req, res) => {
     try {
       await prisma.product.delete({ where: { id: Number(req.params.id) } });
-      res.json({ message: "Товар видалено" });
+      res.status(204).send();
     } catch (error) {
       console.error("DELETE PRODUCT ERROR:", error);
       res.status(500).json({ error: "Помилка видалення товару" });
     }
   },
 );
+
+// ==========================================
+// РЕЦЕПТИ
+// ==========================================
+
+app.get("/api/recipes", async (req, res) => {
+  try {
+    const recipes = await prisma.recipe.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+    res.json(recipes.map(formatRecipe));
+  } catch (error) {
+    console.error("GET RECIPES ERROR:", error);
+    res.status(500).json({ error: "Помилка отримання рецептів" });
+  }
+});
 
 // ==========================================
 // ВІДГУКИ
@@ -533,7 +731,7 @@ app.get("/api/products/:id/reviews", async (req, res) => {
       include: { user: { select: { firstName: true, lastName: true } } },
       orderBy: { createdAt: "desc" },
     });
-    res.json(reviews);
+    res.json(reviews.map(formatReview));
   } catch (error) {
     res.status(500).json({ error: "Помилка отримання відгуків" });
   }
@@ -553,7 +751,7 @@ app.post("/api/products/:id/reviews", authMiddleware, async (req, res) => {
     });
     if (existing)
       return res
-        .status(400)
+        .status(409)
         .json({ error: "Ви вже залишили відгук для цього товару" });
 
     const review = await prisma.review.create({
@@ -574,7 +772,7 @@ app.post("/api/products/:id/reviews", authMiddleware, async (req, res) => {
       data: { rating: Math.round(avgRating * 10) / 10 },
     });
 
-    res.status(201).json(review);
+    res.status(201).json(formatReview(review));
   } catch (error) {
     console.error("CREATE REVIEW ERROR:", error);
     res.status(500).json({ error: "Помилка створення відгуку" });
@@ -595,7 +793,7 @@ app.delete("/api/reviews/:id", authMiddleware, async (req, res) => {
     }
 
     await prisma.review.delete({ where: { id: Number(req.params.id) } });
-    res.json({ message: "Відгук видалено" });
+    res.status(204).send();
   } catch (error) {
     res.status(500).json({ error: "Помилка видалення відгуку" });
   }
@@ -632,7 +830,7 @@ app.post("/api/orders", authMiddleware, async (req, res) => {
       include: { items: true },
     });
 
-    res.status(201).json(order);
+    res.status(201).json(formatOrder(order));
   } catch (error) {
     console.error("CREATE ORDER ERROR:", error);
     res.status(500).json({ error: "Помилка створення замовлення" });
@@ -646,7 +844,7 @@ app.get("/api/orders/my", authMiddleware, async (req, res) => {
       include: { items: true },
       orderBy: { createdAt: "desc" },
     });
-    res.json(orders);
+    res.json(orders.map(formatOrder));
   } catch (error) {
     console.error("GET MY ORDERS ERROR:", error);
     res.status(500).json({ error: "Помилка отримання замовлень" });
@@ -667,7 +865,7 @@ app.get("/api/orders/:id", authMiddleware, async (req, res) => {
       return res.status(403).json({ error: "Немає доступу" });
     }
 
-    res.json(order);
+    res.json(formatOrder(order));
   } catch (error) {
     res.status(500).json({ error: "Помилка отримання замовлення" });
   }
@@ -682,7 +880,7 @@ app.get("/api/orders", authMiddleware, adminMiddleware, async (req, res) => {
       },
       orderBy: { createdAt: "desc" },
     });
-    res.json(orders);
+    res.json(orders.map(formatOrder));
   } catch (error) {
     res.status(500).json({ error: "Помилка отримання замовлень" });
   }
@@ -713,7 +911,7 @@ app.patch(
         data: { status },
       });
 
-      res.json(order);
+      res.json(formatOrder(order));
     } catch (error) {
       res.status(500).json({ error: "Помилка оновлення статусу" });
     }
@@ -741,18 +939,16 @@ app.get(
         },
         orderBy: { createdAt: "desc" },
       });
-      res.json(users);
+      res.json(users.map(formatUserBrief));
     } catch (error) {
       res.status(500).json({ error: "Помилка отримання юзерів" });
     }
   },
 );
 
-/// ==========================================
+// ==========================================
 // ЗАВАНТАЖЕННЯ ЗОБРАЖЕНЬ (Cloudinary)
 // ==========================================
-
-const multer = require("multer");
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -796,7 +992,9 @@ app.post(
           .end(req.file.buffer);
       });
 
-      res.json({ url: result.secure_url, publicId: result.public_id });
+      res
+        .status(201)
+        .json({ url: result.secure_url, publicId: result.public_id });
     } catch (error) {
       console.error("UPLOAD ERROR:", error);
       res.status(500).json({ error: "Помилка завантаження зображення" });
@@ -835,7 +1033,7 @@ app.post(
         metadata: { orderId: orderId ? String(orderId) : "" },
       });
 
-      res.json({ url: session.url });
+      res.status(201).json({ url: session.url });
     } catch (error) {
       console.error("STRIPE CREATE SESSION ERROR:", error);
       res.status(500).json({ error: "Не вдалося створити сесію оплати" });

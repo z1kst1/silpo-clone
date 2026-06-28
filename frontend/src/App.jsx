@@ -13,12 +13,17 @@ import CheckoutPage from "./pages/CheckoutPage";
 import OrderSuccessPage from "./pages/OrderSuccessPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import AdminPage from "./pages/AdminPage";
+import RecipesPage from "./pages/RecipesPage";
 
 // Захищений маршрут для адміна
 function AdminRoute({ children }) {
   const token = localStorage.getItem("token");
   const user = (() => {
-    try { return JSON.parse(localStorage.getItem("silpo-user") || "{}"); } catch { return {}; }
+    try {
+      return JSON.parse(localStorage.getItem("silpo-user") || "{}");
+    } catch {
+      return {};
+    }
   })();
   if (!token) return <Navigate to="/login" replace />;
   if (user && user.isAdmin === false) return <Navigate to="/" replace />;
@@ -50,6 +55,7 @@ export default function App() {
         <Route index element={<HomePage />} />
         <Route path="catalog" element={<CatalogPage />} />
         <Route path="categories" element={<CategoriesPage />} />
+        <Route path="recipes" element={<RecipesPage />} />
         <Route path="cart" element={<CartPage />} />
         <Route path="product/:id" element={<ProductPage />} />
 
