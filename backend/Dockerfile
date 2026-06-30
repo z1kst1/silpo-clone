@@ -10,9 +10,9 @@ RUN npm install --omit=dev
 
 # 4. Копіюємо весь source-код бекенду
 COPY . .
-
-# 5. Відкриваємо порт бекенду
+# 5. Генеруємо Prisma Client зі свіжої схеми (обов'язково після кожної зміни schema.prisma)
+RUN npx prisma generate
+# 6. Відкриваємо порт бекенду
 EXPOSE 3000
-
-# 6. Запускаємо production-сервер
+# 7. Запускаємо production-сервер
 CMD ["npm", "run", "start"]

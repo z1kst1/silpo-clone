@@ -7,7 +7,16 @@ import defaultProducts from "../data/products";
 // де ще немає жодного товару для показу). Раніше useProducts() викликався
 // без умов на КОЖНІЙ сторінці через Header — це і створювало зайві
 // запити, про які казав ментор.
-export default function useProducts({ page = 1, limit = 20, category, search, sortBy, order, enabled = true } = {}) {
+export default function useProducts({
+  page = 1,
+  limit = 20,
+  category,
+  subcategory,
+  search,
+  sortBy,
+  order,
+  enabled = true,
+} = {}) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(enabled);
   const [error, setError] = useState(null);
@@ -19,8 +28,15 @@ export default function useProducts({ page = 1, limit = 20, category, search, so
     setLoading(true);
     setError(null);
     try {
-      const data = await getProducts({ page, limit, category, search, sortBy, order });
-
+      const data = await getProducts({
+        page,
+        limit,
+        category,
+        subcategory,
+        search,
+        sortBy,
+        order,
+      });
       // Бекенд повертає { products, total, totalPages }
       if (data && Array.isArray(data.products)) {
         setProducts(data.products);
@@ -44,7 +60,7 @@ export default function useProducts({ page = 1, limit = 20, category, search, so
     } finally {
       setLoading(false);
     }
-  }, [page, limit, category, search, sortBy, order, enabled]);
+  }, [page, limit, category, subcategory, search, sortBy, order, enabled]);
 
   useEffect(() => {
     loadProducts();
@@ -66,8 +82,8 @@ export default function useProducts({ page = 1, limit = 20, category, search, so
       prev.map((product) =>
         product.id === updatedProduct.id
           ? { ...updatedProduct, price: Number(updatedProduct.price) }
-          : product
-      )
+          : product,
+      ),
     );
   }
 

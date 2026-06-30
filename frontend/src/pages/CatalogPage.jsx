@@ -8,36 +8,118 @@ const mockCategories = [
   { name: "Добрі промо", icon: "/images/figma/icons/categories/promo.svg" },
   { name: "Риба", icon: "/images/figma/icons/categories/fish.svg" },
   { name: "Сири", icon: "/images/figma/icons/categories/cheese.svg" },
-  { name: "Готові страви і кулінарія", icon: "/images/figma/icons/categories/food.svg" },
+  {
+    name: "Готові страви і кулінарія",
+    icon: "/images/figma/icons/categories/food.svg",
+  },
   { name: "Власні марки", icon: "/images/figma/icons/categories/brands.svg" },
-  { name: "Здорове харчування", icon: "/images/figma/icons/categories/healthy.svg" },
-  { name: "Бакалія і консерви", icon: "/images/figma/icons/categories/cans.svg" },
-  { name: "Заморожена продукція", icon: "/images/figma/icons/categories/frozen.svg" },
+  {
+    name: "Здорове харчування",
+    icon: "/images/figma/icons/categories/healthy.svg",
+  },
+  {
+    name: "Бакалія і консерви",
+    icon: "/images/figma/icons/categories/cans.svg",
+  },
+  {
+    name: "Заморожена продукція",
+    icon: "/images/figma/icons/categories/frozen.svg",
+  },
 ];
 
 const filterSectionsList = [
-  "Часто шукають", "Обробка риби", "Акційні пропозиції", "Основа продукту",
-  "Сорт", "Смак", "Кількість одиниць", "Країна", "Особливі",
-  "Спосіб обробки риби", "Підвид", "Додатковий смак", "Вид продукту",
-  "Тип продукту", "Тип упаковки", "Ступінь обробки риби", "Властивості",
-  "Фасування", "Вид риби", "Тип охолодження", "Частина риби",
-  "Спосіб приготування страви", "Вид страви", "Торгова марка",
+  "Часто шукають",
+  "Обробка риби",
+  "Акційні пропозиції",
+  "Основа продукту",
+  "Сорт",
+  "Смак",
+  "Кількість одиниць",
+  "Країна",
+  "Особливі",
+  "Спосіб обробки риби",
+  "Підвид",
+  "Додатковий смак",
+  "Вид продукту",
+  "Тип продукту",
+  "Тип упаковки",
+  "Ступінь обробки риби",
+  "Властивості",
+  "Фасування",
+  "Вид риби",
+  "Тип охолодження",
+  "Частина риби",
+  "Спосіб приготування страви",
+  "Вид страви",
+  "Торгова марка",
 ];
 
 const SORT_OPTIONS = [
-  { value: "default",    label: "За замовчуванням", sortBy: undefined,  order: undefined },
-  { value: "price_asc",  label: "Ціна: від дешевих", sortBy: "price",   order: "asc" },
-  { value: "price_desc", label: "Ціна: від дорогих",  sortBy: "price",   order: "desc" },
-  { value: "name_asc",   label: "Назва: А-Я",         sortBy: "name",    order: "asc" },
+  {
+    value: "default",
+    label: "За замовчуванням",
+    sortBy: undefined,
+    order: undefined,
+  },
+  {
+    value: "price_asc",
+    label: "Ціна: від дешевих",
+    sortBy: "price",
+    order: "asc",
+  },
+  {
+    value: "price_desc",
+    label: "Ціна: від дорогих",
+    sortBy: "price",
+    order: "desc",
+  },
+  { value: "name_asc", label: "Назва: А-Я", sortBy: "name", order: "asc" },
 ];
 
 function SkeletonCard() {
   return (
-    <div style={{ backgroundColor: "#fff", borderRadius: "16px", padding: "16px", display: "flex", flexDirection: "column", gap: "12px" }}>
-      <div style={{ width: "100%", height: "140px", backgroundColor: "#f0f0f0", borderRadius: "12px", animation: "pulse 1.5s infinite" }} />
-      <div style={{ height: "14px", backgroundColor: "#f0f0f0", borderRadius: "6px", width: "80%" }} />
-      <div style={{ height: "14px", backgroundColor: "#f0f0f0", borderRadius: "6px", width: "50%" }} />
-      <div style={{ height: "32px", backgroundColor: "#f0f0f0", borderRadius: "8px" }} />
+    <div
+      style={{
+        backgroundColor: "#fff",
+        borderRadius: "16px",
+        padding: "16px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          height: "140px",
+          backgroundColor: "#f0f0f0",
+          borderRadius: "12px",
+          animation: "pulse 1.5s infinite",
+        }}
+      />
+      <div
+        style={{
+          height: "14px",
+          backgroundColor: "#f0f0f0",
+          borderRadius: "6px",
+          width: "80%",
+        }}
+      />
+      <div
+        style={{
+          height: "14px",
+          backgroundColor: "#f0f0f0",
+          borderRadius: "6px",
+          width: "50%",
+        }}
+      />
+      <div
+        style={{
+          height: "32px",
+          backgroundColor: "#f0f0f0",
+          borderRadius: "8px",
+        }}
+      />
     </div>
   );
 }
@@ -45,28 +127,43 @@ function SkeletonCard() {
 export default function CatalogPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "Всі");
+  const [selectedCategory, setSelectedCategory] = useState(
+    searchParams.get("category") || "Всі",
+  );
+  const selectedSubcategory = searchParams.get("subcategory") || undefined;
   const [sortValue, setSortValue] = useState("default");
   const [currentPage, setCurrentPage] = useState(1);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [openFilterSections, setOpenFilterSections] = useState([]);
-  const [localSearch, setLocalSearch] = useState(searchParams.get("search") || "");
+  const [localSearch, setLocalSearch] = useState(
+    searchParams.get("search") || "",
+  );
 
   // ✅ Фільтр за ціною (ТЗ 4.4 — "фільтрація за ціною")
   const [minPrice, setMinPrice] = useState(searchParams.get("minPrice") || "");
   const [maxPrice, setMaxPrice] = useState(searchParams.get("maxPrice") || "");
-  const [appliedMinPrice, setAppliedMinPrice] = useState(searchParams.get("minPrice") || "");
-  const [appliedMaxPrice, setAppliedMaxPrice] = useState(searchParams.get("maxPrice") || "");
+  const [appliedMinPrice, setAppliedMinPrice] = useState(
+    searchParams.get("minPrice") || "",
+  );
+  const [appliedMaxPrice, setAppliedMaxPrice] = useState(
+    searchParams.get("maxPrice") || "",
+  );
 
   const searchQuery = searchParams.get("search") || "";
   const currentSort = SORT_OPTIONS.find((o) => o.value === sortValue);
 
   // Серверна пагінація і фільтрація через useProducts
-  const { products: rawProducts, loading, total: rawTotal, totalPages: rawTotalPages } = useProducts({
+  const {
+    products: rawProducts,
+    loading,
+    total: rawTotal,
+    totalPages: rawTotalPages,
+  } = useProducts({
     page: currentPage,
     limit: 24,
     category: selectedCategory !== "Всі" ? selectedCategory : undefined,
+    subcategory: selectedSubcategory,
     search: searchQuery || undefined,
     sortBy: currentSort?.sortBy,
     order: currentSort?.order,
@@ -90,7 +187,7 @@ export default function CatalogPage() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, selectedCategory, sortValue]);
+  }, [searchQuery, selectedCategory, selectedSubcategory, sortValue]);
 
   function handleCategoryClick(categoryName) {
     setSelectedCategory(categoryName);
@@ -129,8 +226,10 @@ export default function CatalogPage() {
     setAppliedMinPrice(minPrice);
     setAppliedMaxPrice(maxPrice);
     const params = new URLSearchParams(searchParams);
-    if (minPrice) params.set("minPrice", minPrice); else params.delete("minPrice");
-    if (maxPrice) params.set("maxPrice", maxPrice); else params.delete("maxPrice");
+    if (minPrice) params.set("minPrice", minPrice);
+    else params.delete("minPrice");
+    if (maxPrice) params.set("maxPrice", maxPrice);
+    else params.delete("maxPrice");
     setSearchParams(params);
   }
 
@@ -157,7 +256,11 @@ export default function CatalogPage() {
     } else {
       pages.push(1);
       if (currentPage > 3) pages.push("...");
-      for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+      for (
+        let i = Math.max(2, currentPage - 1);
+        i <= Math.min(totalPages - 1, currentPage + 1);
+        i++
+      ) {
         pages.push(i);
       }
       if (currentPage < totalPages - 2) pages.push("...");
@@ -172,27 +275,87 @@ export default function CatalogPage() {
 
       {/* МОДАЛЬНЕ ВІКНО ФІЛЬТРІВ */}
       {isFilterOpen && (
-        <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex" }}>
-          <div style={{ width: "360px", backgroundColor: "#fff", height: "100%", display: "flex", flexDirection: "column" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 24px", borderBottom: "1px solid #f0f0f0" }}>
-              <h2 style={{ fontSize: "20px", margin: 0, fontWeight: "700" }}>Фільтри</h2>
-              <button onClick={() => setIsFilterOpen(false)} style={{ background: "none", border: "none", fontSize: "20px", cursor: "pointer" }}>✕</button>
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(0,0,0,0.5)",
+            zIndex: 1000,
+            display: "flex",
+          }}
+        >
+          <div
+            style={{
+              width: "360px",
+              backgroundColor: "#fff",
+              height: "100%",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "20px 24px",
+                borderBottom: "1px solid #f0f0f0",
+              }}
+            >
+              <h2 style={{ fontSize: "20px", margin: 0, fontWeight: "700" }}>
+                Фільтри
+              </h2>
+              <button
+                onClick={() => setIsFilterOpen(false)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: "20px",
+                  cursor: "pointer",
+                }}
+              >
+                ✕
+              </button>
             </div>
             <div style={{ flex: 1, overflowY: "auto" }}>
-
               {/* ✅ ФІЛЬТР ЗА ЦІНОЮ — нагорі списку, найважливіший */}
-              <div style={{ borderBottom: "1px solid #f0f0f0", padding: "20px 24px" }}>
-                <div style={{ fontSize: "14px", fontWeight: "700", marginBottom: "16px", color: "#202124" }}>
+              <div
+                style={{
+                  borderBottom: "1px solid #f0f0f0",
+                  padding: "20px 24px",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: "700",
+                    marginBottom: "16px",
+                    color: "#202124",
+                  }}
+                >
                   Ціна, грн
                 </div>
-                <div style={{ display: "flex", gap: "12px", marginBottom: "12px" }}>
+                <div
+                  style={{ display: "flex", gap: "12px", marginBottom: "12px" }}
+                >
                   <input
                     type="number"
                     min="0"
                     placeholder="Від"
                     value={minPrice}
                     onChange={(e) => setMinPrice(e.target.value)}
-                    style={{ flex: 1, padding: "10px 12px", borderRadius: "10px", border: "1px solid #ddd", fontSize: "14px", outline: "none", boxSizing: "border-box" }}
+                    style={{
+                      flex: 1,
+                      padding: "10px 12px",
+                      borderRadius: "10px",
+                      border: "1px solid #ddd",
+                      fontSize: "14px",
+                      outline: "none",
+                      boxSizing: "border-box",
+                    }}
                   />
                   <span style={{ color: "#999", alignSelf: "center" }}>—</span>
                   <input
@@ -201,20 +364,47 @@ export default function CatalogPage() {
                     placeholder="До"
                     value={maxPrice}
                     onChange={(e) => setMaxPrice(e.target.value)}
-                    style={{ flex: 1, padding: "10px 12px", borderRadius: "10px", border: "1px solid #ddd", fontSize: "14px", outline: "none", boxSizing: "border-box" }}
+                    style={{
+                      flex: 1,
+                      padding: "10px 12px",
+                      borderRadius: "10px",
+                      border: "1px solid #ddd",
+                      fontSize: "14px",
+                      outline: "none",
+                      boxSizing: "border-box",
+                    }}
                   />
                 </div>
                 <div style={{ display: "flex", gap: "8px" }}>
                   <button
                     onClick={applyPriceFilter}
-                    style={{ flex: 1, padding: "10px", backgroundColor: "#8b181b", color: "#fff", border: "none", borderRadius: "10px", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}
+                    style={{
+                      flex: 1,
+                      padding: "10px",
+                      backgroundColor: "#8b181b",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "10px",
+                      fontSize: "13px",
+                      fontWeight: "600",
+                      cursor: "pointer",
+                    }}
                   >
                     Застосувати
                   </button>
                   {isPriceFilterActive && (
                     <button
                       onClick={clearPriceFilter}
-                      style={{ padding: "10px 14px", backgroundColor: "#f5f5f5", color: "#666", border: "none", borderRadius: "10px", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}
+                      style={{
+                        padding: "10px 14px",
+                        backgroundColor: "#f5f5f5",
+                        color: "#666",
+                        border: "none",
+                        borderRadius: "10px",
+                        fontSize: "13px",
+                        fontWeight: "600",
+                        cursor: "pointer",
+                      }}
                     >
                       Скинути
                     </button>
@@ -225,15 +415,52 @@ export default function CatalogPage() {
               {filterSectionsList.map((section) => {
                 const isOpen = openFilterSections.includes(section);
                 return (
-                  <div key={section} style={{ borderBottom: "1px solid #f0f0f0" }}>
-                    <div onClick={() => setOpenFilterSections((prev) => isOpen ? prev.filter((s) => s !== section) : [...prev, section])} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 24px", cursor: "pointer", fontSize: "14px", fontWeight: "600" }}>
+                  <div
+                    key={section}
+                    style={{ borderBottom: "1px solid #f0f0f0" }}
+                  >
+                    <div
+                      onClick={() =>
+                        setOpenFilterSections((prev) =>
+                          isOpen
+                            ? prev.filter((s) => s !== section)
+                            : [...prev, section],
+                        )
+                      }
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        padding: "16px 24px",
+                        cursor: "pointer",
+                        fontSize: "14px",
+                        fontWeight: "600",
+                      }}
+                    >
                       {section}
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2.5" style={{ transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="#666"
+                        strokeWidth="2.5"
+                        style={{
+                          transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+                          transition: "transform 0.2s",
+                        }}
+                      >
                         <polyline points="6 9 12 15 18 9"></polyline>
                       </svg>
                     </div>
                     {isOpen && (
-                      <div style={{ padding: "0 24px 16px", color: "#888", fontSize: "13px" }}>
+                      <div
+                        style={{
+                          padding: "0 24px 16px",
+                          color: "#888",
+                          fontSize: "13px",
+                        }}
+                      >
                         Опції будуть доступні після підключення бекенду
                       </div>
                     )}
@@ -241,8 +468,23 @@ export default function CatalogPage() {
                 );
               })}
             </div>
-            <div style={{ padding: "16px 24px", borderTop: "1px solid #f0f0f0" }}>
-              <button onClick={() => setIsFilterOpen(false)} style={{ width: "100%", padding: "14px", backgroundColor: "#8b181b", color: "#fff", borderRadius: "24px", border: "none", fontSize: "15px", fontWeight: "600", cursor: "pointer" }}>
+            <div
+              style={{ padding: "16px 24px", borderTop: "1px solid #f0f0f0" }}
+            >
+              <button
+                onClick={() => setIsFilterOpen(false)}
+                style={{
+                  width: "100%",
+                  padding: "14px",
+                  backgroundColor: "#8b181b",
+                  color: "#fff",
+                  borderRadius: "24px",
+                  border: "none",
+                  fontSize: "15px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                }}
+              >
                 Показати результати ({total})
               </button>
             </div>
@@ -251,80 +493,274 @@ export default function CatalogPage() {
         </div>
       )}
 
-      <div style={{ backgroundColor: "#F5E6BE", minHeight: "100vh", paddingBottom: "60px", fontFamily: "system-ui, sans-serif" }}>
+      <div
+        style={{
+          backgroundColor: "#F5E6BE",
+          minHeight: "100vh",
+          paddingBottom: "60px",
+          fontFamily: "system-ui, sans-serif",
+        }}
+      >
         <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "24px" }}>
-
           {/* ХЛІБНІ КРИХТИ */}
-          <div style={{ fontSize: "12px", color: "#666", marginBottom: "24px" }}>
-            <Link to="/" style={{ color: "#666", textDecoration: "none" }}>Головна</Link>
+          <div
+            style={{ fontSize: "12px", color: "#666", marginBottom: "24px" }}
+          >
+            <Link to="/" style={{ color: "#666", textDecoration: "none" }}>
+              Головна
+            </Link>
             <span style={{ margin: "0 6px" }}>›</span>
-            <span style={{ color: "#000" }}>{searchQuery ? "Пошук" : "Каталог"}</span>
+            <span style={{ color: "#000" }}>
+              {searchQuery ? "Пошук" : "Каталог"}
+            </span>
           </div>
 
-          <h1 style={{ fontSize: "28px", fontWeight: "700", marginBottom: "16px", color: "#222" }}>
-            {searchQuery ? `Результати пошуку "${searchQuery}"` : "Каталог товарів"}
+          <h1
+            style={{
+              fontSize: "28px",
+              fontWeight: "700",
+              marginBottom: "16px",
+              color: "#222",
+            }}
+          >
+            {searchQuery
+              ? `Результати пошуку "${searchQuery}"`
+              : "Каталог товарів"}
           </h1>
 
           {/* ПОШУК */}
-          <form onSubmit={handleLocalSearch} style={{ display: "flex", gap: "8px", marginBottom: "24px", maxWidth: "500px" }}>
+          <form
+            onSubmit={handleLocalSearch}
+            style={{
+              display: "flex",
+              gap: "8px",
+              marginBottom: "24px",
+              maxWidth: "500px",
+            }}
+          >
             <div style={{ flex: 1, position: "relative" }}>
               <input
                 type="text"
                 value={localSearch}
                 onChange={(e) => setLocalSearch(e.target.value)}
                 placeholder="Пошук товарів..."
-                style={{ width: "100%", padding: "12px 40px 12px 16px", borderRadius: "12px", border: "1px solid #ddd", fontSize: "14px", outline: "none", boxSizing: "border-box", backgroundColor: "#fff" }}
+                style={{
+                  width: "100%",
+                  padding: "12px 40px 12px 16px",
+                  borderRadius: "12px",
+                  border: "1px solid #ddd",
+                  fontSize: "14px",
+                  outline: "none",
+                  boxSizing: "border-box",
+                  backgroundColor: "#fff",
+                }}
               />
               {localSearch && (
-                <button type="button" onClick={clearSearch} style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#888" }}>✕</button>
+                <button
+                  type="button"
+                  onClick={clearSearch}
+                  style={{
+                    position: "absolute",
+                    right: "10px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "#888",
+                  }}
+                >
+                  ✕
+                </button>
               )}
             </div>
-            <button type="submit" style={{ padding: "12px 20px", backgroundColor: "#8b181b", color: "#fff", border: "none", borderRadius: "12px", fontWeight: "600", cursor: "pointer" }}>
+            <button
+              type="submit"
+              style={{
+                padding: "12px 20px",
+                backgroundColor: "#8b181b",
+                color: "#fff",
+                border: "none",
+                borderRadius: "12px",
+                fontWeight: "600",
+                cursor: "pointer",
+              }}
+            >
               Знайти
             </button>
           </form>
 
           {/* КАТЕГОРІЇ */}
-          <p style={{ fontSize: "15px", fontWeight: "600", marginBottom: "12px" }}>Продукти</p>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "32px" }}>
+          <p
+            style={{
+              fontSize: "15px",
+              fontWeight: "600",
+              marginBottom: "12px",
+            }}
+          >
+            Продукти
+          </p>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "10px",
+              marginBottom: "32px",
+            }}
+          >
             {mockCategories.map((cat) => (
-              <button key={cat.name} onClick={() => handleCategoryClick(cat.name)} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "8px 16px", borderRadius: "24px", border: "1px solid #8b181b", backgroundColor: selectedCategory === cat.name ? "#eedbb5" : "transparent", color: "#8b181b", cursor: "pointer", fontSize: "13px", fontWeight: "600" }}>
-                <img src={cat.icon} alt={cat.name} style={{ width: "16px", height: "16px" }} onError={(e) => e.target.style.display = "none"} />
+              <button
+                key={cat.name}
+                onClick={() => handleCategoryClick(cat.name)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "8px 16px",
+                  borderRadius: "24px",
+                  border: "1px solid #8b181b",
+                  backgroundColor:
+                    selectedCategory === cat.name ? "#eedbb5" : "transparent",
+                  color: "#8b181b",
+                  cursor: "pointer",
+                  fontSize: "13px",
+                  fontWeight: "600",
+                }}
+              >
+                <img
+                  src={cat.icon}
+                  alt={cat.name}
+                  style={{ width: "16px", height: "16px" }}
+                  onError={(e) => (e.target.style.display = "none")}
+                />
                 {cat.name}
               </button>
             ))}
           </div>
 
           {/* ФІЛЬТРИ + СОРТУВАННЯ */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-            <div onClick={() => setIsFilterOpen(true)} style={{ display: "flex", alignItems: "center", gap: "8px", color: "#8b181b", fontSize: "14px", fontWeight: "600", cursor: "pointer" }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line>
-                <line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line>
-                <line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line>
-                <line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "20px",
+            }}
+          >
+            <div
+              onClick={() => setIsFilterOpen(true)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                color: "#8b181b",
+                fontSize: "14px",
+                fontWeight: "600",
+                cursor: "pointer",
+              }}
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <line x1="4" y1="21" x2="4" y2="14"></line>
+                <line x1="4" y1="10" x2="4" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12" y2="3"></line>
+                <line x1="20" y1="21" x2="20" y2="16"></line>
+                <line x1="20" y1="12" x2="20" y2="3"></line>
+                <line x1="1" y1="14" x2="7" y2="14"></line>
+                <line x1="9" y1="8" x2="15" y2="8"></line>
                 <line x1="17" y1="16" x2="23" y2="16"></line>
               </svg>
               Фільтри
               {/* ✅ Бейдж показує що фільтр за ціною активний */}
               {isPriceFilterActive && (
-                <span style={{ backgroundColor: "#8b181b", color: "#fff", borderRadius: "10px", padding: "2px 8px", fontSize: "11px", fontWeight: "700" }}>
+                <span
+                  style={{
+                    backgroundColor: "#8b181b",
+                    color: "#fff",
+                    borderRadius: "10px",
+                    padding: "2px 8px",
+                    fontSize: "11px",
+                    fontWeight: "700",
+                  }}
+                >
                   1
                 </span>
               )}
             </div>
 
             <div style={{ position: "relative" }}>
-              <div onClick={() => setIsSortOpen((p) => !p)} style={{ display: "flex", alignItems: "center", gap: "8px", color: "#8b181b", fontSize: "14px", fontWeight: "600", cursor: "pointer", backgroundColor: "#fff", padding: "8px 16px", borderRadius: "12px", border: "1px solid #ddd" }}>
+              <div
+                onClick={() => setIsSortOpen((p) => !p)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  color: "#8b181b",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  backgroundColor: "#fff",
+                  padding: "8px 16px",
+                  borderRadius: "12px",
+                  border: "1px solid #ddd",
+                }}
+              >
                 {SORT_OPTIONS.find((o) => o.value === sortValue)?.label}
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ transform: isSortOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  style={{
+                    transform: isSortOpen ? "rotate(180deg)" : "rotate(0deg)",
+                    transition: "transform 0.2s",
+                  }}
+                >
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
               </div>
               {isSortOpen && (
-                <div style={{ position: "absolute", right: 0, top: "calc(100% + 4px)", backgroundColor: "#fff", borderRadius: "12px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", zIndex: 100, minWidth: "200px", overflow: "hidden" }}>
+                <div
+                  style={{
+                    position: "absolute",
+                    right: 0,
+                    top: "calc(100% + 4px)",
+                    backgroundColor: "#fff",
+                    borderRadius: "12px",
+                    boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                    zIndex: 100,
+                    minWidth: "200px",
+                    overflow: "hidden",
+                  }}
+                >
                   {SORT_OPTIONS.map((option) => (
-                    <div key={option.value} onClick={() => { setSortValue(option.value); setIsSortOpen(false); }} style={{ padding: "12px 16px", cursor: "pointer", fontSize: "14px", fontWeight: sortValue === option.value ? "700" : "400", color: sortValue === option.value ? "#8b181b" : "#333", backgroundColor: sortValue === option.value ? "#fff5f5" : "transparent" }}>
+                    <div
+                      key={option.value}
+                      onClick={() => {
+                        setSortValue(option.value);
+                        setIsSortOpen(false);
+                      }}
+                      style={{
+                        padding: "12px 16px",
+                        cursor: "pointer",
+                        fontSize: "14px",
+                        fontWeight: sortValue === option.value ? "700" : "400",
+                        color: sortValue === option.value ? "#8b181b" : "#333",
+                        backgroundColor:
+                          sortValue === option.value
+                            ? "#fff5f5"
+                            : "transparent",
+                      }}
+                    >
                       {option.label}
                     </div>
                   ))}
@@ -335,10 +771,43 @@ export default function CatalogPage() {
 
           {/* ✅ АКТИВНИЙ ФІЛЬТР ЦІНИ — видимий чіп з можливістю скинути */}
           {isPriceFilterActive && (
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
-              <span style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "#fff", border: "1px solid #8b181b", borderRadius: "20px", padding: "6px 12px", fontSize: "13px", color: "#8b181b", fontWeight: "600" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                marginBottom: "16px",
+              }}
+            >
+              <span
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  backgroundColor: "#fff",
+                  border: "1px solid #8b181b",
+                  borderRadius: "20px",
+                  padding: "6px 12px",
+                  fontSize: "13px",
+                  color: "#8b181b",
+                  fontWeight: "600",
+                }}
+              >
                 Ціна: {appliedMinPrice || "0"} — {appliedMaxPrice || "∞"} грн
-                <button onClick={clearPriceFilter} style={{ background: "none", border: "none", cursor: "pointer", color: "#8b181b", fontSize: "14px", padding: 0, lineHeight: 1 }}>✕</button>
+                <button
+                  onClick={clearPriceFilter}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "#8b181b",
+                    fontSize: "14px",
+                    padding: 0,
+                    lineHeight: 1,
+                  }}
+                >
+                  ✕
+                </button>
               </span>
             </div>
           )}
@@ -351,21 +820,62 @@ export default function CatalogPage() {
 
           {/* ТОВАРИ або СКЕЛЕТОН */}
           {loading ? (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: "24px", marginBottom: "48px" }}>
-              {Array.from({ length: 12 }).map((_, i) => <SkeletonCard key={i} />)}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+                gap: "24px",
+                marginBottom: "48px",
+              }}
+            >
+              {Array.from({ length: 12 }).map((_, i) => (
+                <SkeletonCard key={i} />
+              ))}
             </div>
           ) : products.length === 0 ? (
             <div style={{ textAlign: "center", padding: "80px 0" }}>
               <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔍</div>
-              <h2 style={{ fontSize: "20px", marginBottom: "12px", color: "#333" }}>Товарів не знайдено</h2>
-              <p style={{ color: "#666", marginBottom: "24px" }}>Спробуйте змінити пошуковий запит, категорію або діапазон ціни</p>
-              <button onClick={() => { setSelectedCategory("Всі"); clearSearch(); clearPriceFilter(); }} style={{ backgroundColor: "#8b181b", color: "#fff", border: "none", borderRadius: "12px", padding: "12px 24px", fontWeight: "600", cursor: "pointer" }}>
+              <h2
+                style={{
+                  fontSize: "20px",
+                  marginBottom: "12px",
+                  color: "#333",
+                }}
+              >
+                Товарів не знайдено
+              </h2>
+              <p style={{ color: "#666", marginBottom: "24px" }}>
+                Спробуйте змінити пошуковий запит, категорію або діапазон ціни
+              </p>
+              <button
+                onClick={() => {
+                  setSelectedCategory("Всі");
+                  clearSearch();
+                  clearPriceFilter();
+                }}
+                style={{
+                  backgroundColor: "#8b181b",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "12px",
+                  padding: "12px 24px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                }}
+              >
                 Показати всі товари
               </button>
             </div>
           ) : (
             <>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: "24px", marginBottom: "48px" }}>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+                  gap: "24px",
+                  marginBottom: "48px",
+                }}
+              >
                 {products.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
@@ -373,18 +883,81 @@ export default function CatalogPage() {
 
               {/* ПАГІНАЦІЯ — вимикається при активному фільтрі ціни, бо там фільтрація відбувається по поточній сторінці */}
               {totalPages > 1 && (
-                <div style={{ display: "flex", justifyContent: "center", gap: "8px", alignItems: "center" }}>
-                  <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} style={{ width: "36px", height: "36px", borderRadius: "8px", border: "1px solid #ddd", backgroundColor: currentPage === 1 ? "#f5f5f5" : "#fff", color: currentPage === 1 ? "#ccc" : "#333", cursor: currentPage === 1 ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>❮</button>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    gap: "8px",
+                    alignItems: "center",
+                  }}
+                >
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    style={{
+                      width: "36px",
+                      height: "36px",
+                      borderRadius: "8px",
+                      border: "1px solid #ddd",
+                      backgroundColor: currentPage === 1 ? "#f5f5f5" : "#fff",
+                      color: currentPage === 1 ? "#ccc" : "#333",
+                      cursor: currentPage === 1 ? "not-allowed" : "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    ❮
+                  </button>
                   {getPageNumbers().map((page, idx) =>
                     page === "..." ? (
-                      <span key={`dots-${idx}`} style={{ padding: "0 4px", color: "#666" }}>...</span>
+                      <span
+                        key={`dots-${idx}`}
+                        style={{ padding: "0 4px", color: "#666" }}
+                      >
+                        ...
+                      </span>
                     ) : (
-                      <button key={page} onClick={() => handlePageChange(page)} style={{ width: "36px", height: "36px", borderRadius: "8px", border: currentPage === page ? "none" : "1px solid #ddd", backgroundColor: currentPage === page ? "#8b181b" : "#fff", color: currentPage === page ? "#fff" : "#333", fontWeight: currentPage === page ? "700" : "400", cursor: "pointer" }}>
+                      <button
+                        key={page}
+                        onClick={() => handlePageChange(page)}
+                        style={{
+                          width: "36px",
+                          height: "36px",
+                          borderRadius: "8px",
+                          border:
+                            currentPage === page ? "none" : "1px solid #ddd",
+                          backgroundColor:
+                            currentPage === page ? "#8b181b" : "#fff",
+                          color: currentPage === page ? "#fff" : "#333",
+                          fontWeight: currentPage === page ? "700" : "400",
+                          cursor: "pointer",
+                        }}
+                      >
                         {page}
                       </button>
-                    )
+                    ),
                   )}
-                  <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} style={{ width: "36px", height: "36px", borderRadius: "8px", border: "1px solid #ddd", backgroundColor: currentPage === totalPages ? "#f5f5f5" : "#fff", color: currentPage === totalPages ? "#ccc" : "#333", cursor: currentPage === totalPages ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>❯</button>
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    style={{
+                      width: "36px",
+                      height: "36px",
+                      borderRadius: "8px",
+                      border: "1px solid #ddd",
+                      backgroundColor:
+                        currentPage === totalPages ? "#f5f5f5" : "#fff",
+                      color: currentPage === totalPages ? "#ccc" : "#333",
+                      cursor:
+                        currentPage === totalPages ? "not-allowed" : "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    ❯
+                  </button>
                 </div>
               )}
             </>
