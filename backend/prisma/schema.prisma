@@ -8,16 +8,27 @@ datasource db {
 }
 
 model Product {
-  id          Int      @id @default(autoincrement())
+  id          Int            @id @default(autoincrement())
   name        String
   description String?
   price       Float
   category    String
   subcategory String?
   image       String?
-  rating      Float    @default(0)
-  createdAt   DateTime @default(now())
+  images      ProductImage[]
+  rating      Float          @default(0)
+  isPromo     Boolean        @default(false)
+  oldPrice    Float?
+  createdAt   DateTime       @default(now())
   reviews     Review[]
+}
+
+model ProductImage {
+  id        Int     @id @default(autoincrement())
+  url       String
+  order     Int     @default(0)  // порядок показу фото
+  productId Int
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model User {
@@ -89,4 +100,12 @@ model PasswordResetToken {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt DateTime
   createdAt DateTime @default(now())
+}
+
+model Recipe {
+  id          Int      @id @default(autoincrement())
+  title       String
+  image       String?
+  description String?
+  createdAt   DateTime @default(now())
 }
