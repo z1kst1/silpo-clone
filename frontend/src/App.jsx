@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from "react-router";
-import Layout from "./components/layout/Layout";
+import Layout, { LayoutNoFooter } from "./components/layout/Layout";
 import HomePage from "./pages/HomePage";
 import CatalogPage from "./pages/CatalogPage";
 import CategoriesPage from "./pages/CategoriesPage";
@@ -51,15 +51,8 @@ export default function App() {
       {/* Сторінка 404 — без Layout */}
       <Route path="*" element={<NotFoundPage />} />
 
-      <Route path="/" element={<Layout />}>
-        <Route index element={<HomePage />} />
-        <Route path="catalog" element={<CatalogPage />} />
-        <Route path="categories" element={<CategoriesPage />} />
-        <Route path="recipes" element={<RecipesPage />} />
-        <Route path="cart" element={<CartPage />} />
-        <Route path="product/:id" element={<ProductPage />} />
-
-        {/* Тільки для авторизованих */}
+      {/* Сторінки БЕЗ футера */}
+      <Route element={<LayoutNoFooter />}>
         <Route
           path="profile"
           element={
@@ -84,6 +77,15 @@ export default function App() {
             </PrivateRoute>
           }
         />
+      </Route>
+
+      <Route path="/" element={<Layout />}>
+        <Route index element={<HomePage />} />
+        <Route path="catalog" element={<CatalogPage />} />
+        <Route path="categories" element={<CategoriesPage />} />
+        <Route path="recipes" element={<RecipesPage />} />
+        <Route path="cart" element={<CartPage />} />
+        <Route path="product/:id" element={<ProductPage />} />
 
         {/* Тільки для незалогінених */}
         <Route

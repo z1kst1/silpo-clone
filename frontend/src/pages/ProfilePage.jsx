@@ -373,12 +373,15 @@ export default function ProfilePage() {
           {activeView === "myData" && (
             <div className="details-view">
 
-              <div className="details-header-text">
-                <h2>Мої дані</h2>
-                <p>Особиста інформація та контакти</p>
-              </div>
+              {/* ✅ Заголовок і аватар в одному рядку — праворуч, не по центру
+                  всієї сторінки, точно як у макеті Figma */}
+              <div className="mydata-header">
+                <div className="details-header-text">
+                  <h2>Мої дані</h2>
+                  <p>Особиста інформація та контакти</p>
+                </div>
 
-              <div className="details-avatar-container">
+                <div className="details-avatar-container">
                 <div
                   className="details-avatar"
                   onClick={handleAvatarClick}
@@ -403,6 +406,7 @@ export default function ProfilePage() {
                     <button className="avatar-action-btn add" title="Додати фото">+</button>
                   )}
                   <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileChange} style={{ display: "none" }} />
+                </div>
                 </div>
               </div>
 
@@ -496,23 +500,15 @@ export default function ProfilePage() {
                     </div>
                     <div className="interests-list">
                       {[
-                        { label: "Здорове харчування", img: "/images/figma/icons/categories/healthy.svg",  emoji: "🍎" },
-                        { label: "Еко продукти",       img: "/images/figma/icons/categories/eco.svg",     emoji: "🌿" },
-                        { label: "Солодощі",           img: "/images/figma/icons/categories/sweets.svg",  emoji: "🧁" },
-                        { label: "Кава",               img: "/images/figma/icons/categories/coffee.svg",  emoji: "☕" },
-                        { label: "Товари для дому",    img: "/images/figma/icons/categories/home.svg",    emoji: "🏠" },
+                        { label: "Здорове харчування", img: "/images/figma/profile/interest-healthy.svg" },
+                        { label: "Еко продукти",       img: "/images/figma/profile/interest-eco.svg" },
+                        { label: "Солодощі",           img: "/images/figma/profile/interest-sweets.svg" },
+                        { label: "Кава",               img: "/images/figma/profile/interest-coffee.svg" },
+                        { label: "Товари для дому",    img: "/images/figma/profile/interest-home.svg" },
                       ].map((item) => (
                         <div className="interest-item" key={item.label}>
                           <div className="interest-icon-circle">
-                            <img
-                              src={item.img}
-                              alt={item.label}
-                              onError={(e) => {
-                                e.target.style.display = "none";
-                                e.target.nextSibling.style.display = "block";
-                              }}
-                            />
-                            <span className="interest-emoji" style={{ display: "none" }}>{item.emoji}</span>
+                            <img src={item.img} alt={item.label} />
                           </div>
                           <span className="interest-label">{item.label}</span>
                         </div>
@@ -573,16 +569,13 @@ export default function ProfilePage() {
                       <p className="discount-value">-7%</p>
                       <p className="discount-tier">Новий покупець</p>
                     </div>
-                    <img className="discount-leaves" src="/images/figma/discount-leaves.png" alt="" />
+                    <img className="discount-leaves" src="/images/figma/profile/discount-leaves.png" alt="" />
                   </div>
 
                   {/* БЛОК 4: ВАША СТАТИСТИКА — рахується з реальних замовлень з бекенду */}
                   <div className="details-block stats-block">
                     <div className="stats-block-header">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8E1616" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
-                        <line x1="6" y1="20" x2="6" y2="14"/>
-                      </svg>
+                      <img src="/images/figma/profile/stats-icon.svg" alt="" width="18" height="18" />
                       <span>Ваша статистика</span>
                     </div>
                     <div className="stats-grid">

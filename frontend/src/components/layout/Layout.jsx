@@ -80,3 +80,16 @@ export default function Layout() {
     </>
   );
 }
+
+// Layout без футера — для сторінки профілю
+export function LayoutNoFooter() {
+  return (
+    <>
+      <Header />
+      <main className="page-container">
+        <Outlet />
+      </main>
+      <ScrollToTopButton />
+    </>
+  );
+}
