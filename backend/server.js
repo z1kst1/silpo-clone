@@ -1041,7 +1041,7 @@ app.post(
   },
 );
 
-app.get("/api/payments/verify-session", authMiddleware, async (req, res) => {
+app.get("/api/payments/verify-session", async (req, res) => {
   try {
     const { session_id } = req.query;
     if (!session_id) {
