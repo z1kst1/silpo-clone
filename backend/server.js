@@ -805,27 +805,51 @@ app.delete("/api/reviews/:id", authMiddleware, async (req, res) => {
 
 app.post("/api/orders", authMiddleware, async (req, res) => {
   try {
-    const { items, total, address, paymentMethod, comment } = req.body;
+    const { items, address, paymentMethod, comment } = req.body;
 
     if (!items || items.length === 0) {
       return res.status(400).json({ error: "Кошик порожній" });
     }
 
+    // Безпека: ціну й назву товару беремо ТІЛЬКИ з бази даних,
+    // а не з тіла запиту — інакше клієнт міг би підмінити ціну перед відправкою.
+    const productIds = items.map((item) => Number(item.productId || item.id));
+    const products = await prisma.product.findMany({
+      where: { id: { in: productIds } },
+    });
+    const productsById = new Map(products.map((p) => [p.id, p]));
+
+    const orderItemsData = [];
+    for (const item of items) {
+      const productId = Number(item.productId || item.id);
+      const product = productsById.get(productId);
+      if (!product) {
+        return res
+          .status(400)
+          .json({ error: `Товар з id ${productId} не знайдено` });
+      }
+      const quantity = Number(item.quantity) || 1;
+      orderItemsData.push({
+        productId,
+        name: product.name,
+        price: product.price,
+        quantity,
+      });
+    }
+
+    const total = orderItemsData.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0,
+    );
+
     const order = await prisma.order.create({
       data: {
         userId: req.user.userId,
-        total: Number(total),
+        total,
         address,
         paymentMethod: paymentMethod || "cash",
         comment,
-        items: {
-          create: items.map((item) => ({
-            productId: item.productId || item.id,
-            name: item.name,
-            price: Number(item.price),
-            quantity: Number(item.quantity),
-          })),
-        },
+        items: { create: orderItemsData },
       },
       include: { items: true },
     });
@@ -1017,17 +1041,37 @@ app.post(
         return res.status(400).json({ error: "Кошик порожній" });
       }
 
+      // Безпека: ціну й назву товару для Stripe беремо ТІЛЬКИ з бази даних,
+      // інакше клієнт міг би підмінити ціну в запиті й оплатити копійки.
+      const productIds = items.map((item) => Number(item.productId || item.id));
+      const products = await prisma.product.findMany({
+        where: { id: { in: productIds } },
+      });
+      const productsById = new Map(products.map((p) => [p.id, p]));
+
+      const lineItems = [];
+      for (const item of items) {
+        const productId = Number(item.productId || item.id);
+        const product = productsById.get(productId);
+        if (!product) {
+          return res
+            .status(400)
+            .json({ error: `Товар з id ${productId} не знайдено` });
+        }
+        lineItems.push({
+          price_data: {
+            currency: "uah",
+            product_data: { name: product.name },
+            unit_amount: Math.round(product.price * 100), // копійки
+          },
+          quantity: Number(item.quantity) || 1,
+        });
+      }
+
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ["card"],
         mode: "payment",
-        line_items: items.map((item) => ({
-          price_data: {
-            currency: "uah",
-            product_data: { name: item.name },
-            unit_amount: Math.round(item.price * 100), // копійки
-          },
-          quantity: item.quantity,
-        })),
+        line_items: lineItems,
         success_url: `${process.env.FRONTEND_URL}/order-success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${process.env.FRONTEND_URL}/checkout`,
         metadata: { orderId: orderId ? String(orderId) : "" },

@@ -21,6 +21,7 @@ model Product {
   oldPrice    Float?
   createdAt   DateTime       @default(now())
   reviews     Review[]
+  cartItems   CartItem[]
 }
 
 model ProductImage {
@@ -46,6 +47,7 @@ model User {
   reviews       Review[]
   orders        Order[]
   passwordResetTokens PasswordResetToken[]
+  cartItems     CartItem[]
 
 
 }
@@ -100,6 +102,18 @@ model PasswordResetToken {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt DateTime
   createdAt DateTime @default(now())
+}
+
+model CartItem {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
 }
 
 model Recipe {
