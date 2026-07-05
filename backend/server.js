@@ -998,6 +998,7 @@ const upload = multer({
 app.post(
   "/api/upload",
   authMiddleware,
+  adminMiddleware,
   upload.single("image"),
   async (req, res) => {
     try {
