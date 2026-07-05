@@ -374,7 +374,7 @@ app.post("/api/auth/forgot-password", async (req, res) => {
           <h2 style="color: #8E1616;">Відновлення паролю</h2>
           <p>Ви отримали цей лист тому що хтось запросив скидання паролю для вашого акаунту.</p>
           <p>Натисніть кнопку нижче щоб встановити новий пароль:</p>
-          <a href="http://localhost:5173/reset-password?token=${resetToken}"
+          <a href="${process.env.FRONTEND_URL}/reset-password?token=${resetToken}"
              style="display: inline-block; padding: 12px 24px; background: #8E1616; color: white; text-decoration: none; border-radius: 8px; margin: 16px 0;">
             Скинути пароль
           </a>
