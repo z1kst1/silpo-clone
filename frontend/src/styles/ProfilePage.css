@@ -89,14 +89,15 @@
   flex: 1;
   display: flex;
   justify-content: flex-start;
-  padding: 16px 32px;
+  padding: 16px 32px 32px;  /* ✅ 32px відступ знизу */
   background-color: #fcfcfc;
-  overflow: hidden;
+  overflow-y: auto;  /* ✅ було hidden — відрізало відступ знизу */
 }
 
 .profile-container .profile-main-inner {
   width: 100%;
   max-width: 100%;
+  padding-bottom: 32px;
 }
 
 .profile-container .page-title {
@@ -420,6 +421,7 @@
 .details-view {
   width: 100%;
   animation: fadeIn 0.2s ease;
+  padding-bottom: 24px;  /* відступ знизу — блоки не йдуть до самого краю */
 }
 
 @keyframes fadeIn {
@@ -453,28 +455,28 @@
    точно як у Figma, де "Мої дані" і аватар стоять в одному рядку,
    а не один над одним по центру всієї сторінки */
 .mydata-header {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 24px;
+  display: grid;
+  grid-template-columns: 2fr auto 3fr;  /* текст | аватар (40%) | порожньо */
+  align-items: center;
+  margin-bottom: 16px;
 }
 
 .mydata-header .details-header-text {
   margin-bottom: 0;
+  grid-column: 1;
 }
 
-/* ✅ Компактний аватар праворуч від заголовка — не центрується
-   по всій ширині сторінки, як було раніше */
 .details-avatar-container {
+  grid-column: 2;
   display: flex;
-  flex-shrink: 0;
+  flex-direction: column;
+  align-items: center;
   margin: 0;
 }
 
 .details-avatar {
-  width: 48px;
-  height: 48px;
+  width: 88px;
+  height: 88px;
   background-color: #e2e2e2;
   border-radius: 50%;
   display: flex;
@@ -531,16 +533,29 @@
 .details-cards-wrapper {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 12px;
   align-items: start;
   width: 100%;
+  padding-bottom: 32px; /* ✅ відступ всередині grid-контейнера — не ковтається overflow */
 }
 
-.details-col-left,
+.details-col-left {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 24px;
+}
+
 .details-col-right {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
+  padding-bottom: 24px;
+}
+
+/* ✅ Figma: значення полів — не жирні, regular weight */
+.details-value {
+  font-weight: 400 !important;
 }
 
 /* Рядок без hover для "Мова" */
@@ -960,8 +975,17 @@
    БЛОК "ВАША СТАТИСТИКА"
    ============================================ */
 .details-block.stats-block {
-  padding: 12px 18px;
-  margin-bottom: 0;
+  padding: 20px;
+  min-height: 160px;
+  margin-bottom: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.details-block.stats-block .stats-grid {
+  flex: 1;
+  align-items: center;
 }
 
 .stats-block-header {
@@ -1008,9 +1032,9 @@
    БЛОК "МОЇ ІНТЕРЕСИ"
    ============================================ */
 .interests-block {
-  padding: 18px 20px;
-  /* ✅ Figma: 200px висота, як інші картки в рядку */
-  min-height: 140px;
+  padding: 20px;
+  min-height: 160px;
+  margin-bottom: 32px;
 }
 
 .interests-icon {
@@ -1020,18 +1044,20 @@
 .interests-list {
   display: flex;
   flex-wrap: nowrap;
-  gap: 18px;
+  gap: 10px;
   margin-top: 12px;
-  justify-content: center;
+  justify-content: space-between;
+  overflow: hidden;
 }
 
 .interest-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  width: 76px;
-  flex-shrink: 0;
+  gap: 6px;
+  flex: 1;        /* рівномірно розподіляємо по ширині */
+  min-width: 0;   /* дозволяємо стискатись */
+  flex-shrink: 1;
 }
 
 .interest-icon-circle {
