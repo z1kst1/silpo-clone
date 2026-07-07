@@ -31,6 +31,39 @@ services:
     networks:
       - silpo-network
 
+  # 2.5. СЕРВІС АВТОМАТИЧНОГО БЕКАПУ БАЗИ ДАНИХ
+  db-backup:
+    image: postgres:15-alpine
+    container_name: silpo_db_backup
+    restart: always
+    depends_on:
+      - db
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+      # Скільки днів зберігати бекапи
+      RETENTION_DAYS: 7
+    volumes:
+      - ./backups:/backups
+    networks:
+      - silpo-network
+    entrypoint:
+      - sh
+      - -c
+      - |
+        echo "Backup service started. Dumping every 24h, keeping $${RETENTION_DAYS} days."
+        while true; do
+          TIMESTAMP=$$(date +%Y%m%d_%H%M%S)
+          FILE="/backups/silpo_db_$${TIMESTAMP}.dump"
+          echo "[$$(date)] Creating backup: $${FILE}"
+          pg_dump -h db -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}" -F c -f "$${FILE}" \
+            && echo "[$$(date)] Backup OK" \
+            || echo "[$$(date)] Backup FAILED"
+          find /backups -name "silpo_db_*.dump" -mtime +$${RETENTION_DAYS} -delete
+          sleep 86400
+        done
+
   # 3. КОНТЕЙНЕР ФРОНТЕНДУ
   frontend:
     build:
