@@ -68,6 +68,7 @@ services:
   frontend:
     build:
       context: ./frontend
+      dockerfile: Dockerfile.dev
     container_name: silpo_frontend
     restart: always
     ports:
