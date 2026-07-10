@@ -16,8 +16,7 @@ function StarRating({ rating, onRate, readonly = false }) {
           style={{
             fontSize: "24px",
             cursor: readonly ? "default" : "pointer",
-            color:
-              star <= (hovered || rating) ? "#f59e0b" : "#e0e0e0",
+            color: star <= (hovered || rating) ? "#f59e0b" : "#e0e0e0",
             transition: "color 0.1s",
           }}
         >
@@ -47,7 +46,7 @@ export default function ReviewsSection({ productId }) {
   useEffect(() => {
     async function loadReviews() {
       try {
-        const response = await api.get(`/reviews/${productId}`);
+        const response = await api.get(`/products/${productId}/reviews`);
         setReviews(response.data || []);
       } catch {
         // Якщо endpoint ще не готовий — показуємо порожній список
@@ -75,9 +74,7 @@ export default function ReviewsSection({ productId }) {
 
     setSubmitting(true);
     try {
-      // POST /api/reviews — колега має реалізувати
-      const response = await api.post("/reviews", {
-        productId,
+      const response = await api.post(`/products/${productId}/reviews`, {
         rating: form.rating,
         comment: form.comment,
       });
@@ -91,9 +88,7 @@ export default function ReviewsSection({ productId }) {
       if (err.response?.status === 401) {
         setError("Увійдіть в акаунт, щоб залишити відгук");
       } else {
-        setError(
-          err.response?.data?.error || "Помилка при додаванні відгуку"
-        );
+        setError(err.response?.data?.error || "Помилка при додаванні відгуку");
       }
     } finally {
       setSubmitting(false);
@@ -103,7 +98,9 @@ export default function ReviewsSection({ productId }) {
   // Середній рейтинг
   const avgRating =
     reviews.length > 0
-      ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
+      ? (
+          reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+        ).toFixed(1)
       : null;
 
   return (
@@ -234,7 +231,13 @@ export default function ReviewsSection({ productId }) {
           </div>
 
           {error && (
-            <p style={{ color: "#dc2626", fontSize: "13px", margin: "0 0 12px 0" }}>
+            <p
+              style={{
+                color: "#dc2626",
+                fontSize: "13px",
+                margin: "0 0 12px 0",
+              }}
+            >
               {error}
             </p>
           )}
@@ -289,7 +292,9 @@ export default function ReviewsSection({ productId }) {
           }}
         >
           <div style={{ fontSize: "40px", marginBottom: "12px" }}>💬</div>
-          <p style={{ fontSize: "15px", fontWeight: "600", margin: "0 0 4px 0" }}>
+          <p
+            style={{ fontSize: "15px", fontWeight: "600", margin: "0 0 4px 0" }}
+          >
             Поки немає відгуків
           </p>
           <p style={{ fontSize: "13px", margin: 0 }}>
