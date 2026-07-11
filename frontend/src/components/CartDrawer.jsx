@@ -20,6 +20,9 @@ export default function CartDrawer({ isOpen, onClose }) {
   const [promoCode, setPromoCode] = useState("");
   const [isPackagingOpen, setIsPackagingOpen] = useState(false);
   const [packaging, setPackaging] = useState("silpo");
+  const [itemComments, setItemComments] = useState({});
+  const [commentingItemId, setCommentingItemId] = useState(null);
+  const [commentDraft, setCommentDraft] = useState("");
 
   const packagingOptions = [
     {
@@ -342,11 +345,19 @@ export default function CartDrawer({ isOpen, onClose }) {
                           }}
                         >
                           <svg
+                            onClick={() => {
+                              setCommentingItemId(
+                                commentingItemId === item.id ? null : item.id,
+                              );
+                              setCommentDraft(itemComments[item.id] || "");
+                            }}
                             width="18"
                             height="18"
                             viewBox="0 0 24 24"
                             fill="none"
-                            stroke="currentColor"
+                            stroke={
+                              itemComments[item.id] ? "#8b181b" : "currentColor"
+                            }
                             strokeWidth="1.8"
                             strokeLinecap="round"
                             strokeLinejoin="round"
@@ -375,6 +386,67 @@ export default function CartDrawer({ isOpen, onClose }) {
                           </svg>
                         </div>
                       </div>
+
+                      {commentingItemId === item.id ? (
+                        <div
+                          style={{
+                            marginTop: "8px",
+                            display: "flex",
+                            gap: "6px",
+                          }}
+                        >
+                          <input
+                            type="text"
+                            autoFocus
+                            value={commentDraft}
+                            onChange={(e) => setCommentDraft(e.target.value)}
+                            placeholder="Напр.: без хвостика, стигліші тощо"
+                            style={{
+                              flex: 1,
+                              padding: "8px 10px",
+                              borderRadius: "8px",
+                              border: "1px solid #ddd",
+                              fontSize: "12px",
+                              outline: "none",
+                              boxSizing: "border-box",
+                            }}
+                          />
+                          <button
+                            onClick={() => {
+                              setItemComments((prev) => ({
+                                ...prev,
+                                [item.id]: commentDraft.trim(),
+                              }));
+                              setCommentingItemId(null);
+                            }}
+                            style={{
+                              padding: "8px 12px",
+                              borderRadius: "8px",
+                              border: "none",
+                              backgroundColor: "#8b181b",
+                              color: "#fff",
+                              fontSize: "12px",
+                              fontWeight: "600",
+                              cursor: "pointer",
+                            }}
+                          >
+                            ОК
+                          </button>
+                        </div>
+                      ) : (
+                        itemComments[item.id] && (
+                          <p
+                            style={{
+                              margin: "6px 0 0 0",
+                              fontSize: "12px",
+                              color: "#8b181b",
+                              fontStyle: "italic",
+                            }}
+                          >
+                            💬 {itemComments[item.id]}
+                          </p>
+                        )
+                      )}
 
                       <div
                         style={{
