@@ -528,7 +528,7 @@ app.get("/api/products", async (req, res) => {
     } = req.query;
 
     const where = {};
-    if (category) where.category = category;
+    if (category) where.category = { contains: category, mode: "insensitive" };
     if (subcategory) where.subcategory = subcategory;
     if (search) where.name = { contains: search, mode: "insensitive" };
     if (isPromo === "true") where.isPromo = true;

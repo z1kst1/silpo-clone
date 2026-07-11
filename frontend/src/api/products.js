@@ -9,6 +9,7 @@ export const getProducts = async ({
   search,
   sortBy,
   order,
+  isPromo,
 } = {}) => {
   const params = new URLSearchParams();
   params.append("page", page);
@@ -18,6 +19,7 @@ export const getProducts = async ({
   if (search) params.append("search", search);
   if (sortBy) params.append("sortBy", sortBy);
   if (order) params.append("order", order);
+  if (isPromo) params.append("isPromo", "true");
 
   const response = await api.get(`/products?${params.toString()}`);
   return response.data; // { products, total, page, limit, totalPages }

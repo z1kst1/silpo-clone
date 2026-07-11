@@ -9,6 +9,7 @@ export default function useProducts({
   search,
   sortBy,
   order,
+  isPromo,
 } = {}) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,6 +29,7 @@ export default function useProducts({
         search,
         sortBy,
         order,
+        isPromo,
       });
       // Бекенд повертає { products, total, totalPages }
       if (data && Array.isArray(data.products)) {
@@ -52,7 +54,7 @@ export default function useProducts({
     } finally {
       setLoading(false);
     }
-  }, [page, limit, category, subcategory, search, sortBy, order]);
+  }, [page, limit, category, subcategory, search, sortBy, order, isPromo]);
   useEffect(() => {
     loadProducts();
   }, [loadProducts]);

@@ -9,7 +9,7 @@ const promoCards = [
     id: 1,
     image: "/images/figma/cards/offers-card.png",
     alt: "Мої пропозиції",
-    to: "/profile",
+    to: "/catalog?isPromo=true",
   },
   {
     id: 2,
