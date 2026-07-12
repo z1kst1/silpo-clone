@@ -124,9 +124,7 @@ export default function Header() {
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            padding: "16px 24px",
-            maxWidth: "1440px",
-            margin: "0 auto",
+            padding: "16px 40px",
             position: "relative",
           }}
         >
@@ -724,47 +722,22 @@ export default function Header() {
         </div>
 
         {!hideSlots && (
-          <div
-            style={{
-              borderTop: "1px solid rgba(142, 22, 22, 0.1)",
-              padding: "12px 24px",
-              display: "flex",
-              gap: "12px",
-              maxWidth: "1440px",
-              margin: "0 auto",
-              overflowX: "auto",
-            }}
-          >
-            {timeSlots.map((slot) => {
-              const isAccent = slot === selectedSlot;
-              return (
-                <button
-                  key={slot}
-                  type="button"
-                  onClick={() => setSelectedSlot(slot)}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: isAccent ? "6px" : "0",
-                    backgroundColor: isAccent
-                      ? "rgba(142, 22, 22, 0.1)"
-                      : "transparent",
-                    color: isAccent ? "#8E1616" : "#202124",
-                    border: isAccent
-                      ? "none"
-                      : "1px solid rgba(142, 22, 22, 0.3)",
-                    borderRadius: "20px",
-                    padding: "6px 16px",
-                    fontSize: "13px",
-                    fontWeight: isAccent ? "700" : "400",
-                    cursor: "pointer",
-                  }}
-                >
-                  {isAccent && "⚡ "}
-                  {slot}
-                </button>
-              );
-            })}
+          <div style={{ borderTop: "1px solid rgba(142, 22, 22, 0.1)", padding: "8px 40px", display: "flex", gap: "10px", overflowX: "auto", alignItems: "center" }}>
+            {[
+              { img: "/images/figma/slots/slot-urgent.png",   alt: "до 69 хв" },
+              { img: "/images/figma/slots/slot-1830.png",     alt: "18:00 - 19:30" },
+              { img: "/images/figma/slots/slot-1930.png",     alt: "19:30 - 21:00" },
+              { img: "/images/figma/slots/slot-2100.png",     alt: "21:00 - 22:30" },
+              { img: "/images/figma/slots/slot-tomorrow.png", alt: "Завтра, 09:00 - 10:30" },
+              { img: "/images/figma/slots/slot-other.png",    alt: "Інший час" },
+            ].map((slot) => (
+              <img
+                key={slot.alt}
+                src={slot.img}
+                alt={slot.alt}
+                style={{ height: "34px", cursor: "pointer", display: "block", flexShrink: 0 }}
+              />
+            ))}
           </div>
         )}
       </header>
