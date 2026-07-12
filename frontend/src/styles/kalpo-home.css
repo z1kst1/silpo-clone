@@ -5,7 +5,7 @@
 ========================================= */
 
 .kalpo-home-wrapper {
-  background-color: #FAEDD2;
+  background-color: #F5E6BE;
   min-height: 100vh;
   padding: 30px 0 60px 0;
   display: flex;
@@ -15,11 +15,12 @@
 
 .kalpo-home-content {
   width: 100%;
-  max-width: 1320px;
-  padding: 0 24px;
+  max-width: 100%;
+  padding: 0 var(--page-gutter);
   display: flex;
   flex-direction: column;
   gap: 30px;
+  box-sizing: border-box;
 }
 
 .kalpo-slots {
@@ -375,13 +376,13 @@
 }
 
 .kalpo-header__inner {
-  max-width: 1320px;
-  margin: 0 auto;
-  padding: 12px 24px 10px;
+  width: 100%;
+  padding: 12px var(--page-gutter) 10px;
   display: grid;
   grid-template-columns: auto 1fr auto;
-  gap: 24px; /* Збільшили відступ між лого і кнопкою */
+  gap: 24px;
   align-items: center;
+  box-sizing: border-box;
 }
 
 .kalpo-header__left {
@@ -539,12 +540,12 @@
 }
 
 .kalpo-header__slots {
-  max-width: 1320px;
-  margin: 0 auto;
-  padding: 6px 24px 14px;
+  width: 100%;
+  padding: 6px var(--page-gutter) 14px;
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+  box-sizing: border-box;
 }
 
 .kalpo-header__slot-button {

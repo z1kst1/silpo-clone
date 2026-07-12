@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import useProducts from "../../hooks/useProducts";
 import CartDrawer from "../CartDrawer";
@@ -29,7 +29,12 @@ export default function Header() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { products } = useProducts();
+  // ✅ Товари вантажимо ТІЛЬКИ коли юзер відкрив пошук — раніше
+  // useProducts() викликався без умов і робив зайвий запит на КОЖНІЙ
+  // сторінці сайту (навіть там де товари взагалі не показуються,
+  // наприклад на /categories), саме це критикував ментор.
+  const [searchEnabled, setSearchEnabled] = useState(false);
+  const { products } = useProducts({ enabled: searchEnabled });
 
   // ✅ Отримуємо юзера з AuthContext — оновлюється автоматично після логіну
   const { user } = useAuth();
@@ -64,12 +69,17 @@ export default function Header() {
   };
 
   const handleSearchFocus = () => {
-    if (products.length > 0) {
-      const randomProducts = getRandomSuggestions(products, 5);
-      setSuggestedProducts(randomProducts);
-    }
+    // ✅ Запускаємо завантаження товарів лише зараз, при першому фокусі
+    setSearchEnabled(true);
     setIsFocused(true);
   };
+
+  // Як тільки товари прийшли (після фокусу) — формуємо випадкові підказки
+  useEffect(() => {
+    if (searchEnabled && products.length > 0 && suggestedProducts.length === 0) {
+      setSuggestedProducts(getRandomSuggestions(products, 5));
+    }
+  }, [searchEnabled, products]);
 
   const searchSuggestions =
     searchQuery.trim() === ""
@@ -112,9 +122,7 @@ export default function Header() {
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            padding: "16px 24px",
-            maxWidth: "1440px",
-            margin: "0 auto",
+            padding: "16px 40px",
             position: "relative",
           }}
         >
@@ -400,30 +408,22 @@ export default function Header() {
         </div>
 
         {!hideSlots && (
-          <div style={{ borderTop: "1px solid rgba(142, 22, 22, 0.1)", padding: "12px 24px", display: "flex", gap: "12px", maxWidth: "1440px", margin: "0 auto", overflowX: "auto" }}>
-            {timeSlots.map((slot, index) => {
-              const isAccent = index === 0;
-              return (
-                <button
-                  key={slot}
-                  type="button"
-                  style={{
-                    display: "flex", alignItems: "center",
-                    gap: isAccent ? "6px" : "0",
-                    backgroundColor: isAccent ? "rgba(142, 22, 22, 0.1)" : "transparent",
-                    color: isAccent ? "#8E1616" : "#202124",
-                    border: isAccent ? "none" : "1px solid rgba(142, 22, 22, 0.3)",
-                    borderRadius: "20px", padding: "6px 16px",
-                    fontSize: "13px",
-                    fontWeight: isAccent ? "700" : "400",
-                    cursor: "pointer",
-                  }}
-                >
-                  {isAccent && "⚡ "}
-                  {slot}
-                </button>
-              );
-            })}
+          <div style={{ borderTop: "1px solid rgba(142, 22, 22, 0.1)", padding: "8px 40px", display: "flex", gap: "10px", overflowX: "auto", alignItems: "center" }}>
+            {[
+              { img: "/images/figma/slots/slot-urgent.png",   alt: "до 69 хв" },
+              { img: "/images/figma/slots/slot-1830.png",     alt: "18:00 - 19:30" },
+              { img: "/images/figma/slots/slot-1930.png",     alt: "19:30 - 21:00" },
+              { img: "/images/figma/slots/slot-2100.png",     alt: "21:00 - 22:30" },
+              { img: "/images/figma/slots/slot-tomorrow.png", alt: "Завтра, 09:00 - 10:30" },
+              { img: "/images/figma/slots/slot-other.png",    alt: "Інший час" },
+            ].map((slot) => (
+              <img
+                key={slot.alt}
+                src={slot.img}
+                alt={slot.alt}
+                style={{ height: "34px", cursor: "pointer", display: "block", flexShrink: 0 }}
+              />
+            ))}
           </div>
         )}
       </header>
