@@ -109,14 +109,26 @@ function generateRefreshToken(user) {
 // ніколи не віддаємо пароль чи внутрішні службові поля.
 // ==========================================
 
+// Форматує Date у рядок дд.мм.рррр для фронтенду
+function formatDateForFrontend(date) {
+  if (!date) return null;
+  const d = new Date(date);
+  if (Number.isNaN(d.getTime())) return null;
+  const day = String(d.getUTCDate()).padStart(2, "0");
+  const month = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const year = d.getUTCFullYear();
+  return `${day}.${month}.${year}`;
+}
+
 function formatUser(user) {
   return {
     id: user.id,
     email: user.email,
     firstName: user.firstName,
     lastName: user.lastName,
+    middleName: user.middleName || null,
     phone: user.phone || null,
-    birthDate: user.birthDate || null,
+    birthDate: formatDateForFrontend(user.birthDate),
     gender: user.gender || null,
     address: user.address || null,
     isAdmin: user.isAdmin,
@@ -343,6 +355,107 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// ==========================================
+// SMS-ВІДПРАВКА (підтвердження телефону)
+// ==========================================
+// Реального SMS-провайдера (Twilio тощо) не підключено — потрібні власні
+// облікові дані. Поки що код лише логується в консоль бекенду (dev-режим),
+// щоб фронтенд і QA могли протестувати весь флоу без реального SMS.
+// Щоб підключити Twilio: npm install twilio, додати в .env
+// TWILIO_ACCOUNT_SID / TWILIO_AUTH_TOKEN / TWILIO_PHONE_NUMBER,
+// і розкоментувати блок нижче.
+async function sendSms(phone, code) {
+  if (
+    process.env.TWILIO_ACCOUNT_SID &&
+    process.env.TWILIO_AUTH_TOKEN &&
+    process.env.TWILIO_PHONE_NUMBER
+  ) {
+    const twilio = require("twilio")(
+      process.env.TWILIO_ACCOUNT_SID,
+      process.env.TWILIO_AUTH_TOKEN,
+    );
+    await twilio.messages.create({
+      body: `Код підтвердження Kalpo: ${code}`,
+      from: process.env.TWILIO_PHONE_NUMBER,
+      to: phone,
+    });
+    return;
+  }
+  console.log(`[DEV SMS] Код підтвердження для ${phone}: ${code}`);
+}
+
+const SMS_CODE_TTL_MS = 5 * 60 * 1000; // 5 хвилин
+
+app.post("/api/auth/send-sms", authMiddleware, async (req, res) => {
+  const { phone } = req.body;
+  if (!phone || !/^\+?\d{9,15}$/.test(phone.replace(/[\s()-]/g, ""))) {
+    return res.status(400).json({ error: "Вкажіть коректний номер телефону" });
+  }
+
+  try {
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    const expiresAt = new Date(Date.now() + SMS_CODE_TTL_MS);
+
+    await prisma.smsVerificationCode.create({
+      data: { phone, code, expiresAt },
+    });
+
+    await sendSms(phone, code);
+
+    res.json({
+      message: "Код надіслано",
+      // Код повертається в відповіді лише поза продакшн-середовищем,
+      // щоб можна було тестувати без реального SMS-провайдера.
+      ...(process.env.NODE_ENV !== "production" ? { devCode: code } : {}),
+    });
+  } catch (error) {
+    console.error("SEND SMS ERROR:", error);
+    res.status(500).json({ error: "Не вдалося надіслати SMS" });
+  }
+});
+
+app.post("/api/auth/verify-sms", authMiddleware, async (req, res) => {
+  const { phone, code } = req.body;
+  if (!phone || !code) {
+    return res.status(400).json({ error: "Телефон і код обов'язкові" });
+  }
+
+  try {
+    const record = await prisma.smsVerificationCode.findFirst({
+      where: { phone, code, used: false },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (!record) {
+      return res.status(400).json({ error: "Невірний код" });
+    }
+
+    if (record.expiresAt < new Date()) {
+      return res
+        .status(400)
+        .json({ error: "Код протермінований, запросіть новий" });
+    }
+
+    await prisma.smsVerificationCode.update({
+      where: { id: record.id },
+      data: { used: true },
+    });
+
+    const updatedUser = await prisma.user.update({
+      where: { id: req.user.userId },
+      data: { phone },
+    });
+
+    res.json({
+      message: "Телефон підтверджено",
+      user: formatUser(updatedUser),
+    });
+  } catch (error) {
+    console.error("VERIFY SMS ERROR:", error);
+    res.status(500).json({ error: "Не вдалося перевірити код" });
+  }
+});
+
 app.post("/api/auth/forgot-password", async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: "Email обов'язковий" });
@@ -455,18 +568,39 @@ const getProfile = async (req, res) => {
 app.get("/api/profile", authMiddleware, getProfile);
 app.get("/api/auth/me", authMiddleware, getProfile);
 
+// Парсить дату у форматі дд.мм.рррр (як вводить користувач на фронтенді)
+// у коректний JS Date. Використання new Date(рядок) тут неприпустиме —
+// Node.js читає крапки як американський формат MM.DD.YYYY.
+function parseUkrainianDate(value) {
+  if (!value) return null;
+  const match = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(value.trim());
+  if (!match) return null;
+  const [, day, month, year] = match;
+  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
 app.put("/api/profile", authMiddleware, async (req, res) => {
   try {
-    const { firstName, lastName, phone, birthDate, gender, address } = req.body;
+    const {
+      firstName,
+      lastName,
+      middleName,
+      phone,
+      birthDate,
+      gender,
+      address,
+    } = req.body;
     const updatedUser = await prisma.user.update({
       where: { id: req.user.userId },
       data: {
         firstName,
         lastName,
+        middleName,
         phone,
         gender,
-        address: address ?? undefined,
-        birthDate: birthDate ? new Date(birthDate) : null,
+        address,
+        birthDate: birthDate ? parseUkrainianDate(birthDate) : null,
       },
     });
     res.json(formatUser(updatedUser));
