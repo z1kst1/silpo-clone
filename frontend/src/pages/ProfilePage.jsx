@@ -833,20 +833,108 @@ export default function ProfilePage() {
               <>
                 <h2 className="modal-title">Стать</h2>
                 <div className="modal-inputs">
-                  <select name="gender" value={editData.gender || "Не вказано"} onChange={handleEditChange} className="modal-input">
-                    <option value="Не вказано">Не вказано</option>
-                    <option value="Чоловіча">Чоловіча</option>
-                    <option value="Жіноча">Жіноча</option>
-                  </select>
+                  {["Чоловік", "Жінка", "Не вказано"].map((option) => (
+                    <label key={option} className="gender-radio-label">
+                      <input
+                        type="radio"
+                        name="gender"
+                        value={option}
+                        checked={(editData.gender || "Не вказано") === option}
+                        onChange={handleEditChange}
+                        className="gender-radio-input"
+                      />
+                      <span className="gender-radio-text">{option}</span>
+                    </label>
+                  ))}
                 </div>
               </>
             )}
             {activeModal === "editPhone" && (
               <>
-                <h2 className="modal-title">Телефон</h2>
-                <div className="modal-inputs">
-                  <input type="tel" name="phone" placeholder="+380..." value={editData.phone || ""} onChange={handleEditChange} className="modal-input" />
-                </div>
+                {!editData.phoneStep2 ? (
+                  /* КРОК 1 — введення номеру */
+                  <>
+                    <h2 className="modal-title">Телефон</h2>
+                    <div className="modal-inputs">
+                      <div className="phone-input-wrapper">
+                        <span className="phone-prefix">+380</span>
+                        <input
+                          type="tel"
+                          name="phone"
+                          placeholder=" (00) 000 00 00"
+                          value={(() => {
+                            const digits = (editData.phone || "").replace("+380", "").replace(/\D/g, "").slice(0, 9);
+                            let formatted = "";
+                            if (digits.length > 0) formatted = " (" + digits.slice(0, 2);
+                            if (digits.length >= 2) formatted += ") " + digits.slice(2, 5);
+                            if (digits.length >= 5) formatted += " " + digits.slice(5, 7);
+                            if (digits.length >= 7) formatted += " " + digits.slice(7, 9);
+                            return formatted;
+                          })()}
+                          onChange={(e) => {
+                            const digits = e.target.value.replace(/\D/g, "").slice(0, 9);
+                            setEditData((prev) => ({ ...prev, phone: "+380" + digits }));
+                          }}
+                          className="modal-input phone-input-field"
+                        />
+                      </div>
+                    </div>
+                    {saveError && <p className="modal-error">{saveError}</p>}
+                    <div className="modal-buttons">
+                      <button className="modal-btn-cancel" onClick={closeModal}>Скасувати</button>
+                      <button
+                        className="modal-btn-save"
+                        onClick={() => {
+                          if (!editData.phone || editData.phone.length < 10) {
+                            setSaveError("Введіть коректний номер телефону");
+                            return;
+                          }
+                          setSaveError("");
+                          setEditData((prev) => ({ ...prev, phoneStep2: true, smsCode: "" }));
+                        }}
+                      >
+                        Далі
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  /* КРОК 2 — підтвердження SMS */
+                  <>
+                    <h2 className="modal-title">Підтвердіть свій номер</h2>
+                    <p style={{ fontSize: "14px", color: "#888", margin: "-8px 0 20px" }}>Вкажіть код із SMS</p>
+                    <div className="modal-inputs">
+                      <div className="sms-code-wrapper">
+                        {[0,1,2,3,4,5].map((i) => (
+                          <input
+                            key={i}
+                            type="text"
+                            maxLength={1}
+                            inputMode="numeric"
+                            value={(editData.smsCode || "")[i] || ""}
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/\D/g, "");
+                              const code = (editData.smsCode || "").split("");
+                              code[i] = val;
+                              setEditData((prev) => ({ ...prev, smsCode: code.join("") }));
+                              if (val && e.target.nextSibling) e.target.nextSibling.focus();
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Backspace" && !e.target.value && e.target.previousSibling) {
+                                e.target.previousSibling.focus();
+                              }
+                            }}
+                            className="sms-code-input"
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    {saveError && <p className="modal-error">{saveError}</p>}
+                    <div className="modal-buttons">
+                      <button className="modal-btn-cancel" onClick={closeModal}>Скасувати</button>
+                      <button className="modal-btn-save" onClick={handleSaveDetails}>Зберегти</button>
+                    </div>
+                  </>
+                )}
               </>
             )}
             {activeModal === "editCity" && (
@@ -866,11 +954,13 @@ export default function ProfilePage() {
               </>
             )}
 
-            {saveError && <p className="modal-error">{saveError}</p>}
-            <div className="modal-buttons">
-              <button className="modal-btn-cancel" onClick={closeModal}>Скасувати</button>
-              <button className="modal-btn-save" onClick={handleSaveDetails}>Зберегти</button>
-            </div>
+            {saveError && activeModal !== "editPhone" && <p className="modal-error">{saveError}</p>}
+            {activeModal !== "editPhone" && (
+              <div className="modal-buttons">
+                <button className="modal-btn-cancel" onClick={closeModal}>Скасувати</button>
+                <button className="modal-btn-save" onClick={handleSaveDetails}>Зберегти</button>
+              </div>
+            )}
           </div>
         </div>
       )}
