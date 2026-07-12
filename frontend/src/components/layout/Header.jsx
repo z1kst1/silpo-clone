@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import useProducts from "../../hooks/useProducts";
 import CartDrawer from "../CartDrawer";
@@ -30,7 +30,12 @@ export default function Header() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { products } = useProducts();
+  // ✅ Товари вантажимо ТІЛЬКИ коли юзер відкрив пошук — раніше
+  // useProducts() викликався без умов і робив зайвий запит на КОЖНІЙ
+  // сторінці сайту (навіть там де товари взагалі не показуються,
+  // наприклад на /categories), саме це критикував ментор.
+  const [searchEnabled, setSearchEnabled] = useState(false);
+  const { products } = useProducts({ enabled: searchEnabled });
 
   // ✅ Отримуємо юзера з AuthContext — оновлюється автоматично після логіну
   const { user } = useAuth();
@@ -66,12 +71,17 @@ export default function Header() {
   };
 
   const handleSearchFocus = () => {
-    if (products.length > 0) {
-      const randomProducts = getRandomSuggestions(products, 5);
-      setSuggestedProducts(randomProducts);
-    }
+    // ✅ Запускаємо завантаження товарів лише зараз, при першому фокусі
+    setSearchEnabled(true);
     setIsFocused(true);
   };
+
+  // Як тільки товари прийшли (після фокусу) — формуємо випадкові підказки
+  useEffect(() => {
+    if (searchEnabled && products.length > 0 && suggestedProducts.length === 0) {
+      setSuggestedProducts(getRandomSuggestions(products, 5));
+    }
+  }, [searchEnabled, products]);
 
   const searchSuggestions =
     searchQuery.trim() === ""

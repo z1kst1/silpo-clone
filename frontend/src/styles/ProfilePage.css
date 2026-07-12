@@ -43,7 +43,8 @@
   width: calc(100% - 75px); /* Зменшуємо ширину, щоб кнопка не вилазила за край */
 
   text-decoration: none;
-  color: #2b2b2b;
+  /* ✅ Figma: пункти меню завжди бордові, не тільки при наведенні/активності */
+  color: #8E1616;
   font-weight: 500;
   display: flex;
   align-items: center;
@@ -60,8 +61,9 @@
 }
 
 .profile-container .menu-item img {
-  filter: grayscale(1);
-  opacity: 0.6;
+  /* ✅ Іконки завжди кольорові — фільтр сірого прибрано */
+  filter: none;
+  opacity: 1;
 }
 
 .profile-container .menu-item:hover,
@@ -73,7 +75,7 @@
 
 .profile-container .menu-item:hover img,
 .profile-container .menu-item.active img {
-  filter: grayscale(0);
+  filter: none;
   opacity: 1;
 }
 
@@ -87,13 +89,15 @@
   flex: 1;
   display: flex;
   justify-content: flex-start;
-  padding: 40px 60px; /* 40px зверху, 60px зліва від меню. Якщо треба ближче - зроби 40px замість 60px */
+  padding: 16px 32px 32px;  /* ✅ 32px відступ знизу */
   background-color: #fcfcfc;
+  overflow-y: auto;  /* ✅ було hidden — відрізало відступ знизу */
 }
 
 .profile-container .profile-main-inner {
   width: 100%;
-  max-width: 900px; /* Трохи розширив, щоб карткам було вільніше після зсуву вліво */
+  max-width: 100%;
+  padding-bottom: 32px;
 }
 
 .profile-container .page-title {
@@ -417,6 +421,7 @@
 .details-view {
   width: 100%;
   animation: fadeIn 0.2s ease;
+  padding-bottom: 24px;  /* відступ знизу — блоки не йдуть до самого краю */
 }
 
 @keyframes fadeIn {
@@ -426,54 +431,58 @@
 
 /* ЗАГОЛОВОК (Без іконки) */
 .details-header-text {
-  margin-bottom: 25px;
+  margin-bottom: 8px;
 }
 
 .details-header-text h2 {
-  font-size: 28px;
+  /* ✅ Figma: 39px, font-weight SemiBold (600) — не Bold (700) */
+  font-size: 30px;
   color: #1a1a1a;
   margin: 0 0 4px 0;
-  font-weight: 700;
+  font-weight: 600;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .details-header-text p {
   margin: 0;
-  color: #777;
-  font-size: 14px;
+  color: #555;
+  /* ✅ Figma: 19px */
+  font-size: 15px;
+  font-family: 'Open Sans', sans-serif;
 }
 
-/* АВАТАР ПО ЦЕНТРУ */
+/* ✅ ШАПКА: заголовок зліва, аватар компактно праворуч —
+   точно як у Figma, де "Мої дані" і аватар стоять в одному рядку,
+   а не один над одним по центру всієї сторінки */
+.mydata-header {
+  display: grid;
+  grid-template-columns: 2fr auto 3fr;  /* текст | аватар (40%) | порожньо */
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.mydata-header .details-header-text {
+  margin-bottom: 0;
+  grid-column: 1;
+}
+
 .details-avatar-container {
+  grid-column: 2;
   display: flex;
-  justify-content: center;
-  margin-bottom: 35px;
+  flex-direction: column;
+  align-items: center;
+  margin: 0;
 }
 
 .details-avatar {
-  width: 80px;
-  height: 80px;
+  width: 88px;
+  height: 88px;
   background-color: #e2e2e2;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-}
-
-/* =========================================
-   СТИЛІ ДЛЯ АВАТАРУ В "МОЇ ДАНІ"
-========================================= */
-
-.details-avatar {
-  /* Існуючі стилі кола аватару */
-  width: 80px;
-  height: 80px;
-  background-color: #e2e2e2;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative; /* Потрібно для позиціонування кнопки хрестика/плюса */
 }
 
 /* ОНОВЛЕНО: Універсальна кнопка дії (плюс або хрестик) */
@@ -520,27 +529,59 @@
   background-color: #fff0f0;
 }
 
-/* ОБГОРТКА ДЛЯ КАРТОК (Щоб не були занадто широкими) */
+/* ОБГОРТКА — ДВОКОЛОНКОВИЙ ГРІД як у Figma */
 .details-cards-wrapper {
-  max-width: 600px;
-  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: start;
+  width: 100%;
+  padding-bottom: 32px; /* ✅ відступ всередині grid-контейнера — не ковтається overflow */
+}
+
+.details-col-left {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 24px;
+}
+
+.details-col-right {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 24px;
+}
+
+/* ✅ Figma: значення полів — не жирні, regular weight */
+.details-value {
+  font-weight: 400 !important;
+}
+
+/* Рядок без hover для "Мова" */
+.details-list-item.no-hover {
+  cursor: default;
+}
+.details-list-item.no-hover:hover {
+  background: none;
 }
 
 .details-block {
   background-color: #fff;
   border: 1px solid #eaeaea;
-  border-radius: 16px;
-  padding: 20px 25px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  /* ✅ Figma: border-radius 43px, тінь м'яка й розмита */
+  border-radius: 18px;
+  padding: 14px 20px;
+  margin-bottom: 10px;
+  box-shadow: 0px 1px 17.3px -6px rgba(0, 0, 0, 0.25);
 }
 
 /* ЧЕРВОНЕ КОЛО ДЛЯ ІКОНОК */
 .details-block-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 10px;
+  margin-bottom: 8px;
 }
 
 .details-icon-solid {
@@ -555,9 +596,10 @@
 
 .details-block-header h3 {
   margin: 0;
-  font-size: 15px;
-  color: #1a1a1a;
+  font-size: 19px;
+  color: #000000;
   font-weight: 600;
+  font-family: 'Montserrat', sans-serif;
 }
 
 /* ВЕРСТКА РЯДКІВ (Стовпчиком, як у Фігмі) */
@@ -570,7 +612,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 0;
+  padding: 8px 0;
   border-bottom: 1px solid #f2f2f2;
   cursor: pointer;
 }
@@ -591,14 +633,16 @@
 }
 
 .details-label {
-  font-size: 11px;
-  color: #888;
+  font-size: 16px;
+  color: #202124;
+  font-family: 'Open Sans', sans-serif;
 }
 
 .details-value {
-  font-size: 14px;
-  color: #1a1a1a;
+  font-size: 19px;
+  color: #000000;
   font-weight: 600;
+  font-family: 'Montserrat', sans-serif;
 }
 
 /* ІКОНКИ ДІЙ СПРАВА (Стрілка, плюс, олівчик) */
@@ -868,14 +912,19 @@
    БЛОК "ВАША ЗНИЖКА"
    ============================================ */
 .details-block.discount-block {
-  background: #F9E8E0;
+  /* ✅ Figma: точний колір фону #FDEEEB */
+  background: #FDEEEB;
   border: none;
   position: relative;
   overflow: hidden;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding: 24px 20px;
+  padding: 18px 20px;
+  margin-bottom: 10px;
+  /* ✅ Figma: картка 200px висотою (як і інші картки в правій колонці) —
+     раніше була стиснута до ~80px, через що виглядала "маленькою кнопкою" */
+  min-height: 140px;
 }
 
 .discount-content {
@@ -885,24 +934,29 @@
 }
 
 .discount-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: #555;
+  font-size: 15px;
+  font-weight: 600;
+  color: #000;
   margin: 0;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .discount-value {
-  font-size: 36px;
-  font-weight: 800;
+  /* ✅ Figma: 47px, font-weight SemiBold (600) — не Bold (700) */
+  font-size: 38px;
+  font-weight: 600;
   color: #8E1616;
-  margin: 4px 0;
+  margin: 2px 0;
   line-height: 1;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .discount-tier {
-  font-size: 13px;
-  color: #888;
+  font-size: 14px;
+  font-weight: 500;
+  color: #000;
   margin: 0;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .discount-leaves {
@@ -910,6 +964,11 @@
   right: 0;
   bottom: 0;
   pointer-events: none;
+  width: 140px;
+  height: 110px;
+  object-fit: cover;
+  object-position: left center;
+  border-radius: 18px;
 }
 
 /* ============================================
@@ -917,6 +976,16 @@
    ============================================ */
 .details-block.stats-block {
   padding: 20px;
+  min-height: 160px;
+  margin-bottom: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.details-block.stats-block .stats-grid {
+  flex: 1;
+  align-items: center;
 }
 
 .stats-block-header {
@@ -926,19 +995,18 @@
   font-size: 14px;
   font-weight: 600;
   color: #1a1a1a;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .stats-grid {
   display: flex;
-  gap: 0;
   justify-content: space-between;
 }
 
 .stats-item {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   flex: 1;
 }
 
@@ -949,12 +1017,79 @@
 }
 
 .stats-item strong {
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 14px;
+  /* ✅ Figma: SemiBold (600), не Bold (700) */
+  font-weight: 600;
   color: #1a1a1a;
 }
 
 .stats-item span {
-  font-size: 12px;
+  font-size: 11px;
   color: #888;
+}
+
+/* ============================================
+   БЛОК "МОЇ ІНТЕРЕСИ"
+   ============================================ */
+.interests-block {
+  padding: 20px;
+  min-height: 160px;
+  margin-bottom: 32px;
+}
+
+.interests-icon {
+  background: #8E1616 !important;
+}
+
+.interests-list {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 10px;
+  margin-top: 12px;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+.interest-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex: 1;        /* рівномірно розподіляємо по ширині */
+  min-width: 0;   /* дозволяємо стискатись */
+  flex-shrink: 1;
+}
+
+.interest-icon-circle {
+  /* ✅ Прибрано фон/бордер контейнера — SVG-файли з Figma ВЖЕ містять
+     свій рожевий круг всередині (<circle fill="#F4E8E8">), тому раніше
+     виходило "коло в колі": один круг із SVG, другий з CSS-фону. */
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.interest-icon-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.interest-icon-circle .interest-emoji {
+  font-size: 24px;
+}
+
+.interest-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #202124;
+  text-align: center;
+  line-height: 1.3;
+  font-family: 'Open Sans', sans-serif;
 }

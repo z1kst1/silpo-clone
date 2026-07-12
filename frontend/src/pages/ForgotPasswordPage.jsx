@@ -13,6 +13,13 @@ export default function ForgotPasswordPage() {
     e.preventDefault();
     setMessage("");
     setError("");
+
+    // ✅ Валідація формату email перед відправкою запиту
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("Введіть коректний email, наприклад example@gmail.com");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {

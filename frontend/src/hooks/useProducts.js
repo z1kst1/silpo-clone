@@ -1,6 +1,12 @@
 import { useEffect, useState, useCallback } from "react";
 import { getProducts } from "../api/products";
 import defaultProducts from "../data/products";
+
+// ✅ Параметр enabled — дозволяє не робити запит, якщо товари зараз
+// не потрібні (наприклад Header/CartDrawer на сторінці категорій,
+// де ще немає жодного товару для показу). Раніше useProducts() викликався
+// без умов на КОЖНІЙ сторінці через Header — це і створювало зайві
+// запити, про які казав ментор.
 export default function useProducts({
   page = 1,
   limit = 20,
@@ -9,15 +15,16 @@ export default function useProducts({
   search,
   sortBy,
   order,
-  isPromo,
+  enabled = true,
 } = {}) {
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(enabled);
   const [error, setError] = useState(null);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
 
   const loadProducts = useCallback(async () => {
+    if (!enabled) return;
     setLoading(true);
     setError(null);
     try {
@@ -29,7 +36,6 @@ export default function useProducts({
         search,
         sortBy,
         order,
-        isPromo,
       });
       // Бекенд повертає { products, total, totalPages }
       if (data && Array.isArray(data.products)) {
@@ -54,7 +60,8 @@ export default function useProducts({
     } finally {
       setLoading(false);
     }
-  }, [page, limit, category, subcategory, search, sortBy, order, isPromo]);
+  }, [page, limit, category, subcategory, search, sortBy, order, enabled]);
+
   useEffect(() => {
     loadProducts();
   }, [loadProducts]);

@@ -29,6 +29,7 @@ export default function ProfilePage() {
       gender: saved?.gender || "Не вказано",
       avatar: saved?.avatar || "",
       address: saved?.address || "",
+      city: saved?.city || "",
     };
   });
 
@@ -60,6 +61,7 @@ export default function ProfilePage() {
           gender: userData.gender || "Не вказано",
           avatar: userData.avatar || "",
           address: userData.address || "",
+          city: userData.city || "",
         });
         localStorage.setItem("silpo-user", JSON.stringify(userData));
       } catch (error) {
@@ -177,79 +179,44 @@ export default function ProfilePage() {
             className={`menu-item ${activeView === "dashboard" ? "active" : ""}`}
             onClick={() => handleViewChange("dashboard")}
           >
-            <img
-              src="/images/figma/icons/profile.svg"
-              alt=""
-              width="18"
-              height="18"
-            />{" "}
+            <img src="/images/figma/icons/profile.svg" alt="" width="18" height="18" />{" "}
             Профіль
           </button>
           <button
             className={`menu-item ${["myData", "editName", "editBirthDate", "editGender", "editPhone"].includes(activeView) ? "active" : ""}`}
             onClick={() => handleViewChange("myData")}
           >
-            <img
-              src="/images/figma/icons/user.svg"
-              alt=""
-              width="18"
-              height="18"
-            />{" "}
+            <img src="/images/figma/icons/user.svg" alt="" width="18" height="18" />{" "}
             Мої дані
           </button>
           <button
             className={`menu-item ${activeView === "security" ? "active" : ""}`}
             onClick={() => handleViewChange("security")}
           >
-            <img
-              src="/images/figma/icons/shield.svg"
-              alt=""
-              width="18"
-              height="18"
-            />{" "}
+            <img src="/images/figma/icons/shield.svg" alt="" width="18" height="18" />{" "}
             Безпека
           </button>
           <button
             className={`menu-item ${activeView === "addresses" ? "active" : ""}`}
             onClick={() => handleViewChange("addresses")}
           >
-            <img
-              src="/images/figma/icons/map-pin.svg"
-              alt=""
-              width="18"
-              height="18"
-            />{" "}
+            <img src="/images/figma/icons/map-pin.svg" alt="" width="18" height="18" />{" "}
             Адреси
           </button>
           <button
             className={`menu-item ${activeView === "orders" ? "active" : ""}`}
             onClick={() => handleViewChange("orders")}
           >
-            <img
-              src="/images/figma/icons/shopping-bag.svg"
-              alt=""
-              width="18"
-              height="18"
-            />{" "}
+            <img src="/images/figma/icons/shopping-bag.svg" alt="" width="18" height="18" />{" "}
             Історія покупок
           </button>
           <div className="menu-spacer"></div>
           <button className="menu-item help-button">
-            <img
-              src="/images/figma/icons/help-circle.svg"
-              alt=""
-              width="18"
-              height="18"
-            />{" "}
+            <img src="/images/figma/icons/help-circle.svg" alt="" width="18" height="18" />{" "}
             Допомога
           </button>
           <button className="menu-item logout-button" onClick={handleLogout}>
-            <img
-              src="/images/figma/icons/log-out.svg"
-              alt=""
-              width="18"
-              height="18"
-            />{" "}
+            <img src="/images/figma/icons/log-out.svg" alt="" width="18" height="18" />{" "}
             Вийти
           </button>
         </div>
@@ -258,6 +225,7 @@ export default function ProfilePage() {
       {/* ОСНОВНИЙ КОНТЕНТ */}
       <main className="profile-main">
         <div className="profile-main-inner">
+
           {/* ДАШБОРД */}
           {activeView === "dashboard" && (
             <div className="fade-in-container">
@@ -274,20 +242,10 @@ export default function ProfilePage() {
                       <img
                         src={user.avatar}
                         alt="Avatar"
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          borderRadius: "50%",
-                          objectFit: "cover",
-                        }}
+                        style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
                       />
                     ) : (
-                      <img
-                        src="/images/figma/icons/avatar.svg"
-                        alt="Avatar"
-                        width="60"
-                        height="60"
-                      />
+                      <img src="/images/figma/icons/avatar.svg" alt="Avatar" width="60" height="60" />
                     )}
                   </div>
                   <div className="user-details">
@@ -301,12 +259,7 @@ export default function ProfilePage() {
                 <div className="info-card">
                   <div className="card-header">
                     <div className="header-icon-wrapper">
-                      <img
-                        src="/images/figma/icons/user.svg"
-                        alt=""
-                        width="20"
-                        height="20"
-                      />
+                      <img src="/images/figma/icons/user.svg" alt="" width="20" height="20" />
                     </div>
                     <div className="header-text-group">
                       <h3>Мої дані</h3>
@@ -327,23 +280,16 @@ export default function ProfilePage() {
                       <strong>{user.phone || "Не вказано"}</strong>
                     </div>
                   </div>
-                  <button
-                    className="card-footer-link"
-                    onClick={() => setActiveView("myData")}
-                  >
+                  <button className="card-footer-link" onClick={() => setActiveView("myData")}>
                     Переглянути всі дані <span>❯</span>
                   </button>
                 </div>
+
                 {/* АДРЕСИ */}
                 <div className="info-card">
                   <div className="card-header">
                     <div className="header-icon-wrapper">
-                      <img
-                        src="/images/figma/icons/map-pin.svg"
-                        alt=""
-                        width="20"
-                        height="20"
-                      />
+                      <img src="/images/figma/icons/map-pin.svg" alt="" width="20" height="20" />
                     </div>
                     <div className="header-text-group">
                       <h3>Адреси</h3>
@@ -356,23 +302,16 @@ export default function ProfilePage() {
                       <strong>{user.address || "Не вказано"}</strong>
                     </div>
                   </div>
-                  <button
-                    className="card-footer-link"
-                    onClick={() => setActiveView("addresses")}
-                  >
+                  <button className="card-footer-link" onClick={() => setActiveView("addresses")}>
                     Переглянути адреси <span>❯</span>
                   </button>
                 </div>
+
                 {/* ІСТОРІЯ ПОКУПОК */}
                 <div className="info-card">
                   <div className="card-header">
                     <div className="header-icon-wrapper">
-                      <img
-                        src="/images/figma/icons/shopping-bag.svg"
-                        alt=""
-                        width="20"
-                        height="20"
-                      />
+                      <img src="/images/figma/icons/shopping-bag.svg" alt="" width="20" height="20" />
                     </div>
                     <div className="header-text-group">
                       <h3>Історія покупок</h3>
@@ -381,53 +320,35 @@ export default function ProfilePage() {
                   </div>
                   <div className="card-body purchase-list">
                     {ordersLoading ? (
-                      <div style={{ color: "#888", fontSize: "13px" }}>
-                        Завантаження...
-                      </div>
+                      <div style={{ color: "#888", fontSize: "13px" }}>Завантаження...</div>
                     ) : orders.length === 0 ? (
-                      <div style={{ color: "#888", fontSize: "13px" }}>
-                        Замовлень ще немає
-                      </div>
+                      <div style={{ color: "#888", fontSize: "13px" }}>Замовлень ще немає</div>
                     ) : (
                       orders.slice(0, 2).map((order) => (
                         <div className="purchase-item" key={order.id}>
                           <div className="purchase-meta">
-                            <span className="purchase-id">
-                              Замовлення №{order.id}
-                            </span>
+                            <span className="purchase-id">Замовлення №{order.id}</span>
                             <span className="purchase-date">
-                              {order.createdAt
-                                ? new Date(order.createdAt).toLocaleDateString(
-                                    "uk-UA",
-                                  )
-                                : ""}
+                              {order.createdAt ? new Date(order.createdAt).toLocaleDateString("uk-UA") : ""}
                             </span>
                           </div>
                           <span className="purchase-price">
-                            {Number(order.total || 0).toFixed(2)} ₴{" "}
-                            <span>❯</span>
+                            {Number(order.total || 0).toFixed(2)} ₴ <span>❯</span>
                           </span>
                         </div>
                       ))
                     )}
                   </div>
-                  <button
-                    className="card-footer-link"
-                    onClick={() => setActiveView("orders")}
-                  >
+                  <button className="card-footer-link" onClick={() => setActiveView("orders")}>
                     Переглянути всі замовлення <span>❯</span>
                   </button>
                 </div>
+
                 {/* БЕЗПЕКА */}
                 <div className="info-card">
                   <div className="card-header">
                     <div className="header-icon-wrapper">
-                      <img
-                        src="/images/figma/icons/shield.svg"
-                        alt=""
-                        width="20"
-                        height="20"
-                      />
+                      <img src="/images/figma/icons/shield.svg" alt="" width="20" height="20" />
                     </div>
                     <div className="header-text-group">
                       <h3>Безпека</h3>
@@ -435,18 +356,12 @@ export default function ProfilePage() {
                     </div>
                   </div>
                   <div className="card-body security-body">
-                    <button
-                      className="security-row-action"
-                      onClick={() => setActiveView("security")}
-                    >
+                    <button className="security-row-action" onClick={() => setActiveView("security")}>
                       <span>Змінити пароль</span>
                       <span>❯</span>
                     </button>
                   </div>
-                  <button
-                    className="card-footer-link"
-                    onClick={() => setActiveView("security")}
-                  >
+                  <button className="card-footer-link" onClick={() => setActiveView("security")}>
                     Налаштування безпеки <span>❯</span>
                   </button>
                 </div>
@@ -454,210 +369,240 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {/* МОЇ ДАНІ */}
+          {/* МОЇ ДАНІ — 2-колонковий грід як у Figma */}
           {activeView === "myData" && (
             <div className="details-view">
-              <div className="details-header-text">
-                <h2>Мої дані</h2>
-                <p>Особиста інформація та контакти</p>
-              </div>
-              <div className="details-avatar-container">
+
+              {/* ✅ Заголовок і аватар в одному рядку — праворуч, не по центру
+                  всієї сторінки, точно як у макеті Figma */}
+              <div className="mydata-header">
+                <div className="details-header-text">
+                  <h2>Мої дані</h2>
+                  <p>Особиста інформація та контакти</p>
+                </div>
+
+                <div className="details-avatar-container">
                 <div
                   className="details-avatar"
                   onClick={handleAvatarClick}
                   style={{ cursor: "pointer", padding: 0 }}
+                  title={user.avatar ? "Натисніть, щоб змінити фото" : "Натисніть, щоб додати фото"}
                 >
                   {user.avatar ? (
                     <img
                       src={user.avatar}
                       alt="Avatar"
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        borderRadius: "50%",
-                        objectFit: "cover",
-                      }}
+                      style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
                     />
                   ) : (
-                    <svg
-                      width="36"
-                      height="36"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="#666"
-                      strokeWidth="2"
-                    >
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2">
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                       <circle cx="12" cy="7" r="4" />
                     </svg>
                   )}
                   {user.avatar ? (
-                    <button
-                      className="avatar-action-btn remove"
-                      onClick={handleRemoveAvatar}
-                    >
-                      ×
-                    </button>
+                    <button className="avatar-action-btn remove" onClick={handleRemoveAvatar} title="Видалити фото">×</button>
                   ) : (
-                    <button className="avatar-action-btn add">+</button>
+                    <button className="avatar-action-btn add" title="Додати фото">+</button>
                   )}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    ref={fileInputRef}
-                    onChange={handleFileChange}
-                    style={{ display: "none" }}
-                  />
+                  <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileChange} style={{ display: "none" }} />
+                </div>
                 </div>
               </div>
+
+              {/* ДВОКОЛОНКОВИЙ ГРІД — як у макеті Figma */}
               <div className="details-cards-wrapper">
-                <div className="details-block">
-                  <div className="details-block-header">
-                    <div className="details-icon-solid">
-                      <svg
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="white"
-                        strokeWidth="2"
-                      >
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                        <circle cx="12" cy="7" r="4" />
-                      </svg>
+
+                {/* ЛІВА КОЛОНКА */}
+                <div className="details-col-left">
+
+                  {/* БЛОК 1: ПЕРСОНАЛЬНА ІНФОРМАЦІЯ */}
+                  <div className="details-block">
+                    <div className="details-block-header">
+                      <div className="details-icon-solid">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                          <circle cx="12" cy="7" r="4" />
+                        </svg>
+                      </div>
+                      <h3>Персональна інформація</h3>
                     </div>
-                    <h3>Персональна інформація</h3>
+
+                    <div className="details-list">
+                      <div className="details-list-item" onClick={() => openEdit("editName")}>
+                        <div className="details-item-content">
+                          <span className="details-label">Прізвище, ім'я</span>
+                          <strong className="details-value">{fullName}</strong>
+                        </div>
+                        <span className="details-action pencil-icon">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8E1616" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                          </svg>
+                        </span>
+                      </div>
+
+                      <div className="details-list-item" onClick={() => openEdit("editBirthDate")}>
+                        <div className="details-item-content">
+                          <span className="details-label">Дата народження</span>
+                          {user.birthDate && <strong className="details-value">{user.birthDate}</strong>}
+                        </div>
+                        <span className={`details-action ${user.birthDate ? "pencil-icon" : ""}`}>
+                          {user.birthDate ? (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8E1616" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                            </svg>
+                          ) : "+"}
+                        </span>
+                      </div>
+
+                      <div className="details-list-item" onClick={() => openEdit("editGender")}>
+                        <div className="details-item-content">
+                          <span className="details-label">Стать</span>
+                          <strong className="details-value">{user.gender}</strong>
+                        </div>
+                        <span className="details-action pencil-icon">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8E1616" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                          </svg>
+                        </span>
+                      </div>
+
+                      <div className="details-list-item" onClick={() => openEdit("editCity")}>
+                        <div className="details-item-content">
+                          <span className="details-label">Місто</span>
+                          <strong className="details-value">{user.city || "Не вказано"}</strong>
+                        </div>
+                        <span className="details-action pencil-icon">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8E1616" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                          </svg>
+                        </span>
+                      </div>
+
+                      <div className="details-list-item no-hover">
+                        <div className="details-item-content">
+                          <span className="details-label">Мова</span>
+                          <strong className="details-value">Українська</strong>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="details-list">
-                    <div
-                      className="details-list-item"
-                      onClick={() => openEdit("editName")}
-                    >
-                      <div className="details-item-content">
-                        <span className="details-label">Прізвище, ім'я</span>
-                        <strong className="details-value">{fullName}</strong>
+
+                  {/* БЛОК "МОЇ ІНТЕРЕСИ" */}
+                  <div className="details-block interests-block">
+                    <div className="details-block-header">
+                      <div className="details-icon-solid interests-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        </svg>
                       </div>
-                      <span className="details-action arrow">❯</span>
+                      <h3>Мої інтереси</h3>
                     </div>
-                    <div
-                      className="details-list-item"
-                      onClick={() => openEdit("editBirthDate")}
-                    >
-                      <div className="details-item-content">
-                        <span className="details-label">Дата народження</span>
-                        {user.birthDate && (
-                          <strong className="details-value">
-                            {user.birthDate}
-                          </strong>
-                        )}
-                      </div>
-                      <span className="details-action">
-                        {user.birthDate ? "❯" : "+"}
-                      </span>
-                    </div>
-                    <div
-                      className="details-list-item"
-                      onClick={() => openEdit("editGender")}
-                    >
-                      <div className="details-item-content">
-                        <span className="details-label">Стать</span>
-                        <strong className="details-value">{user.gender}</strong>
-                      </div>
-                      <span className="details-action arrow">❯</span>
+                    <div className="interests-list">
+                      {[
+                        { label: "Здорове харчування", img: "/images/figma/profile/interest-healthy.svg" },
+                        { label: "Еко продукти",       img: "/images/figma/profile/interest-eco.svg" },
+                        { label: "Солодощі",           img: "/images/figma/profile/interest-sweets.svg" },
+                        { label: "Кава",               img: "/images/figma/profile/interest-coffee.svg" },
+                        { label: "Товари для дому",    img: "/images/figma/profile/interest-home.svg" },
+                      ].map((item) => (
+                        <div className="interest-item" key={item.label}>
+                          <div className="interest-icon-circle">
+                            <img src={item.img} alt={item.label} />
+                          </div>
+                          <span className="interest-label">{item.label}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
+
                 </div>
-                <div className="details-block">
-                  <div className="details-block-header">
-                    <div className="details-icon-solid">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="white"
-                        strokeWidth="2"
-                      >
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                        <polyline points="14 2 14 8 20 8" />
-                      </svg>
-                    </div>
-                    <h3>Контакти</h3>
-                  </div>
-                  <div className="details-list">
-                    <div
-                      className="details-list-item"
-                      onClick={() => openEdit("editPhone")}
-                    >
-                      <div className="details-item-content">
-                        <span className="details-label">Телефон</span>
-                        <strong className="details-value">
-                          {user.phone || "Не вказано"}
-                        </strong>
+
+                {/* ПРАВА КОЛОНКА */}
+                <div className="details-col-right">
+
+                  {/* БЛОК 2: КОНТАКТИ */}
+                  <div className="details-block">
+                    <div className="details-block-header">
+                      <div className="details-icon-solid">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                          <polyline points="14 2 14 8 20 8" />
+                          <line x1="16" y1="13" x2="8" y2="13" />
+                          <line x1="16" y1="17" x2="8" y2="17" />
+                        </svg>
                       </div>
-                      <span className="details-action arrow">❯</span>
+                      <h3>Контакти</h3>
                     </div>
-                    <div
-                      className="details-list-item"
-                      onClick={() => openEdit("editEmail")}
-                    >
-                      <div className="details-item-content">
-                        <span className="details-label">Електронна пошта</span>
-                        <strong className="details-value">{user.email}</strong>
+
+                    <div className="details-list">
+                      <div className="details-list-item" onClick={() => openEdit("editPhone")}>
+                        <div className="details-item-content">
+                          <span className="details-label">Телефон</span>
+                          <strong className="details-value">{user.phone || "Не вказано"}</strong>
+                        </div>
+                        <span className="details-action pencil-icon">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8E1616" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                          </svg>
+                        </span>
                       </div>
-                      <span className="details-action arrow">❯</span>
+
+                      <div className="details-list-item" onClick={() => openEdit("editEmail")}>
+                        <div className="details-item-content">
+                          <span className="details-label">Електронна пошта</span>
+                          <strong className="details-value">{user.email}</strong>
+                        </div>
+                        <span className="details-action pencil-icon">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8E1616" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                          </svg>
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="details-block stats-block">
-                  <div className="stats-block-header">
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="#8E1616"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <line x1="18" y1="20" x2="18" y2="10" />
-                      <line x1="12" y1="20" x2="12" y2="4" />
-                      <line x1="6" y1="20" x2="6" y2="14" />
-                    </svg>
-                    <span>Ваша статистика</span>
+
+                  {/* БЛОК 3: ВАША ЗНИЖКА */}
+                  <div className="details-block discount-block">
+                    <div className="discount-content">
+                      <p className="discount-label">Ваша знижка</p>
+                      <p className="discount-value">-7%</p>
+                      <p className="discount-tier">Новий покупець</p>
+                    </div>
+                    <img className="discount-leaves" src="/images/figma/profile/discount-leaves.png" alt="" />
                   </div>
-                  <div className="stats-grid">
-                    <div className="stats-item">
-                      <strong>{orders.length}</strong>
-                      <span>Замовлень</span>
+
+                  {/* БЛОК 4: ВАША СТАТИСТИКА — рахується з реальних замовлень з бекенду */}
+                  <div className="details-block stats-block">
+                    <div className="stats-block-header">
+                      <img src="/images/figma/profile/stats-icon.svg" alt="" width="18" height="18" />
+                      <span>Ваша статистика</span>
                     </div>
-                    <div className="stats-item">
-                      <strong>
-                        {orders
-                          .reduce((sum, o) => sum + Number(o.total || 0), 0)
-                          .toFixed(2)}{" "}
-                        грн
-                      </strong>
-                      <span>Всього витрачено</span>
-                    </div>
-                    <div className="stats-item">
-                      <strong>1 місяць</strong>
-                      <span>З нами</span>
+                    <div className="stats-grid">
+                      <div className="stats-item">
+                        <strong>{orders.length}</strong>
+                        <span>Замовлень</span>
+                      </div>
+                      <div className="stats-item">
+                        <strong>{orders.reduce((sum, o) => sum + Number(o.total || 0), 0).toFixed(2)} грн</strong>
+                        <span>Всього витрачено</span>
+                      </div>
+                      <div className="stats-item">
+                        <strong>1 місяць</strong>
+                        <span>З нами</span>
+                      </div>
                     </div>
                   </div>
+
                 </div>
               </div>
             </div>
           )}
 
-          {/* БЕЗПЕКА */}
+          {/* БЕЗПЕКА — реальний запит на бекенд */}
           {activeView === "security" && (
             <div className="details-view">
-              <button
-                className="back-link-btn"
-                onClick={() => setActiveView("dashboard")}
-              >
+              <button className="back-link-btn" onClick={() => setActiveView("dashboard")}>
                 ❮ Назад
               </button>
               <div className="details-header-text">
@@ -683,11 +628,7 @@ export default function ProfilePage() {
                   onClick={() => {
                     api
                       .post("/auth/forgot-password", { email: user.email })
-                      .then(() =>
-                        alert(
-                          "Лист для зміни паролю надіслано на " + user.email,
-                        ),
-                      )
+                      .then(() => alert("Лист для зміни паролю надіслано на " + user.email))
                       .catch(() => alert("Помилка. Спробуй ще раз."));
                   }}
                 >
@@ -697,13 +638,10 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {/* АДРЕСИ */}
+          {/* АДРЕСИ — реальне збереження через PUT /profile */}
           {activeView === "addresses" && (
             <div className="details-view">
-              <button
-                className="back-link-btn"
-                onClick={() => setActiveView("dashboard")}
-              >
+              <button className="back-link-btn" onClick={() => setActiveView("dashboard")}>
                 ❮ Назад
               </button>
               <div className="details-header-text">
@@ -715,9 +653,7 @@ export default function ProfilePage() {
                   type="text"
                   placeholder="Місто, вулиця, номер будинку"
                   value={user.address || ""}
-                  onChange={(e) =>
-                    setUser((prev) => ({ ...prev, address: e.target.value }))
-                  }
+                  onChange={(e) => setUser((prev) => ({ ...prev, address: e.target.value }))}
                   style={{
                     width: "100%",
                     padding: "12px 16px",
@@ -743,19 +679,12 @@ export default function ProfilePage() {
                   onClick={async () => {
                     setIsSaving(true);
                     try {
-                      const res = await api.put("/profile", {
-                        address: user.address,
-                      });
+                      const res = await api.put("/profile", { address: user.address });
                       if (updateUser) updateUser({ address: res.data.address });
-                      const savedUser = JSON.parse(
-                        localStorage.getItem("silpo-user") || "{}",
-                      );
+                      const savedUser = JSON.parse(localStorage.getItem("silpo-user") || "{}");
                       localStorage.setItem(
                         "silpo-user",
-                        JSON.stringify({
-                          ...savedUser,
-                          address: res.data.address,
-                        }),
+                        JSON.stringify({ ...savedUser, address: res.data.address }),
                       );
                       alert("Адресу збережено!");
                     } catch {
@@ -771,13 +700,10 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {/* ІСТОРІЯ ПОКУПОК */}
+          {/* ІСТОРІЯ ПОКУПОК — реальні замовлення з бекенду */}
           {activeView === "orders" && (
             <div className="details-view">
-              <button
-                className="back-link-btn"
-                onClick={() => setActiveView("dashboard")}
-              >
+              <button className="back-link-btn" onClick={() => setActiveView("dashboard")}>
                 ❮ Назад
               </button>
               <div className="details-header-text">
@@ -785,37 +711,16 @@ export default function ProfilePage() {
                 <p>Всі ваші покупки</p>
               </div>
               {ordersLoading ? (
-                <div
-                  style={{
-                    textAlign: "center",
-                    padding: "40px",
-                    color: "#888",
-                  }}
-                >
+                <div style={{ textAlign: "center", padding: "40px", color: "#888" }}>
                   Завантаження замовлень...
                 </div>
               ) : orders.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "60px 24px" }}>
-                  <div style={{ fontSize: "48px", marginBottom: "16px" }}>
-                    🛒
-                  </div>
-                  <h3
-                    style={{
-                      fontSize: "18px",
-                      fontWeight: "700",
-                      margin: "0 0 8px 0",
-                      color: "#202124",
-                    }}
-                  >
+                  <div style={{ fontSize: "48px", marginBottom: "16px" }}>🛒</div>
+                  <h3 style={{ fontSize: "18px", fontWeight: "700", margin: "0 0 8px 0", color: "#202124" }}>
                     Замовлень ще немає
                   </h3>
-                  <p
-                    style={{
-                      color: "#888",
-                      fontSize: "14px",
-                      margin: "0 0 24px 0",
-                    }}
-                  >
+                  <p style={{ color: "#888", fontSize: "14px", margin: "0 0 24px 0" }}>
                     Зробіть перше замовлення в нашому каталозі
                   </p>
                   <button
@@ -835,63 +740,25 @@ export default function ProfilePage() {
                   </button>
                 </div>
               ) : (
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "12px",
-                  }}
-                >
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                   {orders.map((order) => (
                     <div
                       key={order.id}
-                      style={{
-                        backgroundColor: "#fafafa",
-                        borderRadius: "16px",
-                        padding: "20px 24px",
-                        border: "1px solid #f0f0f0",
-                      }}
+                      style={{ backgroundColor: "#fafafa", borderRadius: "16px", padding: "20px 24px", border: "1px solid #f0f0f0" }}
                     >
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "flex-start",
-                          marginBottom: "12px",
-                        }}
-                      >
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px" }}>
                         <div>
-                          <div
-                            style={{
-                              fontWeight: "700",
-                              fontSize: "15px",
-                              color: "#202124",
-                              marginBottom: "4px",
-                            }}
-                          >
+                          <div style={{ fontWeight: "700", fontSize: "15px", color: "#202124", marginBottom: "4px" }}>
                             Замовлення #{order.id}
                           </div>
                           <div style={{ fontSize: "13px", color: "#888" }}>
                             {order.createdAt
-                              ? new Date(order.createdAt).toLocaleDateString(
-                                  "uk-UA",
-                                  {
-                                    day: "numeric",
-                                    month: "long",
-                                    year: "numeric",
-                                  },
-                                )
+                              ? new Date(order.createdAt).toLocaleDateString("uk-UA", { day: "numeric", month: "long", year: "numeric" })
                               : ""}
                           </div>
                         </div>
                         <div style={{ textAlign: "right" }}>
-                          <div
-                            style={{
-                              fontWeight: "700",
-                              fontSize: "16px",
-                              color: "#202124",
-                            }}
-                          >
+                          <div style={{ fontWeight: "700", fontSize: "16px", color: "#202124" }}>
                             {Number(order.total || 0).toFixed(2)} ₴
                           </div>
                           <div
@@ -900,67 +767,27 @@ export default function ProfilePage() {
                               marginTop: "4px",
                               padding: "2px 8px",
                               borderRadius: "6px",
-                              backgroundColor:
-                                order.status === "completed"
-                                  ? "#f0fdf4"
-                                  : "#fff7ed",
-                              color:
-                                order.status === "completed"
-                                  ? "#16a34a"
-                                  : "#ea580c",
+                              backgroundColor: order.status === "completed" ? "#f0fdf4" : "#fff7ed",
+                              color: order.status === "completed" ? "#16a34a" : "#ea580c",
                               fontWeight: "600",
                             }}
                           >
-                            {order.status === "completed"
-                              ? "Виконано"
-                              : order.status === "cancelled"
-                                ? "Скасовано"
-                                : "В обробці"}
+                            {order.status === "completed" ? "Виконано" : order.status === "cancelled" ? "Скасовано" : "В обробці"}
                           </div>
                         </div>
                       </div>
                       {order.items && order.items.length > 0 && (
-                        <div
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "6px",
-                          }}
-                        >
+                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                           {order.items.map((item, idx) => (
-                            <div
-                              key={idx}
-                              style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                fontSize: "13px",
-                                color: "#555",
-                              }}
-                            >
-                              <span>
-                                {item.name || `Товар #${item.productId}`} ×{" "}
-                                {item.quantity}
-                              </span>
-                              <span style={{ fontWeight: "600" }}>
-                                {(Number(item.price) * item.quantity).toFixed(
-                                  2,
-                                )}{" "}
-                                ₴
-                              </span>
+                            <div key={idx} style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: "#555" }}>
+                              <span>{item.name || `Товар #${item.productId}`} × {item.quantity}</span>
+                              <span style={{ fontWeight: "600" }}>{(Number(item.price) * item.quantity).toFixed(2)} ₴</span>
                             </div>
                           ))}
                         </div>
                       )}
                       {order.address && (
-                        <div
-                          style={{
-                            marginTop: "12px",
-                            fontSize: "12px",
-                            color: "#888",
-                            borderTop: "1px solid #f0f0f0",
-                            paddingTop: "12px",
-                          }}
-                        >
+                        <div style={{ marginTop: "12px", fontSize: "12px", color: "#888", borderTop: "1px solid #f0f0f0", paddingTop: "12px" }}>
                           📍 {order.address}
                         </div>
                       )}
@@ -978,16 +805,7 @@ export default function ProfilePage() {
         <div className="modal-overlay" onClick={closeModal}>
           <div className="modal-box" onClick={(e) => e.stopPropagation()}>
             <button className="modal-back-btn" onClick={closeModal}>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="15 18 9 12 15 6" />
               </svg>
               Назад
@@ -997,30 +815,9 @@ export default function ProfilePage() {
               <>
                 <h2 className="modal-title">Прізвище, ім'я</h2>
                 <div className="modal-inputs">
-                  <input
-                    type="text"
-                    name="lastName"
-                    placeholder="Прізвище"
-                    value={editData.lastName || ""}
-                    onChange={handleEditChange}
-                    className="modal-input"
-                  />
-                  <input
-                    type="text"
-                    name="firstName"
-                    placeholder="Ім'я"
-                    value={editData.firstName || ""}
-                    onChange={handleEditChange}
-                    className="modal-input"
-                  />
-                  <input
-                    type="text"
-                    name="middleName"
-                    placeholder="По батькові"
-                    value={editData.middleName || ""}
-                    onChange={handleEditChange}
-                    className="modal-input"
-                  />
+                  <input type="text" name="lastName" placeholder="Прізвище" value={editData.lastName || ""} onChange={handleEditChange} className="modal-input" />
+                  <input type="text" name="firstName" placeholder="Ім'я" value={editData.firstName || ""} onChange={handleEditChange} className="modal-input" />
+                  <input type="text" name="middleName" placeholder="По батькові" value={editData.middleName || ""} onChange={handleEditChange} className="modal-input" />
                 </div>
               </>
             )}
@@ -1028,14 +825,7 @@ export default function ProfilePage() {
               <>
                 <h2 className="modal-title">Дата народження</h2>
                 <div className="modal-inputs">
-                  <input
-                    type="text"
-                    name="birthDate"
-                    placeholder="дд.мм.рррр"
-                    value={editData.birthDate || ""}
-                    onChange={handleEditChange}
-                    className="modal-input"
-                  />
+                  <input type="text" name="birthDate" placeholder="дд.мм.рррр" value={editData.birthDate || ""} onChange={handleEditChange} className="modal-input" />
                 </div>
               </>
             )}
@@ -1043,12 +833,7 @@ export default function ProfilePage() {
               <>
                 <h2 className="modal-title">Стать</h2>
                 <div className="modal-inputs">
-                  <select
-                    name="gender"
-                    value={editData.gender || "Не вказано"}
-                    onChange={handleEditChange}
-                    className="modal-input"
-                  >
+                  <select name="gender" value={editData.gender || "Не вказано"} onChange={handleEditChange} className="modal-input">
                     <option value="Не вказано">Не вказано</option>
                     <option value="Чоловіча">Чоловіча</option>
                     <option value="Жіноча">Жіноча</option>
@@ -1060,14 +845,15 @@ export default function ProfilePage() {
               <>
                 <h2 className="modal-title">Телефон</h2>
                 <div className="modal-inputs">
-                  <input
-                    type="tel"
-                    name="phone"
-                    placeholder="+380..."
-                    value={editData.phone || ""}
-                    onChange={handleEditChange}
-                    className="modal-input"
-                  />
+                  <input type="tel" name="phone" placeholder="+380..." value={editData.phone || ""} onChange={handleEditChange} className="modal-input" />
+                </div>
+              </>
+            )}
+            {activeModal === "editCity" && (
+              <>
+                <h2 className="modal-title">Місто</h2>
+                <div className="modal-inputs">
+                  <input type="text" name="city" placeholder="Ваше місто" value={editData.city || ""} onChange={handleEditChange} className="modal-input" />
                 </div>
               </>
             )}
@@ -1075,26 +861,15 @@ export default function ProfilePage() {
               <>
                 <h2 className="modal-title">Електронна пошта</h2>
                 <div className="modal-inputs">
-                  <input
-                    type="email"
-                    name="email"
-                    placeholder="example@gmail.com"
-                    value={editData.email || ""}
-                    onChange={handleEditChange}
-                    className="modal-input"
-                  />
+                  <input type="email" name="email" placeholder="example@gmail.com" value={editData.email || ""} onChange={handleEditChange} className="modal-input" />
                 </div>
               </>
             )}
 
             {saveError && <p className="modal-error">{saveError}</p>}
             <div className="modal-buttons">
-              <button className="modal-btn-cancel" onClick={closeModal}>
-                Скасувати
-              </button>
-              <button className="modal-btn-save" onClick={handleSaveDetails}>
-                Зберегти
-              </button>
+              <button className="modal-btn-cancel" onClick={closeModal}>Скасувати</button>
+              <button className="modal-btn-save" onClick={handleSaveDetails}>Зберегти</button>
             </div>
           </div>
         </div>
