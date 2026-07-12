@@ -6,13 +6,25 @@ import useProducts from "../hooks/useProducts";
 const mockCategories = [
   { name: "Всі", icon: "/images/figma/icons/categories/all.svg" },
   { name: "Добрі промо", icon: "/images/figma/icons/categories/promo.svg" },
-  { name: "Риба", icon: "/images/figma/icons/categories/fish.svg" },
-  { name: "Сири", icon: "/images/figma/icons/categories/cheese.svg" },
+  {
+    name: "Риба",
+    icon: "/images/figma/icons/categories/fish.svg",
+    queryKeyword: "риб",
+  },
+  {
+    name: "Сири",
+    icon: "/images/figma/icons/categories/cheese.svg",
+    queryKeyword: "сир",
+  },
   {
     name: "Готові страви і кулінарія",
     icon: "/images/figma/icons/categories/food.svg",
   },
-  { name: "Власні марки", icon: "/images/figma/icons/categories/brands.svg" },
+  {
+    name: "Власні марки",
+    icon: "/images/figma/icons/categories/brands.svg",
+    queryKeyword: "власн",
+  },
   {
     name: "Здорове харчування",
     icon: "/images/figma/icons/categories/healthy.svg",
@@ -24,6 +36,7 @@ const mockCategories = [
   {
     name: "Заморожена продукція",
     icon: "/images/figma/icons/categories/frozen.svg",
+    queryKeyword: "заморожен",
   },
 ];
 
@@ -130,6 +143,7 @@ export default function CatalogPage() {
   const [selectedCategory, setSelectedCategory] = useState(
     searchParams.get("category") || "Всі",
   );
+  const isPromoFilter = selectedCategory === "Добрі промо";
   const selectedSubcategory = searchParams.get("subcategory") || undefined;
   const [sortValue, setSortValue] = useState("default");
   const [currentPage, setCurrentPage] = useState(1);
@@ -162,11 +176,17 @@ export default function CatalogPage() {
   } = useProducts({
     page: currentPage,
     limit: 24,
-    category: selectedCategory !== "Всі" ? selectedCategory : undefined,
+    category: isPromoFilter
+      ? undefined
+      : selectedCategory !== "Всі"
+        ? mockCategories.find((c) => c.name === selectedCategory)
+            ?.queryKeyword || selectedCategory
+        : undefined,
     subcategory: selectedSubcategory,
     search: searchQuery || undefined,
     sortBy: currentSort?.sortBy,
     order: currentSort?.order,
+    isPromo: isPromoFilter,
   });
 
   // ✅ Фільтрація за ціною на клієнті — додатковий шар над серверними даними,

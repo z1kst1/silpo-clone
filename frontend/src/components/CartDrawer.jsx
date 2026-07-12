@@ -3,6 +3,7 @@ import useProducts from "../hooks/useProducts";
 import ProductCard from "./ProductCard";
 import { useCart } from "../context/CartContext";
 import { Link } from "react-router";
+import { toast } from "react-toastify";
 
 export default function CartDrawer({ isOpen, onClose }) {
   const { products } = useProducts();
@@ -14,8 +15,35 @@ export default function CartDrawer({ isOpen, onClose }) {
     subtotal,
   } = useCart();
   const [suggestions, setSuggestions] = useState([]);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isPromoOpen, setIsPromoOpen] = useState(false);
+  const [promoCode, setPromoCode] = useState("");
+  const [isPackagingOpen, setIsPackagingOpen] = useState(false);
+  const [packaging, setPackaging] = useState("silpo");
+  const [itemComments, setItemComments] = useState({});
+  const [commentingItemId, setCommentingItemId] = useState(null);
+  const [commentDraft, setCommentDraft] = useState("");
+
+  const packagingOptions = [
+    {
+      id: "silpo",
+      label: "Фірмові пакети «Сільпо»",
+      desc: "Біопакет з ручкою за 1.2 ₴, для риби/м'яса — 2.49 ₴",
+    },
+    {
+      id: "eco",
+      label: "Власні багаторазові сумки",
+      desc: "Без додаткової плати — привеземо у ваших сумках, якщо вкажете кур'єру",
+    },
+    {
+      id: "none",
+      label: "Без пакування",
+      desc: "Товари будуть передані без додаткових пакетів",
+    },
+  ];
 
   const scrollContainerRef = useRef(null);
+  const offersScrollRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -71,6 +99,18 @@ export default function CartDrawer({ isOpen, onClose }) {
   const scrollRight = () => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollBy({ left: 220, behavior: "smooth" });
+    }
+  };
+
+  const scrollOffersLeft = () => {
+    if (offersScrollRef.current) {
+      offersScrollRef.current.scrollBy({ left: -180, behavior: "smooth" });
+    }
+  };
+
+  const scrollOffersRight = () => {
+    if (offersScrollRef.current) {
+      offersScrollRef.current.scrollBy({ left: 180, behavior: "smooth" });
     }
   };
 
@@ -305,11 +345,19 @@ export default function CartDrawer({ isOpen, onClose }) {
                           }}
                         >
                           <svg
+                            onClick={() => {
+                              setCommentingItemId(
+                                commentingItemId === item.id ? null : item.id,
+                              );
+                              setCommentDraft(itemComments[item.id] || "");
+                            }}
                             width="18"
                             height="18"
                             viewBox="0 0 24 24"
                             fill="none"
-                            stroke="currentColor"
+                            stroke={
+                              itemComments[item.id] ? "#8b181b" : "currentColor"
+                            }
                             strokeWidth="1.8"
                             strokeLinecap="round"
                             strokeLinejoin="round"
@@ -338,6 +386,67 @@ export default function CartDrawer({ isOpen, onClose }) {
                           </svg>
                         </div>
                       </div>
+
+                      {commentingItemId === item.id ? (
+                        <div
+                          style={{
+                            marginTop: "8px",
+                            display: "flex",
+                            gap: "6px",
+                          }}
+                        >
+                          <input
+                            type="text"
+                            autoFocus
+                            value={commentDraft}
+                            onChange={(e) => setCommentDraft(e.target.value)}
+                            placeholder="Напр.: без хвостика, стигліші тощо"
+                            style={{
+                              flex: 1,
+                              padding: "8px 10px",
+                              borderRadius: "8px",
+                              border: "1px solid #ddd",
+                              fontSize: "12px",
+                              outline: "none",
+                              boxSizing: "border-box",
+                            }}
+                          />
+                          <button
+                            onClick={() => {
+                              setItemComments((prev) => ({
+                                ...prev,
+                                [item.id]: commentDraft.trim(),
+                              }));
+                              setCommentingItemId(null);
+                            }}
+                            style={{
+                              padding: "8px 12px",
+                              borderRadius: "8px",
+                              border: "none",
+                              backgroundColor: "#8b181b",
+                              color: "#fff",
+                              fontSize: "12px",
+                              fontWeight: "600",
+                              cursor: "pointer",
+                            }}
+                          >
+                            ОК
+                          </button>
+                        </div>
+                      ) : (
+                        itemComments[item.id] && (
+                          <p
+                            style={{
+                              margin: "6px 0 0 0",
+                              fontSize: "12px",
+                              color: "#8b181b",
+                              fontStyle: "italic",
+                            }}
+                          >
+                            💬 {itemComments[item.id]}
+                          </p>
+                        )
+                      )}
 
                       <div
                         style={{
@@ -547,6 +656,7 @@ export default function CartDrawer({ isOpen, onClose }) {
                   Пакування
                 </span>
                 <span
+                  onClick={() => setIsPackagingOpen((prev) => !prev)}
                   style={{
                     color: "#8b181b",
                     fontSize: "13px",
@@ -554,9 +664,48 @@ export default function CartDrawer({ isOpen, onClose }) {
                     cursor: "pointer",
                   }}
                 >
-                  Обрати інше
+                  {isPackagingOpen ? "Згорнути" : "Обрати інше"}
                 </span>
               </div>
+
+              {isPackagingOpen && (
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "8px",
+                    marginBottom: "16px",
+                  }}
+                >
+                  {packagingOptions.map((opt) => (
+                    <div
+                      key={opt.id}
+                      onClick={() => {
+                        setPackaging(opt.id);
+                        setIsPackagingOpen(false);
+                      }}
+                      style={{
+                        padding: "10px 14px",
+                        borderRadius: "10px",
+                        border:
+                          packaging === opt.id
+                            ? "2px solid #8b181b"
+                            : "1px solid #ddd",
+                        cursor: "pointer",
+                        fontSize: "13px",
+                      }}
+                    >
+                      <div style={{ fontWeight: "700", color: "#202124" }}>
+                        {opt.label}
+                      </div>
+                      <div style={{ color: "#666", marginTop: "2px" }}>
+                        {opt.desc}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <div
                 style={{ display: "flex", gap: "16px", alignItems: "center" }}
               >
@@ -604,9 +753,7 @@ export default function CartDrawer({ isOpen, onClose }) {
                       fontWeight: "500",
                     }}
                   >
-                    Зберемо замовлення в фірмові пакети «Сільпо». Для вагового
-                    візьмемо мінімум біопакетів з ручкою за 1.2 ₴. Для рибки та
-                    м'яса – зручні пакетики за 2.49 ₴.
+                    {packagingOptions.find((o) => o.id === packaging)?.desc}
                   </p>
                 </div>
               </div>
@@ -633,6 +780,7 @@ export default function CartDrawer({ isOpen, onClose }) {
                 </span>
                 <div style={{ display: "flex", gap: "8px" }}>
                   <button
+                    onClick={scrollOffersLeft}
                     style={{
                       width: "28px",
                       height: "28px",
@@ -660,6 +808,7 @@ export default function CartDrawer({ isOpen, onClose }) {
                     </svg>
                   </button>
                   <button
+                    onClick={scrollOffersRight}
                     style={{
                       width: "28px",
                       height: "28px",
@@ -690,11 +839,13 @@ export default function CartDrawer({ isOpen, onClose }) {
               </div>
 
               <div
+                ref={offersScrollRef}
                 style={{
                   display: "flex",
                   gap: "12px",
                   overflowX: "auto",
                   scrollbarWidth: "none",
+                  scrollBehavior: "smooth",
                 }}
               >
                 <div
@@ -886,6 +1037,7 @@ export default function CartDrawer({ isOpen, onClose }) {
                   Промокод
                 </span>
                 <span
+                  onClick={() => setIsPromoOpen((prev) => !prev)}
                   style={{
                     color: "#8b181b",
                     fontSize: "13px",
@@ -893,12 +1045,53 @@ export default function CartDrawer({ isOpen, onClose }) {
                     cursor: "pointer",
                   }}
                 >
-                  Додати
+                  {isPromoOpen ? "Сховати" : "Додати"}
                 </span>
               </div>
-              <p style={{ margin: 0, fontSize: "13px", color: "#444" }}>
-                До замовлення можна додати лише один промокод
-              </p>
+              {isPromoOpen ? (
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <input
+                    type="text"
+                    value={promoCode}
+                    onChange={(e) => setPromoCode(e.target.value)}
+                    placeholder="Введіть промокод"
+                    style={{
+                      flex: 1,
+                      padding: "10px 12px",
+                      borderRadius: "10px",
+                      border: "1px solid #ddd",
+                      fontSize: "13px",
+                      outline: "none",
+                      boxSizing: "border-box",
+                    }}
+                  />
+                  <button
+                    onClick={() => {
+                      toast.info(
+                        promoCode.trim()
+                          ? "Такого промокоду не знайдено"
+                          : "Введіть промокод",
+                      );
+                    }}
+                    style={{
+                      padding: "10px 16px",
+                      backgroundColor: "#8b181b",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "10px",
+                      fontSize: "13px",
+                      fontWeight: "600",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Застосувати
+                  </button>
+                </div>
+              ) : (
+                <p style={{ margin: 0, fontSize: "13px", color: "#444" }}>
+                  До замовлення можна додати лише один промокод
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -913,6 +1106,7 @@ export default function CartDrawer({ isOpen, onClose }) {
           }}
         >
           <div
+            onClick={() => setIsDetailsOpen((prev) => !prev)}
             style={{
               display: "flex",
               alignItems: "center",
@@ -935,10 +1129,60 @@ export default function CartDrawer({ isOpen, onClose }) {
               strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
+              style={{
+                transform: isDetailsOpen ? "rotate(180deg)" : "rotate(0deg)",
+                transition: "transform 0.2s",
+              }}
             >
               <polyline points="18 15 12 9 6 15"></polyline>
             </svg>
           </div>
+
+          {isDetailsOpen && !isEmpty && (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px",
+                marginBottom: "16px",
+                padding: "12px 16px",
+                backgroundColor: "rgba(255,255,255,0.5)",
+                borderRadius: "12px",
+                fontSize: "13px",
+                color: "#202124",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span>
+                  Товари ({cartItems.reduce((sum, i) => sum + i.quantity, 0)}{" "}
+                  шт.)
+                </span>
+                <span>{subtotal.toFixed(2)} грн</span>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  color: "#555",
+                }}
+              >
+                <span>Доставка</span>
+                <span>59.00 грн</span>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontWeight: "700",
+                  borderTop: "1px solid rgba(0,0,0,0.1)",
+                  paddingTop: "8px",
+                }}
+              >
+                <span>Разом</span>
+                <span>{(subtotal + 59).toFixed(2)} грн</span>
+              </div>
+            </div>
+          )}
 
           {isEmpty ? (
             <button
