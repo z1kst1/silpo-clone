@@ -38,6 +38,22 @@ export default function CheckoutPage() {
       return;
     }
 
+    // ✅ Перевірка формату українського номера телефону
+    // Приймає: +380XXXXXXXXX, 380XXXXXXXXX, 0XXXXXXXXX
+    const phoneDigits = form.phone.replace(/[^\d]/g, "");
+    const isPhoneValid =
+      /^380\d{9}$/.test(phoneDigits) || /^0\d{9}$/.test(phoneDigits);
+    if (!isPhoneValid) {
+      setError("Введіть коректний номер телефону, наприклад +380501234567");
+      return;
+    }
+
+    // ✅ Перевірка email лише якщо поле заповнене (воно не обов'язкове)
+    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      setError("Введіть коректний email або залиште поле порожнім");
+      return;
+    }
+
     if (cartItems.length === 0) {
       setError("Кошик порожній");
       return;

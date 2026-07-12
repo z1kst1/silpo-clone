@@ -138,7 +138,7 @@ export default function HomePage() {
     <div
       className="kalpo-home-wrapper"
       style={{
-        backgroundColor: "#f4ead5",
+        backgroundColor: "#F5E6BE",
         minHeight: "100vh",
         paddingBottom: "40px",
       }}
@@ -150,6 +150,8 @@ export default function HomePage() {
           flexDirection: "column",
           gap: "32px",
           paddingTop: "16px",
+          paddingLeft: "40px",
+          paddingRight: "40px",
         }}
       >
         <section

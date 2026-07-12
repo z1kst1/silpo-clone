@@ -3,6 +3,20 @@ import { useNavigate } from "react-router";
 import api from "../api/api";
 import { useAuth } from "../context/AuthContext";
 
+// ✅ Точно ті ж назви категорій що на CatalogPage — щоб фільтр по категорії
+// завжди знаходив товар. Раніше тут був вільний текстовий ввід, через що
+// адмін міг написати "риба" замість "Риба" і товар губився при фільтрації.
+const CATEGORY_OPTIONS = [
+  "Добрі промо",
+  "Риба",
+  "Сири",
+  "Готові страви і кулінарія",
+  "Власні марки",
+  "Здорове харчування",
+  "Бакалія і консерви",
+  "Заморожена продукція",
+];
+
 // Захист — тільки для ADMIN
 function useAdminCheck() {
   const navigate = useNavigate();
@@ -22,15 +36,41 @@ function useAdminCheck() {
 
 // Модальне вікно для додавання/редагування товару
 function ProductModal({ product, onClose, onSave }) {
+  // ✅ Підтримка кількох фото товару (масив images), із сумісністю
+  // зі старими товарами де ще збережено лише одне поле image
+  const initialImages = product
+    ? (Array.isArray(product.images) && product.images.length > 0
+        ? product.images
+        : product.image
+          ? [product.image]
+          : [])
+    : [];
+
   const [form, setForm] = useState(
-    product || { name: "", price: "", category: "", description: "", image: "" }
+    product
+      ? { name: product.name, price: product.price, category: product.category, description: product.description }
+      : { name: "", price: "", category: "", description: "" }
   );
+  const [images, setImages] = useState(initialImages.length > 0 ? initialImages : [""]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   function handleChange(e) {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+  }
+
+  // ✅ Керування динамічним списком фото
+  function handleImageChange(index, value) {
+    setImages((prev) => prev.map((img, i) => (i === index ? value : img)));
+  }
+
+  function addImageField() {
+    setImages((prev) => [...prev, ""]);
+  }
+
+  function removeImageField(index) {
+    setImages((prev) => prev.filter((_, i) => i !== index));
   }
 
   async function handleSubmit(e) {
@@ -40,12 +80,26 @@ function ProductModal({ product, onClose, onSave }) {
       setError("Заповніть назву та ціну");
       return;
     }
+
+    // ✅ Прибираємо порожні поля фото перед відправкою
+    const filledImages = images.map((img) => img.trim()).filter(Boolean);
+
     setSaving(true);
     try {
+      // ✅ Надсилаємо і images (масив, новий формат), і image (перше фото,
+      // для сумісності зі старою схемою бекенду — поки Ярослав не додасть
+      // підтримку масиву на своєму боці, перше фото підхопиться як раніше)
+      const payload = {
+        ...form,
+        price: Number(form.price),
+        images: filledImages,
+        image: filledImages[0] || "",
+      };
+
       if (product) {
-        await api.put(`/products/${product.id}`, { ...form, price: Number(form.price) });
+        await api.put(`/products/${product.id}`, payload);
       } else {
-        await api.post("/products", { ...form, price: Number(form.price) });
+        await api.post("/products", payload);
       }
       onSave();
       onClose();
@@ -87,11 +141,45 @@ function ProductModal({ product, onClose, onSave }) {
           </div>
           <div>
             <label style={labelStyle}>Категорія</label>
-            <input type="text" name="category" value={form.category} onChange={handleChange} placeholder="Наприклад: Свіжа риба" style={inputStyle} />
+            <select name="category" value={form.category} onChange={handleChange} style={inputStyle}>
+              <option value="">— Оберіть категорію —</option>
+              {CATEGORY_OPTIONS.map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
           </div>
           <div>
-            <label style={labelStyle}>URL зображення</label>
-            <input type="text" name="image" value={form.image} onChange={handleChange} placeholder="https://..." style={inputStyle} />
+            <label style={labelStyle}>Фото товару</label>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {images.map((img, index) => (
+                <div key={index} style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                  <input
+                    type="text"
+                    value={img}
+                    onChange={(e) => handleImageChange(index, e.target.value)}
+                    placeholder={index === 0 ? "https://... (головне фото)" : "https://... (додаткове фото)"}
+                    style={{ ...inputStyle, flex: 1 }}
+                  />
+                  {/* Прибрати конкретне поле — лишаємо мінімум одне */}
+                  {images.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeImageField(index)}
+                      style={{ width: "36px", height: "36px", borderRadius: "8px", border: "1px solid #fecaca", backgroundColor: "#fef2f2", color: "#dc2626", cursor: "pointer", fontSize: "16px", flexShrink: 0 }}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addImageField}
+                style={{ alignSelf: "flex-start", padding: "8px 14px", borderRadius: "8px", border: "1px dashed #8b181b", backgroundColor: "transparent", color: "#8b181b", cursor: "pointer", fontSize: "13px", fontWeight: "600" }}
+              >
+                + Додати фото
+              </button>
+            </div>
           </div>
           <div>
             <label style={labelStyle}>Опис</label>
@@ -273,13 +361,19 @@ export default function AdminPage() {
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
               >
                 {/* ФОТО */}
-                <div style={{ width: "52px", height: "52px", borderRadius: "10px", border: "1px solid #f0f0f0", overflow: "hidden", flexShrink: 0, backgroundColor: "#f8f8f8" }}>
+                <div style={{ width: "52px", height: "52px", borderRadius: "10px", border: "1px solid #f0f0f0", overflow: "hidden", flexShrink: 0, backgroundColor: "#f8f8f8", position: "relative" }}>
                   <img
                     src={product.image}
                     alt={product.name || product.title}
                     style={{ width: "100%", height: "100%", objectFit: "contain" }}
                     onError={(e) => { e.target.style.display = "none"; }}
                   />
+                  {/* ✅ Бейдж кількості фото, якщо товар має більше однієї фотографії */}
+                  {Array.isArray(product.images) && product.images.length > 1 && (
+                    <span style={{ position: "absolute", bottom: "2px", right: "2px", backgroundColor: "rgba(0,0,0,0.65)", color: "#fff", fontSize: "10px", fontWeight: "700", borderRadius: "6px", padding: "1px 5px" }}>
+                      +{product.images.length - 1}
+                    </span>
+                  )}
                 </div>
 
                 {/* НАЗВА */}

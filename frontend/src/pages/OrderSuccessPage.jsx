@@ -23,13 +23,36 @@ export default function OrderSuccessPage() {
         const result = await verifyPaymentSession(sessionId);
         if (result.paid) {
           setStatus("confirmed");
-          clearCart();
+          // clearCart окремо — щоб помилка очищення кошика
+          // не перекривала успішну оплату
+          try {
+            await clearCart();
+          } catch (cartErr) {
+            console.warn("Кошик не очистився, але оплата пройшла:", cartErr);
+          }
         } else {
           setStatus("failed");
+          setError("Платіж не підтверджено Stripe. Гроші не списані.");
         }
       } catch (err) {
         console.error("Помилка перевірки оплати:", err);
-        setError("Не вдалося підтвердити оплату. Зверніться до підтримки.");
+        // Якщо помилка авторизації (401) — токен закінчився поки юзер
+        // був на сторінці Stripe. Оплата могла пройти — просимо перевірити
+        // пошту або звернутися до підтримки.
+        if (err.response?.status === 401) {
+          setError(
+            "Сесія авторизації закінчилась. Якщо оплата пройшла — " +
+            "ви отримаєте підтвердження на email. " +
+            "Зверніться до підтримки якщо гроші списались.",
+          );
+        } else if (err.response?.status >= 500) {
+          setError(
+            "Помилка сервера при перевірці оплати. " +
+            "Якщо гроші списались — зверніться до підтримки з номером замовлення.",
+          );
+        } else {
+          setError("Не вдалося підтвердити оплату. Зверніться до підтримки.");
+        }
         setStatus("failed");
       }
     }

@@ -1,6 +1,6 @@
 import axios from "axios";
 
-// ✅ Явний baseURL — видно куди йдуть запити, як хотів ментор
+// ✅ Явний baseURL — видно куди йдуть запити
 // VITE_API_URL береться з .env файлу (різний для dev і production)
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 

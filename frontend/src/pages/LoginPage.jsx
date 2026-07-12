@@ -21,6 +21,14 @@ export default function LoginPage() {
     event.preventDefault();
     setMessage("");
     setError("");
+
+    // ✅ Базова перевірка формату email перед відправкою запиту —
+    // не чекаємо відповіді сервера, щоб сказати про очевидну помилку
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      setError("Введіть коректний email, наприклад example@gmail.com");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {

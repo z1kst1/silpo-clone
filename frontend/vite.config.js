@@ -11,7 +11,7 @@ export default defineConfig({
     },
     proxy: {
       "/api": {
-        target: "http://backend:3000", // ✅ для Docker (dev-режим)
+        target: "http://localhost:3000", // ✅ для локального запуску
         changeOrigin: true,
         secure: false,
       },
@@ -22,7 +22,7 @@ export default defineConfig({
     port: 4173,
     proxy: {
       "/api": {
-        target: "http://backend:3000", // для Docker (production-білд)
+        target: "http://backend:3000", // для Docker
         changeOrigin: true,
         secure: false,
       },
