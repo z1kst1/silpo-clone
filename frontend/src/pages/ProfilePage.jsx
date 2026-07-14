@@ -373,7 +373,7 @@ export default function ProfilePage() {
           {activeView === "myData" && (
             <div className="details-view">
 
-              {/* ✅ Заголовок і аватар в одному рядку — праворуч, не по центру
+              {/*  Заголовок і аватар в одному рядку — праворуч, не по центру
                   всієї сторінки, точно як у макеті Figma */}
               <div className="mydata-header">
                 <div className="details-header-text">

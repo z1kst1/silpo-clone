@@ -11,7 +11,7 @@ export default defineConfig({
     },
     proxy: {
       "/api": {
-        target: "http://localhost:3000", // ✅ для локального запуску
+        target: process.env.VITE_API_TARGET || "http://backend:3000",
         changeOrigin: true,
         secure: false,
       },
@@ -22,7 +22,7 @@ export default defineConfig({
     port: 4173,
     proxy: {
       "/api": {
-        target: "http://backend:3000", // для Docker
+        target: "http://backend:3000",
         changeOrigin: true,
         secure: false,
       },
