@@ -534,23 +534,26 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  align-items: start;
+  align-items: stretch;
   width: 100%;
-  padding-bottom: 32px; /* ✅ відступ всередині grid-контейнера — не ковтається overflow */
+  padding-bottom: 32px;
 }
 
 .details-col-left {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding-bottom: 24px;
 }
 
 .details-col-right {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding-bottom: 24px;
+}
+
+/* Перша картка лівої колонки розтягується щоб вирівнятись з правою */
+.details-col-left .details-block:first-child {
+  flex: 1;
 }
 
 /* ✅ Figma: значення полів — не жирні, regular weight */
