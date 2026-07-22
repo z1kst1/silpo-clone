@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useSearchParams, Link } from "react-router";
 import ProductCard from "../components/ProductCard";
 import useProducts from "../hooks/useProducts";
@@ -167,6 +167,35 @@ export default function CatalogPage() {
   const searchQuery = searchParams.get("search") || "";
   const currentSort = SORT_OPTIONS.find((o) => o.value === sortValue);
 
+  const debounceTimerRef = useRef(null);
+  const searchRef = useRef("");
+
+  useEffect(() => {
+    if (searchRef.current === localSearch) return;
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    debounceTimerRef.current = setTimeout(() => {
+      searchRef.current = localSearch;
+      setCurrentPage(1);
+      const params = new URLSearchParams(searchParams);
+      if (localSearch.trim()) {
+        params.set("search", localSearch.trim());
+      } else {
+        params.delete("search");
+      }
+      setSearchParams(params);
+    }, 300);
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [localSearch, searchParams, setSearchParams]);
+
   // Серверна пагінація і фільтрація через useProducts
   const {
     products: rawProducts,
@@ -223,13 +252,17 @@ export default function CatalogPage() {
 
   function handleLocalSearch(e) {
     e.preventDefault();
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    searchRef.current = localSearch;
+    setCurrentPage(1);
     const params = new URLSearchParams(searchParams);
     if (localSearch.trim()) {
       params.set("search", localSearch.trim());
     } else {
       params.delete("search");
     }
-    setCurrentPage(1);
     setSearchParams(params);
   }
 
