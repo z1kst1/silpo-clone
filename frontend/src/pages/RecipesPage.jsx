@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
+import api from "../api/api";
 
 export default function RecipesPage() {
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/recipes")
-      .then((r) => r.json())
-      .then((data) => setRecipes(Array.isArray(data) ? data : []))
+    api
+      .get("/recipes")
+      .then((res) => setRecipes(Array.isArray(res.data) ? res.data : []))
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
   }, []);

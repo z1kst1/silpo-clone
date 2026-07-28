@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { Link } from "react-router";
 import ProductCard from "../components/ProductCard";
 import useProducts from "../hooks/useProducts";
+import api from "../api/api";
 import "../styles/kalpo-home.css";
 
 const promoCards = [
@@ -63,9 +64,9 @@ function useRecipes() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/recipes")
-      .then((r) => r.json())
-      .then((data) => setRecipes(Array.isArray(data) ? data : []))
+    api
+      .get("/recipes")
+      .then((res) => setRecipes(Array.isArray(res.data) ? res.data : []))
       .catch((err) => console.error("Помилка завантаження рецептів:", err))
       .finally(() => setLoading(false));
   }, []);
